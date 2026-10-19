@@ -1,0 +1,1 @@
+run_id,date_utc,stage,board,fpga_part,cpu_isa,cpu_config,rtl_commit,upstream_commit,toolchain,synth_version,pnr_version,clock_mhz,fmax_mhz,slack_ns,lut_count,ff_count,bram_count,dsp_count,build_seconds,build_peak_mb,test_cycles,hardware_pass,evidence_path,notes

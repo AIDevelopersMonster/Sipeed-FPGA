@@ -1,0 +1,76 @@
+{
+  "schema": "sipeed_fpga.pnr_benchmark.v1",
+  "created_on": "2026-10-19",
+  "design": "01-PicoRV32 picorv32_soc",
+  "project": "Sipeed-FPGA",
+  "platform": "Sipeed Tang Nano 9K",
+  "device": "GW1NR-LV9QN88PC6/I5",
+  "tool": "Gowin EDA V1.9.9 Beta-4 Education",
+  "archive_sha256": "7c00223b7f4e928e4a585f54c63267cea4d59cf72f73eaf703069d2dfea925f3",
+  "archive_name": "PicoRV32_Gowin_Reports.zip",
+  "outcomes": {
+    "firmware_model": "PASS",
+    "uart_rtl": "PASS",
+    "soc_rtl": "PASS",
+    "place_and_route": "PASS",
+    "timing_clk27": "PASS",
+    "physical_board": "NOT_TESTED",
+    "power_measurement": "NOT_AVAILABLE"
+  },
+  "resources": {
+    "logic_used": 1780,
+    "logic_available": 8640,
+    "logic_percent_report": 21,
+    "lut_used": 1424,
+    "alu_used": 356,
+    "registers_used": 717,
+    "registers_available": 6693,
+    "logic_ff_used": 716,
+    "io_ff_used": 1,
+    "cls_used": 1068,
+    "cls_available": 4320,
+    "bsram_percent_report": 12,
+    "sdpb_used": 2,
+    "prom_used": 1,
+    "dsp_used": 0,
+    "pll_used": 0,
+    "io_ports_used": 10
+  },
+  "timing": {
+    "clock": "clk27",
+    "target_mhz": 27.0,
+    "period_ns": 37.037,
+    "reported_fmax_mhz": 49.932,
+    "worst_setup_slack_ns": 17.01,
+    "worst_hold_slack_ns": 0.708,
+    "setup_tns_ns": 0.0,
+    "hold_tns_ns": 0.0,
+    "setup_violated_endpoints": 0,
+    "hold_violated_endpoints": 0,
+    "analyzed_paths": 1995,
+    "analyzed_endpoints": 1726,
+    "critical_path_from": "cpu/latched_stalu_s2/Q",
+    "critical_path_to": "cpu/reg_next_pc_23_s0/D",
+    "critical_path_data_delay_ns": 19.627,
+    "critical_path_logic_levels": 7,
+    "setup_corner": "Slow 1.14V 85C C6/I5",
+    "hold_corner": "Fast 1.26V 0C C6/I5"
+  },
+  "constraints": {
+    "active_sdc": [
+      "create_clock -name clk27 -period 37.037 [get_ports {clk}]"
+    ],
+    "input_delay_defined": false,
+    "output_delay_defined": false,
+    "timing_exceptions_reported": false,
+    "recovery_removal_paths_reported": false
+  },
+  "verification_limits": [
+    "PNR and STA reports are not hardware measurements.",
+    "Only main clock was constrained; no external I/O delays were provided.",
+    "The PnR pin report lists Bank1 Vccio as 1.2 V, while the Sipeed Tang Nano 9K schematic labels physical Bank1 as 3.3 V; record as a report-versus-schematic discrepancy.",
+    "The reset input is on FPGA pin 3; on schematic revision 6202 this is associated with physical pushbutton S2, despite inconsistent legacy net naming.",
+    "The UART RX pin is reserved but functionally unused in this boot demo.",
+    "The generated bitstream file itself was not included in the report archive."
+  ]
+}

@@ -1,0 +1,19 @@
+# Generated/third-party outputs
+**/build/
+**/impl/
+**/vendor/*/
+**/.venv/
+**/__pycache__/
+*.vvp
+*.vcd
+*.log
+*.tmp
+*.bak
+*.gprj.user
+*.fs
+*.bin
+*.elf
+*.sof
+*.pof
+*.bit
+.DS_Store

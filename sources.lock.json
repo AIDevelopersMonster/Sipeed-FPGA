@@ -1,0 +1,69 @@
+{
+  "snapshot_date": "2026-10-19",
+  "purpose": "Reference commits for reproducible experiments; only PicoRV32 is fetched by bootstrap scripts.",
+  "dependencies": [
+    {
+      "role": "stage01_cpu",
+      "repository": "https://github.com/YosysHQ/picorv32",
+      "commit": "ef203c2b0a3fb793280f5114941416c425c5b461",
+      "license": "ISC",
+      "status": "locked"
+    },
+    {
+      "role": "stage02_cpu",
+      "repository": "https://github.com/stnolting/neorv32",
+      "commit": "b2620454ebb2407e81a6a1965ef52e2a860b0432",
+      "license": "verify_before_vendor",
+      "status": "reference_only"
+    },
+    {
+      "role": "stage03_soc_generator",
+      "repository": "https://github.com/enjoy-digital/litex",
+      "commit": "c642f5dabba47fa1735d4c24ed08116c9d04322f",
+      "license": "verify_before_vendor",
+      "status": "reference_only"
+    },
+    {
+      "role": "stage03_cpu",
+      "repository": "https://github.com/SpinalHDL/VexRiscv",
+      "commit": "baf7dc82f855eddaf5b0a20a6802c526f127e38a",
+      "license": "verify_before_vendor",
+      "status": "reference_only"
+    },
+    {
+      "role": "stage04_cpu",
+      "repository": "https://github.com/chipsalliance/rocket-chip",
+      "commit": "ece7b9ad544b07df39cd13b6fd7236562a26355d",
+      "license": "verify_before_vendor",
+      "status": "reference_only"
+    },
+    {
+      "role": "platform_litex_boards",
+      "repository": "https://github.com/litex-hub/litex-boards",
+      "commit": "14ca58f33663a1710c0244b4114c734c4b5b644e",
+      "license": "BSD-2-Clause",
+      "status": "reference_only"
+    },
+    {
+      "role": "official_nano9k_reference",
+      "repository": "https://github.com/sipeed/TangNano-9K-example",
+      "commit": "c3b795799f23de91982be52db4273a8eea100cdb",
+      "license": "check_component_license",
+      "status": "reference_only"
+    },
+    {
+      "role": "official_primer20k_rocket_reference",
+      "repository": "https://github.com/sipeed/TangPrimer-20K-example",
+      "commit": "e469df4c0c9c41824f405a8515decf24ef1e8e6f",
+      "license": "check_component_license",
+      "status": "reference_only"
+    },
+    {
+      "role": "official_primer25k_reference",
+      "repository": "https://github.com/sipeed/TangPrimer-25K-example",
+      "commit": "27c1737b687369f46baff9cf621cd7499a1b7fd4",
+      "license": "check_component_license",
+      "status": "reference_only"
+    }
+  ]
+}
