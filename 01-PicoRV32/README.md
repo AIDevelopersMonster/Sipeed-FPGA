@@ -1,5 +1,27 @@
 # 01 — PicoRV32 / Tang Nano 9K
 
+## Current lab — LAB-02 USB-UART / HTML-linked LED control (20 October 2026)
+
+**Verified:** MODEL_PASS, RTL_PASS, PNR_PASS, STA_PASS, BOARD_PASS, HTML_HARDWARE_PASS. The physical FPGA receives commands `0`–`6` and `?` over its onboard USB UART, controls L1–L6 via MMIO and replies `L=n`. Web Serial linked HTML maps its conceptual step 14 to an acknowledged hardware LED change, including reversible 13 → 14 → 13 → 14 behavior. Manual, automatic and three-LED linked tests were reported successful.
+
+**STA:** required 27.000 MHz; achieved Fmax 52.522 MHz; setup/hold TNS 0.000. **ROM:** 118 RV32I instructions / 1 KiB. The educational four-instruction, nineteen-step model is a separate visualization, not a cycle-accurate CPU trace.
+
+[**RU/EN complete lab manuals, PDFs and linked HTML**](../docs/lab02/README.md).
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA
+& .\01-PicoRV32\tools\test_lab02.ps1 -ModelOnly
+& .\01-PicoRV32\tools\test_lab02.ps1
+& .\01-PicoRV32\tools\build_gowin.ps1
+# Inspect PnR/STA; configure SRAM only. Then, with board connected:
+& .\01-PicoRV32\tools\probe_lab02_serial.ps1 -PortName COM10
+& .\01-PicoRV32\tools\launch_lab02_html.ps1 -Language RU
+```
+
+**Historical P1 note:** the older sections below describe the 19 October 2026 `PICO` demonstration. The LAB-02 branch/HEAD contains a *different* ROM program; those P1-specific `test.ps1` expectations must not be applied to the current LAB-02 firmware. The P1 implementation remains reproducible from the previous Git commit `88f90d65c500fc1e2c71f13c774dc919a4bd3a34`.
+
+---
+
 **Stage v0.1 / BOARD_PASS:** 33-instruction PicoRV32 ROM demo, MMIO LED/counter/UART, RTL simulation, Gowin STA and physical SRAM programming on Tang Nano 9K verified 19 October 2026.
 
 ## Interactive LED1 HTML demonstration

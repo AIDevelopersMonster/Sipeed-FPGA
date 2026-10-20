@@ -1,12 +1,12 @@
 # Sipeed FPGA — CPU/SoC research line
 
-**Status: PicoRV32 Stage P1 — BOARD_PASS on Tang Nano 9K (19 October 2026).** Firmware model, RTL simulation, Gowin PnR/STA at 27 MHz, SRAM programming, UART `PICO` and LED animation were confirmed. The four-instruction interactive demonstration below is a separate conceptual example.
+**Current status: PicoRV32 LAB-02 — BOARD_PASS + HTML_HARDWARE_PASS on Tang Nano 9K (20 October 2026).** Earlier P1 is preserved in Git history. Firmware model, RTL simulation, Gowin PnR/STA at 27 MHz, SRAM programming, UART `PICO` and LED animation were confirmed. The four-instruction interactive demonstration below is a separate conceptual example.
 
 One repository; four deliberately independent implementations. Platforms are **Sipeed Tang Nano 9K** and **Tang Primer 25K**. This is **not** the DDF training repository and **not** an Intel MAX 10 project.
 
 | Stage | Folder | CPU/SoC | First target | Current state |
 |---|---|---|---|---|
-| 01 | [`01-PicoRV32`](01-PicoRV32/README.md) | PicoRV32 (RV32I) | Tang Nano 9K | BOARD_PASS: RTL, PnR, SRAM, UART and LEDs (2026-10-19) |
+| 01 | [`01-PicoRV32`](01-PicoRV32/README.md) | PicoRV32 (RV32I) | Tang Nano 9K | LAB-02: MODEL, RTL, PnR, STA, BOARD and HTML_HARDWARE_PASS (2026-10-20) |
 | 02 | [`02-NEORV32`](02-NEORV32/README.md) | NEORV32 (VHDL) | Tang Nano 9K | Research baseline / integration specification |
 | 03 | [`03-LiteX-VexRiscv`](03-LiteX-VexRiscv/README.md) | LiteX with VexRiscv | Tang Primer 25K | Research baseline / integration specification |
 | 04 | [`04-Rocket`](04-Rocket/README.md) | Rocket RV32IC minimal configuration | Tang Primer 25K | Feasibility study, NOT a confirmed fit |
@@ -15,14 +15,18 @@ One repository; four deliberately independent implementations. Platforms are **S
 
 [**PicoRV32: how one machine instruction turns on LED L1 — HTML RU/EN**](docs/interactive/picorv32-led1/README.md) · 19 steps, local/offline browser, registers, decoder, MMIO and active-low LED output. Separate educational model; not a cycle-accurate Verilog simulator.
 
-## First experiment (Windows PowerShell 7)
+## LAB-02: verified board + educational HTML (Windows PowerShell 7)
+
+[**Laboratory 02 — Russian/English methodical guides, PDF and hardware-linked HTML**](docs/lab02/README.md).
+
+The current ROM is the 118-instruction UART controller (`READY`, `L=n`). The earlier 33-instruction `PICO` firmware and the original P1 protocol are preserved in Git history. Run `test_lab02.ps1`, not the earlier P1-specific `test.ps1`, against LAB-02 HEAD.
 
 ```powershell
 cd C:\GitHub\Sipeed-FPGA
 & .\tools\preflight.ps1
-& .\01-PicoRV32\tools\test.ps1 -PythonOnly
+& .\01-PicoRV32\tools\test_lab02.ps1 -ModelOnly
 & .\01-PicoRV32\tools\fetch_picorv32.ps1
-& .\01-PicoRV32\tools\test.ps1
+& .\01-PicoRV32\tools\test_lab02.ps1
 & .\01-PicoRV32\tools\build_gowin.ps1
 ```
 

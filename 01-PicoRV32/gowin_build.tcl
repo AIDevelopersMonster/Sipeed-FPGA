@@ -10,6 +10,7 @@ add_file constraints/tang_nano_9k.sdc
 add_file rtl/picorv32_soc.v
 add_file rtl/boot_rom.v
 add_file rtl/uart_tx_8n1.v
+add_file rtl/uart_rx_8n1.v
 add_file vendor/picorv32/picorv32.v
 
 set_option -top_module picorv32_soc

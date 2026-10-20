@@ -23,6 +23,10 @@ stop: jal zero, stop
 
 The model traces ROM → PicoRV32 decoder → GPR x5/x6 → native memory bus → MMIO LED register → active-low FPGA output for L1, with selectable L1–L6. It is **not** a cycle-accurate RTL simulation. This separate 4-instruction program was **not physically validated**; the main repository's 33-instruction SoC was verified on Tang Nano 9K on 19 October 2026 (SRAM programming, UART PICO, LED animation).
 
-**Binary teaching assets:** illustrated 26-page PDF guides (RU and EN) and a 16:9 video cover are released separately from this first GitHub text commit; verify their presence before citing direct PDF/image links. Their intended directory is this folder and `assets/`.
+**Binary teaching assets:** 26-page illustrated PDF guides (RU and EN) and a 16:9 video thumbnail are already published in this directory and `assets/`.
+
+## LAB-02 — live hardware link (20 October 2026)
+
+Use [Russian linked HTML](linked/PicoRV32_LED1_Linked_RU.html) or [English linked HTML](linked/PicoRV32_LED1_Linked_EN.html), with [verified LAB-02 RU/EN guides and PDF](../../lab02/README.md). Start the local server via `01-PicoRV32/tools/launch_lab02_html.ps1`; a Chromium browser grants Web Serial access to the onboard USB UART (COM10 in our experiment). LED changes at educational step 14 are acknowledged by physical PicoRV32 MMIO readback; reverse step turns the LED off. The real FPGA runs a **separate 118-instruction firmware** and does not trace the conceptual four-instruction ROM cycle-by-cycle.
 
 **Upstream PicoRV32:** Claire Xenia Wolf, ISC-licensed core: https://github.com/YosysHQ/picorv32. This educational visualization is not an official simulator from YosysHQ.
