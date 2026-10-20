@@ -1,6 +1,6 @@
 # PicoRV32 LAB-03.1 — real bus-event trace recorder (RTL prototype)
 
-**Status: IMPLEMENTED / RTL TESTS PROVIDED / RTL EXECUTION PENDING.**
+**Status: SOURCE_PREFLIGHT_PASS · TRACE_UNIT_RTL_PASS · SOC_TRACE_RTL_PASS · RTL_PASS (local Icarus Verilog, 20 October 2026). Gowin PnR/STA and FPGA BOARD remain NOT TESTED for LAB-03.1.**
 
 LAB-03.1 is a non-intrusive trace-capture component and two RTL testbenches. It observes the **unchanged LAB-02** PicoRV32 SoC. It is **not wired into the synthesized board image** and it has **no UART trace-download command yet**. Do not label the board or Gowin stages PASS on the basis of this package.
 
@@ -19,13 +19,17 @@ LAB-03.1 is a non-intrusive trace-capture component and two RTL testbenches. It 
 & .\01-PicoRV32\tools\test_lab03_1.ps1
 ```
 
-**Expected** (not yet observed in this release environment):
+**Observed output (user-provided Windows PowerShell / Icarus Verilog, 20 October 2026):**
 
 ```text
-LAB03_1_TRACE_UNIT_RTL_PASS: ...
-LAB03_1_SOC_TRACE_RTL_PASS: ...
+LAB03_1_SOURCE_PREFLIGHT_PASS: source, TBs, 1 KiB LAB-02 ROM; NOT RTL/PNR/BOARD
+LAB03_1_TRACE_UNIT_RTL_PASS: triggers, accepted transfers, readback, full, exact-fit, overlap
+ASSEMBLE PASS: 118 instructions, 1024 B ROM, labels=22
+LAB03_1_SOC_TRACE_RTL_PASS: command=4, events=22 fetches=21 LED_STORE=0x8, verified boot.hex and L=4
 LAB03_1_RTL_PASS: recorder and real PicoRV32-SoC trace. FPGA PnR/BOARD NOT TESTED.
 ```
+
+The `-UnitOnly` test also returned `LAB03_1_UNIT_RTL_PASS ONLY`. Nonfatal Icarus `timescale` and PicoRV32 `@*` sensitivity warnings appeared; the PASS markers above are observed RTL simulation results. The 21 FETCH events are accepted instruction reads, **not** evidence of 21 retired instructions. No independent GitHub Actions rerun is claimed.
 
 ## Scientific boundary
 

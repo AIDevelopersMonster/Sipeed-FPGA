@@ -1,7 +1,7 @@
 # LAB-03.1 — passive real-bus event capture for PicoRV32
 
 **Project:** Sipeed FPGA · Tang Nano 9K · PicoRV32 RV32I · 20 October 2026  
-**Milestone:** LAB-03.1 v0.1.0 (RTL prototype, awaiting independent RTL execution)  
+**Milestone:** LAB-03.1 v0.1.0 (RTL tests PASS on 20 October 2026; Gowin/physical FPGA not tested)  
 **Educational experiment:** A. A. Malachevsky, ORCID 0009-0008-6009-3196  
 **Repository:** https://github.com/AIDevelopersMonster/Sipeed-FPGA
 
@@ -33,13 +33,14 @@ python .\01-PicoRV32\tools\test_lab03_contract.py
 
 The standalone test covers capture triggering, `mem_ready` handshake, filtering, snapshot readback, early buffer full, last-slot LED store, and overlapping commands. The integration test sends real 115200-8N1 serial command `4` into the already proven LAB-02 PicoRV32 SoC, compares every captured fetch with `boot.hex`, verifies the accepted `0x20000000 ← 0x8` transaction and observes the UART `L=4` response.
 
-**Expected, not yet observed locally:**
+**Observed laboratory output (user-provided Windows / PowerShell / Icarus Verilog test, 20 October 2026):**
 
 ```text
-LAB03_1_SOURCE_PREFLIGHT_PASS ... NOT RTL/PNR/BOARD
-LAB03_1_TRACE_UNIT_RTL_PASS ...
-LAB03_1_SOC_TRACE_RTL_PASS ...
-LAB03_1_RTL_PASS ... FPGA PnR/BOARD NOT TESTED.
+LAB03_1_SOURCE_PREFLIGHT_PASS: source, TBs, 1 KiB LAB-02 ROM; NOT RTL/PNR/BOARD
+LAB03_1_TRACE_UNIT_RTL_PASS: triggers, accepted transfers, readback, full, exact-fit, overlap
+ASSEMBLE PASS: 118 instructions, 1024 B ROM, labels=22
+LAB03_1_SOC_TRACE_RTL_PASS: command=4, events=22 fetches=21 LED_STORE=0x8, verified boot.hex and L=4
+LAB03_1_RTL_PASS: recorder and real PicoRV32-SoC trace. FPGA PnR/BOARD NOT TESTED.
 ```
 
 ## Evidence ledger (at release)
@@ -47,11 +48,13 @@ LAB03_1_RTL_PASS ... FPGA PnR/BOARD NOT TESTED.
 | Verification | Status |
 |---|---|
 | Source/ROM preflight | `SOURCE_PREFLIGHT_PASS` |
-| Isolated RTL recorder simulation | **PENDING** |
-| Full PicoRV32 SoC + trace RTL test | **PENDING** |
+| Isolated RTL recorder simulation | **RTL_PASS** (20 October 2026) |
+| Full PicoRV32 SoC + trace RTL test | **RTL_PASS**: command `4`, 22 events (21 FETCH + 1 LED_WRITE), `0x8`, verified `boot.hex`, reply `L=4` |
 | Gowin synthesis/PnR/STA with a trace-connected top level | **NOT STARTED** |
 | FPGA board/physical UART trace transport | **NOT STARTED** |
 | Live actual trace in HTML | **NOT STARTED** |
+
+The `-UnitOnly` runner also printed `LAB03_1_UNIT_RTL_PASS ONLY`. Nonfatal Icarus `timescale` and PicoRV32 `@*` sensitivity warnings were reported. This is user-provided Windows laboratory evidence, not independent GitHub Actions replication. An acknowledged FETCH is not proof of architectural retirement. LAB-03.1 has **not** undergone Gowin PnR/STA or FPGA board testing.
 
 LAB-03.2 must provide synthesizable SoC integration and a versioned readout command with complete flags and snapshot length, followed by a new Gowin and physical verification. LAB-03.3 may then display real trace events **alongside** the conceptual teaching model, clearly labeling their distinct meanings.
 

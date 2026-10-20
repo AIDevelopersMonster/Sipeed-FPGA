@@ -1,7 +1,7 @@
 # LAB-03.1 — регистратор событий настоящей шины PicoRV32
 
 **Проект:** Sipeed FPGA · Tang Nano 9K · PicoRV32 RV32I · 20.10.2026  
-**Версия этапа:** LAB-03.1 v0.1.0 (RTL-прототип, подготовлен к верификации)  
+**Версия этапа:** LAB-03.1 v0.1.0 (RTL-проверки пройдены 20.10.2026; Gowin/физическая плата не испытывались)  
 **Автор учебного эксперимента:** А. А. Малачевский, ORCID 0009-0008-6009-3196  
 **Репозиторий:** https://github.com/AIDevelopersMonster/Sipeed-FPGA
 
@@ -53,13 +53,14 @@ python .\01-PicoRV32\tools\test_lab03_contract.py
 
 Для полного теста нужны `python`, `iverilog`, `vvp` и зафиксированная версия PicoRV32 `ef203c2b0a3fb793280f5114941416c425c5b461` (ISC). Сценарий также пересобирает `boot.hex` и `boot_rom.v` существующей LAB-02 из `boot.S`: перед Git-коммитом выполните `git status -sb` и убедитесь в отсутствии непредвиденных изменений базовых файлов.
 
-**Ожидаемая последовательность сообщений** (не выдаётся за уже полученный протокол):
+**Фактические сообщения локальных испытаний (PowerShell / Icarus Verilog, 20.10.2026):**
 
 ```text
-LAB03_1_SOURCE_PREFLIGHT_PASS ... NOT RTL/PNR/BOARD
-LAB03_1_TRACE_UNIT_RTL_PASS ...
-LAB03_1_SOC_TRACE_RTL_PASS ...
-LAB03_1_RTL_PASS ... FPGA PnR/BOARD NOT TESTED.
+LAB03_1_SOURCE_PREFLIGHT_PASS: source, TBs, 1 KiB LAB-02 ROM; NOT RTL/PNR/BOARD
+LAB03_1_TRACE_UNIT_RTL_PASS: triggers, accepted transfers, readback, full, exact-fit, overlap
+ASSEMBLE PASS: 118 instructions, 1024 B ROM, labels=22
+LAB03_1_SOC_TRACE_RTL_PASS: command=4, events=22 fetches=21 LED_STORE=0x8, verified boot.hex and L=4
+LAB03_1_RTL_PASS: recorder and real PicoRV32-SoC trace. FPGA PnR/BOARD NOT TESTED.
 ```
 
 ## 6. Протокол экспериментальной проверки
@@ -67,11 +68,13 @@ LAB03_1_RTL_PASS ... FPGA PnR/BOARD NOT TESTED.
 | Этап | Статус на момент выпуска | Доказательство после запуска |
 |---|---|---|
 | Проверка наличия исходников и ROM 1 KiB | `SOURCE_PREFLIGHT_PASS` | Вывод Python |
-| Компиляция и отдельный RTL-тест буфера | **PENDING** | Вывод Icarus с `LAB03_1_TRACE_UNIT_RTL_PASS` |
-| RTL-трасса на настоящем SoC LAB-02 | **PENDING** | Вывод `LAB03_1_SOC_TRACE_RTL_PASS`, сравнение с `boot.hex` |
+| Компиляция и отдельный RTL-тест буфера | **RTL_PASS** (20.10.2026) | `LAB03_1_TRACE_UNIT_RTL_PASS`: triggers, accepted transfers, readback, full, exact-fit, overlap |
+| RTL-трасса на настоящем SoC LAB-02 | **RTL_PASS** (20.10.2026) | Команда `4`, 22 события (21 FETCH + 1 LED_WRITE), запись `0x8`, сравнение с `boot.hex`, ответ `L=4` |
 | Синтез, PnR и STA нового регистратора | **NOT STARTED** | Отчёт Gowin с конкретной сборкой |
 | Физическое получение трассы с платы | **NOT STARTED** | Отчёт платы с фактическими данными |
 | HTML показывает реальную трассу | **NOT STARTED** | Демонстрация LAB-03.3 |
+
+**Примечания к проверке.** Наблюдались предупреждения Icarus о `timescale` и о чувствительности `cpuregs` PicoRV32; они не препятствовали прохождению тестов. FETCH означает подтверждённое чтение инструкции, а не её завершённое исполнение. Эти результаты получены в локальном испытании, не в GitHub Actions. Синтез, PnR/STA и проверка физической платы для LAB-03.1 **не проводились**.
 
 ## 7. Переход к LAB-03.2
 
