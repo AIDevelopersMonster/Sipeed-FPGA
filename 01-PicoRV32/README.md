@@ -1,6 +1,10 @@
 # 01 — PicoRV32 / Tang Nano 9K
 
-**Stage v0.1: self-contained ROM generation, MMIO LED/timer/UART, and simulator integration. FPGA operation has NOT been established.**
+**Stage v0.1 / BOARD_PASS:** 33-instruction PicoRV32 ROM demo, MMIO LED/counter/UART, RTL simulation, Gowin STA and physical SRAM programming on Tang Nano 9K verified 19 October 2026.
+
+## Interactive LED1 HTML demonstration
+
+[Open the PicoRV32 LED1 interactive demo RU/EN](../docs/interactive/picorv32-led1/README.md) — four instructions, 19 instructional steps, including ROM, GPR, native memory bus, MMIO and physical LED1. This **separate conceptual model** is not a cycle-accurate RTL simulation or the 33-instruction physically tested image.
 
 ## Hardware and architecture
 
@@ -30,12 +34,15 @@ To build with installed Gowin Education CLI:
 & .\01-PicoRV32\tools\build_gowin.ps1
 ```
 
-Generated `.fs` must be checked against synthesis and timing reports. Stage P1 is experimental; if timing fails or device primitives cannot be inferred, debug before trying to program a physical board.
+Generated `.fs` must be checked against synthesis and timing reports. This P1 reference design was placed, routed and tested on Tang Nano 9K. For **any new build**, still inspect synthesis and timing reports before programming.
 
 For SRAM-only programming, after PnR succeeds:
 
 ```powershell
-& .\01-PicoRV32\tools\program_sram.ps1 -Bitstream 'C:\full\path\to\picorv32_nano9k.fs'
+$prog = 'C:\Gowin\Gowin_V1.9.9Beta-4_Education\Programmer\bin\programmer_cli.exe'
+$fs = (Resolve-Path '.\01-PicoRV32\impl\pnr\picorv32_nano9k.fs').Path
+& $prog --device GW1NR-9C --operation_index 2 --fsFile $fs --cable-index 1
+$LASTEXITCODE   # expected 0 with the validated FT2CH cable
 ```
 
 Never program onboard configuration flash in the initial experiment. Inspect the COM port with `Get-CimInstance Win32_SerialPort` and use a serial terminal at `115200 8N1` after FPGA programming, keeping the port closed during programming.
@@ -46,7 +53,7 @@ Never program onboard configuration flash in the initial experiment. Inspect the
 2. Firmware writes `0x600DCAFE` to the MMIO completion register.
 3. Six LEDs change according to hardware free-running cycle counter (speed can be adjusted by changing `srli t4, t4, 20` in firmware and regenerating ROM).
 
-`PICO` and the status register are **expected**, not yet observed on real hardware. The UART testbench checks outgoing bytes using internal `tx_start`; the separate transmitter testbench checks actual 8N1 bits. Future revisions should add receive, bus stall, long-run and back-to-back-access tests.
+`PICO` was **observed** from the physical FPGA via COM10 at 115200 baud; the `0x600DCAFE` status-register value was confirmed by the RTL testbench, but it was not separately probed on the physical board. The UART testbench checks outgoing bytes using internal `tx_start`; the separate transmitter testbench checks actual 8N1 bits. Future revisions should add receive, bus stall, long-run and back-to-back-access tests.
 
 ## Origin, licensing, reproducibility
 
@@ -65,8 +72,8 @@ CPU is from `https://github.com/YosysHQ/picorv32`, ISC license, pinned commit `e
 
 ## Known gaps / audit before declaring PASS
 
-- Pure model check run by author; **RTL test and PnR not run in author environment** (EDA simulators not available there).
-- `.gprj` and HDL pin mapping need testing in the user's installed Gowin IDE version.
+- Model, RTL (Icarus), Gowin synthesis/PnR/STA and physical SRAM/board tests passed in the Windows laboratory on 19 October 2026; not all ISA instructions have been exhaustively verified.
+- The current Gowin project built under the validated Windows Gowin Education 1.9.9 environment; other versions and board revisions remain untested.
 - The UART receiver input is deliberately unused.
 - This is a boot and MMIO experiment, NOT a representative CPU benchmark.
-- Tang Nano 9K voltage banks, switch polarity and default pin states must be checked on actual board revision before programming.
+- Constraints and polarity were exercised on the tested board; different board revisions still require independent pinout/voltage verification.

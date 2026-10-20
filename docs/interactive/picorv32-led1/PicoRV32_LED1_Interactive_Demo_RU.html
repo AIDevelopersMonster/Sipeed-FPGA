@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>PicoRV32: как программа включает L1 — интерактивная демонстрация</title>
+<meta name="description" content="Интерактивная офлайн-демонстрация: C и RV32I → машинный код → ROM → декодер PicoRV32 → регистры → memory bus → MMIO → LED Tang Nano 9K.">
+<style>
+:root{--bg:#080e19;--bg2:#0d1625;--panel:#101c2d;--panel2:#122236;--border:#273951;--muted:#92a8c2;--text:#eef6ff;--cyan:#55d5ff;--mint:#5ee7b3;--orange:#ffbd69;--blue:#82a9ff;--danger:#ff8585;--shadow:0 18px 50px rgba(0,0,0,.18)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 12% 0%,rgba(32,109,177,.22) 0,transparent 28%),radial-gradient(ellipse at 98% 20%,rgba(10,121,113,.12),transparent 28%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}button,select{font:inherit}button{cursor:pointer}a{color:#82dfff;text-decoration:none}a:hover{text-decoration:underline}code,pre,.mono,.val,.rom-hex{font-family:Consolas,"Cascadia Code",ui-monospace,SFMono-Regular,monospace}code{font-size:.92em}main{max-width:1480px;margin:auto;padding:0 24px 60px}.visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.header{padding:34px 0 22px;display:flex;justify-content:space-between;gap:30px;align-items:flex-start}.eyebrow{font-size:12px;letter-spacing:.17em;text-transform:uppercase;font-weight:750;color:var(--mint)}h1{font-size:clamp(31px,4.0vw,52px);letter-spacing:-.045em;line-height:1.08;margin:12px 0 10px;font-weight:800}h1 span{color:var(--cyan)}.lead{color:#c0d3e8;max-width:890px;margin:0;font-size:16px;line-height:1.65}.author{min-width:255px;max-width:310px;background:rgba(12,26,43,.75);border:1px solid var(--border);border-radius:13px;padding:14px 17px;line-height:1.55;font-size:12px;color:var(--muted)}.author strong{display:block;color:#e5f1ff;font-size:13px;margin:4px 0}.author .eyebrow{font-size:10px;color:var(--blue)}.ribbon{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:16px}.tag{border:1px solid #33475f;border-radius:100px;padding:5px 11px;color:#b9cbe3;font-size:12px}.tag.accent{border-color:#22726d;color:#86efd0;background:rgba(16,120,102,.12)}
+.panel{background:linear-gradient(155deg,rgba(20,35,56,.98),rgba(13,25,42,.96));border:1px solid var(--border);border-radius:17px;box-shadow:var(--shadow)}.panel-inner{padding:20px}.kicker{color:var(--cyan);letter-spacing:.10em;text-transform:uppercase;font-weight:770;font-size:11px}.h2{font-size:20px;letter-spacing:-.02em;font-weight:750;margin:4px 0 14px}.subtle{color:var(--muted)}.controls{display:grid;grid-template-columns:1fr auto;gap:16px;padding:18px 19px;margin:8px 0 17px;align-items:center}.controls h2{margin:0 0 5px;font-size:15px}.led-options{display:flex;gap:6px;flex-wrap:wrap}.led-choice{background:#102037;border:1px solid #36506e;color:#c4d7eb;border-radius:9px;min-width:53px;padding:9px 12px;font-weight:730;transition:.15s}.led-choice:hover{border-color:var(--cyan);color:#fff}.led-choice.selected{background:linear-gradient(135deg,#1b6880,#23527f);border-color:#5ad8f2;color:white;box-shadow:0 0 0 2px rgba(64,205,243,.12)}.actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}.btn{padding:10px 14px;border:1px solid #38516e;border-radius:9px;background:#182940;color:#ebf3ff;font-weight:730;white-space:nowrap}.btn:hover{background:#253b59}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.primary{background:linear-gradient(135deg,#078ca2,#146da3);border-color:#49d9ec;color:white}.btn.primary:hover{filter:brightness(1.12)}.btn.fire{border-color:#396854;background:#153b31;color:#8fffc9}.btn.auto-on{background:#5c3614;color:#ffe4bc;border-color:#aa7443}select{background:#182940;color:var(--text);border:1px solid #38516e;padding:9px 7px;border-radius:8px}button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #68e9ed;outline-offset:3px}
+.step-panel{margin-bottom:17px;padding:20px 22px}.step-top{display:flex;gap:16px;justify-content:space-between;align-items:center}.step-title{font-size:23px;letter-spacing:-.025em;font-weight:790;margin:4px 0 4px}.phase{border:1px solid #326b76;color:#92e1eb;background:#0e343e;padding:5px 10px;border-radius:8px;font:700 11px/1.3 Consolas,monospace}.step-description{color:#c4d5e8;font-size:15px;margin:7px 0 14px;max-width:1100px;line-height:1.65}.progress-shell{height:7px;border-radius:30px;background:#253c56;overflow:hidden}.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#29a1d8,#54edbb);transition:width .23s}.progress-hint{margin-top:7px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.diagram-panel{padding:14px 18px 8px;margin-bottom:17px;position:relative;overflow:hidden}.diagram-panel .h2{margin:3px 4px 0}.diagram-svg{display:block;width:100%;height:auto;max-height:310px;margin:0 auto}.diagram-node rect{fill:#13243a;stroke:#53718f;stroke-width:1.8;transition:.22s}.diagram-node .label{font-weight:700;font-size:17px;fill:#e6f5ff}.diagram-node .desc{font-size:11px;fill:#9db3ca}.diagram-node.active rect{fill:#174450;stroke:#58e3d9;stroke-width:3;filter:drop-shadow(0 0 7px rgba(67,239,215,.28))}.diagram-node.active .label{fill:#e5fff4}.cpu-sub rect{fill:#192f45;stroke:#3e6383;stroke-width:1.2}.cpu-sub.active rect{fill:#1e5a57;stroke:#65e6c5;stroke-width:2.5}.cpu-sub .label{font-size:12px;fill:#e3f3ff;font-weight:750}.cpu-sub .desc{font-size:9px;fill:#b5cbe0}.diagram-wire{fill:none;stroke:#526f8c;stroke-width:3;transition:.2s}.diagram-wire.active{stroke:#63e9c0;stroke-width:5;filter:drop-shadow(0 0 3px rgba(92,232,176,.65))}.diagram-caption{font-size:12px;color:var(--muted);text-align:center;margin:0 0 7px}.diagram-footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#a9bbd2;font-size:12px;padding:3px 7px 9px}
+.grid-main{display:grid;grid-template-columns:1fr 1fr;gap:17px}.grid-main .panel{min-width:0}.code-pane{padding:19px 20px}.code-pane h2{margin-bottom:11px}.source-c{border:1px solid #29425d;border-radius:10px;background:#0a1524;margin-bottom:13px;padding:12px 14px;white-space:pre-wrap;font-size:13px;color:#b8d7ef}.keyword{color:#f7c577}.code-addr{color:#83dfff}.code-value{color:#87e8ba}.code-note{color:#95acc7;font-style:italic;font-size:12px;margin-top:7px}.asm-list{display:grid;gap:4px}.asm-row{display:grid;grid-template-columns:73px minmax(0,1fr) 106px;gap:10px;align-items:center;border:1px solid transparent;border-radius:9px;padding:10px 11px;background:#0d1a2b;text-align:left;color:var(--text);width:100%}.asm-row:hover{background:#17324a}.asm-row.active{background:#153d4d;border-color:#56cdd6}.asm-row .addr{color:#9fb6cc;font-size:12px}.asm-row .insn{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.asm-row .rom-hex{font-size:12px;text-align:right;color:#9fe3f7}.asm-row .smalltag{font-size:9px}.source-caption{font-size:12px;color:var(--muted);margin-top:11px}
+.word-display{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin:6px 0 11px}.word-hex{font-size:clamp(22px,2.7vw,30px);font-weight:820;letter-spacing:.04em;color:#8ae6fa}.word-sub{color:#9cb6d0;font-size:12px}.word-bytes{display:flex;gap:8px;flex-wrap:wrap}.byte{background:#0d1b2d;padding:7px 10px;border:1px solid #3c5975;border-radius:8px;color:#ffe2b6;font:700 14px Consolas,monospace}.byte-empty{opacity:.5}.bits{display:flex;gap:4px;margin:15px 0 11px;overflow-x:auto;padding-bottom:3px}.bitfield{display:flex;flex:1;min-width:55px;flex-direction:column;align-items:center;justify-content:center;border:1px solid #3c5574;border-radius:7px;padding:9px 3px;background:#0b2032}.bitfield:nth-child(2n){background:#122b39}.bitfield.selected{border-color:#68e5c3;background:#144236}.bitfield span{font-size:10px;color:#a4bed6;white-space:nowrap}.bitfield b{font:700 clamp(9px,.82vw,12px) Consolas,monospace;letter-spacing:-.025em;color:#eaf9ff;margin:4px 0}.field-caption{font-size:12px;color:#c4d8e8;line-height:1.7;min-height:65px}.field-caption b{color:#f4d59c}.mini-table{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.mini-cell{border:1px solid #314760;border-radius:8px;padding:10px 8px;background:#0d1a2c}.mini-cell span{font-size:10px;display:block;color:#9eb4ce}.mini-cell strong{font-family:Consolas,monospace;font-size:13px;color:#c9f5ff;display:block;margin-top:5px;overflow-wrap:anywhere}
+.state-grid{display:grid;grid-template-columns:1fr 1.1fr 1.12fr;gap:17px;margin-top:17px}.state-grid .panel{min-width:0}.state-grid .panel-inner{padding:17px 18px}.kv{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #27394c}.kv:last-child{border:0}.kv label{color:#a5bfd8;font:12px Consolas,monospace}.kv output{color:#edf8ff;font:700 13px Consolas,monospace;overflow-wrap:anywhere;text-align:right}.kv.hot output{color:#81efc5}.bus-wait{background:#112e3b;border:1px solid #2d6973;border-radius:9px;font-size:12px;color:#cde5f3;margin-top:9px;padding:10px 12px;min-height:54px}.lamp-list{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;align-items:stretch;margin:11px 0 15px}.lamp-item{text-align:center;background:#0a1626;border-radius:10px;border:1px solid #2d435c;padding:12px 1px 9px}.lamp-item .lamp{width:23px;height:23px;border-radius:50%;border:2px solid #486175;background:#23303b;margin:0 auto 8px;box-shadow:inset 0 2px 5px rgba(0,0,0,.5);transition:all .18s}.lamp-item.on .lamp{background:#ffe38d;border-color:#fff3a5;box-shadow:0 0 12px 3px rgba(255,186,51,.56),0 0 25px rgba(255,193,41,.35)}.lamp-item .lamp-name{font-size:11px;font-weight:750}.lamp-item .lamp-pin{font:10px Consolas,monospace;color:#9fb8d0}.lamp-item .pin-level{font:11px Consolas,monospace;color:#9fb8d0;margin-top:2px}.lamp-item.on .pin-level{color:#8cecb9}.led-explain{background:#0c2230;border-radius:9px;padding:12px;font-size:12px;color:#cee4f4;border:1px solid #275469}.led-explain strong{color:#8deab9}.expander{margin-top:18px}.expander summary{cursor:pointer;font-size:15px;font-weight:770;padding:15px 18px;list-style:none}.expander summary::after{content:'＋';float:right;color:var(--cyan)}.expander[open] summary::after{content:'−'}.expander .inner{border-top:1px solid var(--border);padding:6px 18px 18px}.expander h3{margin:18px 0 5px;font-size:15px}.expander p{color:#c2d6eb;margin:4px 0 8px}.snippet{background:#091725;border:1px solid #254764;border-radius:9px;padding:13px 14px;overflow-x:auto;line-height:1.6;font-size:12.5px;color:#d5f1fe}.path-note{color:var(--orange);font-size:12px}.footer{border-top:1px solid var(--border);margin-top:26px;padding-top:19px;color:#96abc6;font-size:12px;line-height:1.8}.formula{color:#8ce8c4;font-family:Consolas,monospace}.info{background:#11243c;border:1px solid #2b5476;border-radius:12px;padding:12px 15px;color:#bfd7ed;margin:13px 0;font-size:13px}.info strong{color:#c6fcf1}
+@media(max-width:1100px){.header{flex-direction:column}.author{max-width:none;width:100%}.controls{grid-template-columns:1fr}.actions{justify-content:flex-start}.state-grid{grid-template-columns:1fr 1fr}.state-grid .panel:last-child{grid-column:1/-1}}@media(max-width:790px){main{padding:0 13px 40px}.header{padding:22px 0}.grid-main,.state-grid{grid-template-columns:1fr}.state-grid .panel:last-child{grid-column:auto}.controls{padding:15px 12px}.step-panel{padding:17px}.diagram-panel{padding:10px 7px}.diagram-svg{min-width:650px}.diagram-scroll{overflow:auto}.asm-row{grid-template-columns:60px minmax(0,1fr) 94px}.mini-table{grid-template-columns:repeat(2,minmax(0,1fr))}.bitfield{min-width:57px}.actions .btn{padding:9px 10px}.author{min-width:0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<header class="header">
+  <div>
+    <div class="eyebrow">Sipeed FPGA · интерактивная лекция · PicoRV32 / RV32I</div>
+    <h1>Как программа <span>зажигает L1</span></h1>
+    <p class="lead">Разбираем одну команду от строки <code>LED_REG = 1</code> до электрического уровня <code>LOW</code> на выводе FPGA. Переключайтесь между шагами: исходный код, машинное слово, декодер, регистры, шина, MMIO и светодиод обновляются синхронно.</p>
+    <div class="ribbon"><span class="tag accent">Работает полностью офлайн</span><span class="tag">Tang Nano 9K · GW1NR-9C</span><span class="tag">ROM + 32-битный Native Memory Interface</span><span class="tag">27 МГц · LED active LOW</span></div>
+  </div>
+  <aside class="author"><span class="eyebrow">Автор демонстрации</span><strong>Малачевский А. А.<br>A. A. Malachevsky</strong>Независимый исследователь<br>ORCID: <a href="https://orcid.org/0009-0008-6009-3196" target="_blank" rel="noopener">0009-0008-6009-3196</a><br>Проект: <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA" target="_blank" rel="noopener">AIDevelopersMonster/Sipeed-FPGA</a></aside>
+</header>
+<section class="panel controls" aria-label="Управление моделью">
+  <div><h2>Какой светодиод включить?</h2><div class="led-options" id="ledChoices" role="group" aria-label="Выбор светодиода"></div><div class="code-note">Выбор изменяет только константу в инструкции <code>ADDI</code>. Для L1 значение равно 1.</div></div>
+  <div class="actions">
+    <button type="button" class="btn" id="prevBtn" title="Предыдущий шаг">← Назад</button>
+    <button type="button" class="btn primary" id="nextBtn">Шаг →</button>
+    <button type="button" class="btn" id="autoBtn">▶ Авто</button>
+    <button type="button" class="btn fire" id="lightBtn" title="Показать последний шаг транзакции записи">До свечения ↗</button>
+    <button type="button" class="btn" id="resetBtn">↻ Сброс</button>
+    <label class="visually-hidden" for="speed">Скорость</label><select id="speed" title="Интервал между шагами"><option value="2300">Медленно</option><option value="1400" selected>Обычно</option><option value="700">Быстро</option></select>
+  </div>
+</section>
+<section class="panel step-panel" aria-live="polite" aria-atomic="true">
+  <div class="step-top"><div><div class="kicker" id="stepTag">Начальное состояние</div><div class="step-title" id="stepTitle">FPGA готова к исполнению</div></div><div class="phase" id="phaseTag">RESET</div></div>
+  <p class="step-description" id="stepDescription">Все светодиоды выключены. После сброса PC указывает на 0x00000000 — начало загрузочной ROM. Нажмите «Шаг».</p>
+  <div class="progress-shell"><div class="progress-fill" id="progressFill"></div></div><div class="progress-hint"><span id="progressText">Шаг 0 из 19</span><span id="operationLabel">Ожидается LUI → ADDI → SW → JAL</span></div>
+</section>
+<section class="panel diagram-panel">
+  <div class="kicker" style="margin-left:4px">Аппаратный маршрут</div><div class="h2" style="margin-left:4px">Какая часть FPGA работает сейчас?</div>
+  <div class="diagram-scroll"><svg class="diagram-svg" viewBox="0 0 1160 276" role="img" aria-label="Функциональная схема: ROM, PicoRV32 с декодером, регистрами, ALU и FSM, затем MMIO и физический вывод LED">
+    <defs><marker id="arrowhead" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="#88b1d1" /></marker></defs>
+    <path data-edge="rom-cpu" class="diagram-wire" d="M206 134 H245" marker-end="url(#arrowhead)"/>
+    <path data-edge="cpu-mmio" class="diagram-wire" d="M746 134 H787" marker-end="url(#arrowhead)"/>
+    <path data-edge="mmio-led" class="diagram-wire" d="M963 134 H993" marker-end="url(#arrowhead)"/>
+    <g class="diagram-node" data-node="rom"><rect x="10" y="74" width="196" height="120" rx="13"/><text class="label" x="108" y="112" text-anchor="middle">Boot ROM</text><text class="desc" x="108" y="137" text-anchor="middle">0x00000000–0x000003FF</text><text class="desc" x="108" y="157" text-anchor="middle">32-битные слова</text><text class="desc" x="108" y="176" text-anchor="middle">синхронное чтение</text></g>
+    <g class="diagram-node" data-node="cpu"><rect x="246" y="21" width="500" height="224" rx="15"/><text class="label" x="496" y="49" text-anchor="middle">PicoRV32 · RTL процессора</text><text class="desc" x="496" y="65" text-anchor="middle">picorv32.v</text></g>
+    <g class="cpu-sub" data-node="decoder"><rect x="266" y="90" width="135" height="78" rx="10"/><text class="label" x="333.5" y="122" text-anchor="middle">Декодер</text><text class="desc" x="333.5" y="144" text-anchor="middle">opcode / fields</text></g>
+    <g class="cpu-sub" data-node="registers"><rect x="415" y="90" width="135" height="78" rx="10"/><text class="label" x="482.5" y="120" text-anchor="middle">Регистры</text><text class="desc" x="482.5" y="139" text-anchor="middle">x5 / x6</text></g>
+    <g class="cpu-sub" data-node="alu"><rect x="564" y="90" width="159" height="78" rx="10"/><text class="label" x="643.5" y="120" text-anchor="middle">ALU / адрес</text><text class="desc" x="643.5" y="139" text-anchor="middle">сложение / x5+imm</text></g>
+    <g class="cpu-sub" data-node="fsm"><rect x="383" y="187" width="225" height="43" rx="8"/><text class="label" x="495.5" y="214" text-anchor="middle">FSM · выбор микроопераций</text></g>
+    <path d="M402 129 H415M550 129 H564M495 168 V186" stroke="#53718f" stroke-width="2" fill="none"/>
+    <g class="diagram-node" data-node="mmio"><rect x="790" y="74" width="173" height="120" rx="13"/><text class="label" x="876.5" y="110" text-anchor="middle">MMIO</text><text class="desc" x="876.5" y="136" text-anchor="middle">0x20000000</text><text class="desc" x="876.5" y="158" text-anchor="middle">leds[5:0] ≤ data</text><text class="desc" x="876.5" y="176" text-anchor="middle">picorv32_soc.v</text></g>
+    <g class="diagram-node" data-node="pin"><rect x="997" y="74" width="154" height="120" rx="13"/><text class="label" x="1074" y="108" text-anchor="middle">Вывод FPGA</text><text class="desc" x="1074" y="134" text-anchor="middle">led_n = ~leds</text><text class="desc" x="1074" y="156" text-anchor="middle" id="diagramPin">pin 10 → L1</text><text class="desc" x="1074" y="177" text-anchor="middle" id="diagramPinState">HIGH = LED OFF</text></g>
+    <text x="224" y="117" fill="#b0cee5" font-size="10" text-anchor="middle">RDATA</text><text x="767" y="117" fill="#b0cee5" font-size="10" text-anchor="middle">BUS</text><text x="981" y="116" fill="#b0cee5" font-size="10" text-anchor="middle">PIN</text>
+    <text x="108" y="220" fill="#9db6cf" font-size="12" text-anchor="middle">Выборка команды</text><text x="876.5" y="220" fill="#9db6cf" font-size="12" text-anchor="middle">Запись по адресу</text><text x="1074" y="220" fill="#9db6cf" font-size="12" text-anchor="middle">Активный 0</text>
+  </svg></div><div class="diagram-footer"><span>Подсветка показывает логически активный блок на выбранном шаге.</span><span>Не является точной электрической или потактовой трассой.</span></div>
+</section>
+<div class="grid-main">
+  <section class="panel code-pane"><div class="kicker">01 · Программа</div><h2 class="h2">Что написал программист</h2>
+    <div class="source-c mono" id="cSource"></div>
+    <div class="asm-list" id="asmRows"></div>
+    <p class="source-caption">Щёлкните по строке ассемблера, чтобы перейти к её выборке. Программа демонстрационная: здесь нет ОС, C runtime и стека. Пример на C выражает смысл операции, а не точный вывод конкретного компилятора.</p>
+  </section>
+  <section class="panel code-pane"><div class="kicker">02 · Машинное представление</div><h2 class="h2">Как 32 бита понимает декодер</h2>
+    <div class="word-display"><div><div class="word-hex mono" id="wordHex">0x200002B7</div><div class="word-sub" id="wordAddr">ROM[0] · PC = 0x00000000</div></div><div><div class="word-sub" style="margin-bottom:5px">Байты в little-endian</div><div class="word-bytes" id="wordBytes"></div></div></div>
+    <div class="bits" id="bits"></div>
+    <div class="field-caption" id="fieldDescription"></div>
+    <div class="mini-table"><div class="mini-cell"><span>opcode</span><strong id="opcodeValue">—</strong></div><div class="mini-cell"><span>Тип</span><strong id="formatValue">—</strong></div><div class="mini-cell"><span>Признак декодера</span><strong id="decoderValue">—</strong></div><div class="mini-cell"><span>Непосредственный операнд</span><strong id="immValue">—</strong></div></div>
+  </section>
+</div>
+<div class="state-grid">
+  <section class="panel panel-inner"><div class="kicker">03 · Состояние CPU</div><h2 class="h2">Регистры и PC</h2>
+    <div class="kv"><label>PC (адрес команды)</label><output id="pcValue">0x00000000</output></div>
+    <div class="kv"><label>x0 · zero</label><output>0x00000000</output></div>
+    <div class="kv" id="x5Row"><label>x5 · t0 (адрес)</label><output id="x5Value">не задано</output></div>
+    <div class="kv" id="x6Row"><label>x6 · t1 (данные)</label><output id="x6Value">не задано</output></div>
+    <div class="kv"><label>Инструкция в IR</label><output id="irValue">—</output></div>
+    <div class="bus-wait" id="cpuNote">Состояние после RESET. Запись в LED ещё не выполнялась.</div>
+  </section>
+  <section class="panel panel-inner"><div class="kicker">04 · Native Memory Interface</div><h2 class="h2">Что видно на шине</h2>
+    <div class="kv"><label>mem_valid</label><output id="mem_valid">0</output></div>
+    <div class="kv"><label>mem_instr</label><output id="mem_instr">0</output></div>
+    <div class="kv"><label>mem_ready</label><output id="mem_ready">0</output></div>
+    <div class="kv"><label>mem_addr</label><output id="mem_addr">—</output></div>
+    <div class="kv"><label>mem_wdata</label><output id="mem_wdata">—</output></div>
+    <div class="kv"><label>mem_wstrb</label><output id="mem_wstrb">0000</output></div>
+    <div class="kv"><label>mem_rdata</label><output id="mem_rdata">—</output></div>
+    <div class="bus-wait" id="busNote">При чтении команды: mem_instr=1, wstrb=0000. При записи в LED: mem_instr=0, wstrb=1111.</div>
+  </section>
+  <section class="panel panel-inner"><div class="kicker">05 · Физический результат</div><h2 class="h2">Светодиоды Tang Nano 9K</h2>
+    <div class="lamp-list" id="lampList" aria-label="Шесть светодиодов на плате"></div>
+    <div class="kv"><label>Регистр leds[5:0]</label><output id="ledsValue">000000</output></div>
+    <div class="kv"><label>Выходы led_n[5:0]</label><output id="lednValue">111111</output></div>
+    <div class="led-explain" id="ledStatus"><strong>Все LED выключены.</strong> Записи в MMIO ещё нет. Физические выводы высокие (HIGH).</div>
+  </section>
+</div>
+<div class="info"><strong>Важное ограничение модели:</strong> каждый шаг показывает смысловую микрооперацию и состояние интерфейсов; один шаг <em>не обязательно равен одному такту</em> реального PicoRV32. Настоящее ядро использует отдельные автоматы <code>cpu_state</code> и <code>mem_state</code>, синхронную ROM и зарегистрированный <code>mem_ready</code>. HTML не запускает Verilog и не моделирует задержки затворов FPGA.</div>
+<details class="panel expander"><summary>Посмотреть настоящий Verilog: ROM, декодер, MMIO и вывод 10</summary><div class="inner">
+  <h3>1. Загрузочная ROM (тот же механизм, что в <code>rtl/boot_rom.v</code>)</h3><p>Синтезатор реализует таблицу констант в ресурсах FPGA. Сигнал <code>word_addr</code> — это адрес слова, то есть младшие байтовые биты отброшены.</p><pre class="snippet" id="romVerilog"></pre>
+  <h3>2. Фрагмент декодера <code>vendor/picorv32/picorv32.v</code></h3><pre class="snippet">decoded_rs1 &lt;= mem_rdata_latched[19:15];
+decoded_rs2 &lt;= mem_rdata_latched[24:20];
+
+// Сначала распознаётся семейство STORE по opcode.
+is_sb_sh_sw &lt;= (mem_rdata_latched[6:0] == 7'b0100011);
+
+// Затем распознаётся SW по funct3.
+instr_sw &lt;= is_sb_sh_sw &amp;&amp; (mem_rdata_q[14:12] == 3'b010);</pre>
+  <p class="path-note">Строки здесь объединены как учебная выдержка из разных участков декодера; они не являются готовым самостоятельным Verilog-модулем.</p>
+  <h3>3. Настоящая адресная логика в <code>rtl/picorv32_soc.v</code></h3><pre class="snippet">wire is_mmio = (mem_addr[31:8] == 24'h200000);
+
+// Внутри clocked always-блока:
+if (mem_valid &amp;&amp; !mem_ready) begin
+    if (is_mmio) begin
+        case (mem_addr[7:0])
+            8'h00: begin
+                if (|mem_wstrb &amp;&amp; mem_wstrb[0])
+                    leds &lt;= mem_wdata[5:0];
+                mmio_rdata &lt;= {26'b0, leds};
+                mem_ready &lt;= 1'b1;
+            end
+        endcase
+    end
+end
+
+assign led_n = ~leds;</pre>
+  <h3>4. Привязка вывода платы <code>constraints/tang_nano_9k.cst</code></h3><pre class="snippet">IO_LOC "led_n[0]" 10;
+IO_PORT "led_n[0]" IO_TYPE=LVCMOS18;</pre>
+  <p>Один и тот же <code>SW</code> работал бы с UART, RAM или другой периферией; устройство определяется **адресом**, который декодирует SoC. GPIO L1 является частью нашей интеграции, а не частью стандартного ядра PicoRV32.</p>
+</div></details>
+<footer class="footer"><strong style="color:#dceeff">Автор учебной демонстрации:</strong> Малачевский А. А. · <a href="https://orcid.org/0009-0008-6009-3196">ORCID 0009-0008-6009-3196</a> · <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA">Sipeed-FPGA</a><br>Используется архитектура процессора PicoRV32 / RV32I. Исходный процессор PicoRV32 — © 2015 Claire Xenia Wolf, лицензия ISC; <a href="https://github.com/YosysHQ/picorv32">YosysHQ/picorv32</a>. Эта демонстрация — учебная интерпретация именно нашей интеграции на Tang Nano 9K, а не официальная симуляция YosysHQ.<br><span id="fileStatus">Один автономный HTML-файл. Сеть, библиотеки и установка программ не требуются.</span></footer>
+</main>
+<script>
+'use strict';
+const LED_PINS = [10,11,13,14,15,16];
+const $ = id => document.getElementById(id);
+const hex = (value,width=8) => '0x'+(value>>>0).toString(16).toUpperCase().padStart(width,'0');
+const bin = (value,width) => (value>>>0).toString(2).padStart(width,'0');
+const wordHex = value => (value>>>0).toString(16).toUpperCase().padStart(8,'0');
+const wordsFor = led => [0x200002b7,((((1<<led)<<20)|(6<<7)|0x13)>>>0),0x0062a023,0x0000006f];
+let target=0,position=-1,events=[],autoTimer=null;
+const BASE_ASM = ['lui  t0, 0x20000','addi t1, zero, ','sw   t1, 0(t0)','jal  zero, stop'];
+const idleBus = () => ({valid:'0',instr:'0',ready:'0',addr:'—',wdata:'—',wstrb:'0000',rdata:'—'});
+const state0 = () => ({pc:0,x5:0,x6:0,x5Valid:false,x6Valid:false,ir:null,selectedInsn:0,decoded:false,leds:0,bus:idleBus(),cpuNote:'После RESET содержимое x5 и x6 не гарантировано. Программа задаст их через LUI и ADDI.',busNote:'Ожидается запрос из ROM.',active:[],edges:[]});
+const instrs=()=>{const w=wordsFor(target),mask=1<<target;return [{pc:0,word:w[0],asm:BASE_ASM[0],format:'U',opcode:'0110111',feature:'instr_lui',imm:'0x20000'}, {pc:4,word:w[1],asm:BASE_ASM[1]+mask,format:'I',opcode:'0010011',feature:'instr_addi',imm:String(mask)}, {pc:8,word:w[2],asm:BASE_ASM[2],format:'S',opcode:'0100011',feature:'instr_sw',imm:'0'}, {pc:12,word:w[3],asm:BASE_ASM[3],format:'J',opcode:'1101111',feature:'instr_jal',imm:'0'}];};
+function buildEvents(){
+ const a=instrs(),mask=1<<target; const ev=[];
+ const add=(insn,phase,title,description,focus,edges,fn,tag)=>ev.push({insn,phase,title,description,focus,edges,fn,tag:tag||'Микрооперация'});
+ function fetch(i){const it=a[i];
+  add(i,'FETCH · запрос',`Запрос инструкции с PC=${hex(it.pc)}`,`Процессор выставляет адрес ${hex(it.pc)} и признак mem_instr=1. Это чтение команды из ROM, а не запись светодиода.`,['rom','cpu'],['rom-cpu'],s=>{s.selectedInsn=i;s.ir=null;s.decoded=false;s.pc=it.pc;s.bus={valid:'1',instr:'1',ready:'0',addr:hex(it.pc),wdata:'—',wstrb:'0000',rdata:'—'};s.cpuNote=`PC указывает на слово ROM[${i}]. Выполняется запрос выборки инструкции.`;s.busNote='mem_valid=1, mem_instr=1. Запрос удерживается до подтверждения памяти.';},'Выборка');
+  add(i,'FETCH · ответ',`ROM возвращает ${hex(it.word)}`,`Синхронная ROM выбирает ROM[${i}]. При активных mem_valid и mem_ready слово ${hex(it.word)} принимается процессором как инструкция.`,['rom','cpu'],['rom-cpu'],s=>{s.ir=it.word;s.bus={...s.bus,ready:'1',rdata:hex(it.word)};s.cpuNote=`Принято машинное слово ${hex(it.word)}. Следующий этап — декодирование полей.`;s.busNote='Чтение: mem_valid=1 и mem_ready=1. Передача машинного слова завершена.';},'ROM → CPU');
+  add(i,'DECODE',`Декодер распознаёт ${it.asm.split(' ')[0].toUpperCase()}`,`По opcode и дополнительным полям логика определяет семейство ${it.format}-type. ${it.feature} становится управляющим признаком выбранной операции.`,['decoder','fsm'],[],s=>{s.decoded=true;s.bus=idleBus();s.cpuNote=`Декодирование ${it.feature}. Биты не исполняются как программные команды; они управляют цифровой логикой.`;s.busNote='Во время смыслового этапа DECODE внешняя транзакция не показана. Это не потактовая трасса RTL.';},'Декодирование');
+ }
+ fetch(0);
+ add(0,'EXEC / WRITEBACK',`LUI: создаём адрес ${hex(0x20000000)}`,`Поле imm[31:12]=0x20000 сдвигается влево на 12. Значение записывается в x5 (t0). Светодиод всё ещё выключен.`,['decoder','registers','alu','fsm'],[],s=>{s.x5=0x20000000;s.x5Valid=true;s.pc=4;s.cpuNote='x5 = 0x20000000. Это число — адрес MMIO; на выводах FPGA пока ничего не менялось.';s.busNote='LUI меняет только регистр общего назначения. На MMIO записи нет.';},'Регистр x5');
+ fetch(1);
+ add(1,'EXEC / WRITEBACK',`ADDI: в x6 записываем ${mask}`,`ALU получает x0=0 и immediate=${mask}, складывает их и сохраняет ${hex(mask)} в x6 (t1). Это будущие данные для LED-регистра.`,['decoder','registers','alu','fsm'],[],s=>{s.x6=mask;s.x6Valid=true;s.pc=8;s.cpuNote=`x6 = ${hex(mask)}. Адрес x5 уже установлен, но команда записи SW ещё не исполнена.`;s.busNote='ADDI — арифметическая операция над CPU-регистрами. Шина периферии не используется.';},'Регистр x6');
+ fetch(2);
+ add(2,'READ REG / EFFECTIVE ADDRESS',`SW: откуда брать адрес и данные?`,`Декодер извлёк rs1=5 (x5), rs2=6 (x6), imm=0. Регистровый файл выдаёт x5=${hex(0x20000000)} и x6=${hex(mask)}. Адресный тракт вычисляет x5+0.`,['decoder','registers','alu','fsm'],[],s=>{s.cpuNote=`Адрес = x5 + imm = ${hex(0x20000000)}. Данные = x6 = ${hex(mask)}.`;s.busNote='Пока формируется адрес/данные; это ещё не подтверждённая запись в периферию.';},'Адресный тракт');
+ add(2,'STORE · запрос',`SW выдаёт запись по адресу ${hex(0x20000000)}`,`PicoRV32 устанавливает mem_valid=1, mem_instr=0, mem_wstrb=1111, mem_addr=0x20000000 и mem_wdata=${hex(mask)}. MMIO декодирует диапазон и адрес LED-регистра.`,['alu','fsm','mmio'],['cpu-mmio'],s=>{s.bus={valid:'1',instr:'0',ready:'0',addr:hex(0x20000000),wdata:hex(mask),wstrb:'1111',rdata:'—'};s.cpuNote='CPU выпустил транзакцию SW и удерживает запрос до mem_ready=1.';s.busNote='mem_wstrb=1111: полная 32-битная запись. MMIO-адрес соответствует регистру leds.';},'Запись в MMIO');
+ add(2,'MMIO · подтверждение',`Загорелся L${target+1}: выход pin ${LED_PINS[target]} стал LOW`,`На активном фронте в регистр leds[5:0] записывается ${bin(mask,6)}. Провод led_n[${target}]=~leds[${target}] переходит в 0. На запрос SW выдаётся mem_ready=1; запись принята.`,['mmio','pin','fsm'],['cpu-mmio','mmio-led'],s=>{s.bus.ready='1';s.leds=mask;s.cpuNote='Команда SW записала значение в ПЕРИФЕРИЮ, не в x5 или x6. Состояние led_n задаётся комбинационной инверсией.';s.busNote='mem_valid=1 и mem_ready=1: транзакция подтверждена. На фронте clock регистр LEDs получил новые данные.';},'Физический эффект');
+ add(2,'STORE · завершена',`Запись завершена; L${target+1} продолжает гореть`,`Процессор снимает запрос и переходит к PC=0x0000000C. LED-регистр сохраняет бит=${mask}; подсветка не зависит от дальнейших команд CPU.`,['fsm','mmio','pin'],['mmio-led'],s=>{s.pc=12;s.bus=idleBus();s.cpuNote='SW завершена, PC=0x0000000C. Состояние LED удерживается собственными триггерами в SoC.';s.busNote='Интерфейс снова свободен. Отдельная запись в периферию больше не требуется.';},'Результат');
+ fetch(3);
+ add(3,'JAL · переход',`Процессор повторяет JAL, а L${target+1} остаётся включённым`,`Инструкция JAL x0,0 задаёт смещение 0: PC остаётся 0x0000000C. Ядро продолжает выбирать и исполнять эту команду снова и снова; светодиод остаётся включённым, потому что никто не меняет leds[${target}].`,['cpu','fsm','mmio','pin'],['mmio-led'],s=>{s.pc=12;s.bus=idleBus();s.cpuNote='PC = 0x0000000C. В настоящем CPU бесконечно исполняется JAL; HTML завершает показ первого обхода.';s.busNote='JAL изменяет поток управления и не создаёт MMIO-записи.';},'Устойчивое состояние');
+ return ev;
+}
+function fieldsFor(it){const w=it.word,part=(hi,lo,label)=>({label,width:hi-lo+1,bits:((w>>>lo)&((1<<(hi-lo+1))-1)).toString(2).padStart(hi-lo+1,'0'),range:`${hi}:${lo}`});
+ if(it.format==='U')return [part(31,12,'imm[31:12]'),part(11,7,'rd'),part(6,0,'opcode')];
+ if(it.format==='I')return [part(31,20,'imm[11:0]'),part(19,15,'rs1'),part(14,12,'funct3'),part(11,7,'rd'),part(6,0,'opcode')];
+ if(it.format==='S')return [part(31,25,'imm[11:5]'),part(24,20,'rs2'),part(19,15,'rs1'),part(14,12,'funct3'),part(11,7,'imm[4:0]'),part(6,0,'opcode')];
+ return [part(31,31,'imm[20]'),part(30,21,'imm[10:1]'),part(20,20,'imm[11]'),part(19,12,'imm[19:12]'),part(11,7,'rd'),part(6,0,'opcode')];
+}
+const fieldNotes = [
+ 'U-type: opcode=0110111 → LUI. Число 0x20000 помещается в старшие 20 бит результата; rd=x5. Результат — 0x20000000, ещё не запись в память.',
+ 'I-type: opcode=0010011 и funct3=000 → ADDI. rs1=x0, rd=x6, imm — выбранный бит для LED. ALU складывает 0 + imm.',
+ 'S-type: opcode=0100011, funct3=010 → SW. rs1=x5 — адрес; rs2=x6 — данные. Биты 11:7 здесь НЕ rd: это часть смещения.',
+ 'J-type: opcode=1101111 → JAL. rd=x0 означает, что адрес возврата не хранится. Смещение 0 отправляет PC на тот же адрес.'
+];
+function stopAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;}$('autoBtn').textContent='▶ Авто';$('autoBtn').classList.remove('auto-on');}
+function changeTarget(index){stopAuto();target=index;events=buildEvents();position=-1;render();}
+function jump(index){position=Math.max(-1,Math.min(events.length-1,index));render();}
+function next(){if(position<events.length-1)jump(position+1);else stopAuto();}
+function startAuto(){if(autoTimer){stopAuto();return;}if(position>=events.length-1)position=-1;render();$('autoBtn').textContent='Ⅱ Пауза';$('autoBtn').classList.add('auto-on');next();autoTimer=setInterval(()=>{if(position>=events.length-1){stopAuto();return;}next();},Number($('speed').value));}
+function render(){const s=state0(),ins=instrs(),ledMask=1<<target;for(let i=0;i<=position;i++){const e=events[i];e.fn(s);s.active=e.focus;s.edges=e.edges;}
+ const e=position>=0?events[position]:null;
+ $('stepTag').textContent=e?`ИНСТРУКЦИЯ ${e.insn+1} / 4 · ${e.tag}`:'НАЧАЛЬНОЕ СОСТОЯНИЕ';
+ $('stepTitle').textContent=e?e.title:'После сброса: светодиоды выключены';
+ $('phaseTag').textContent=e?e.phase:'RESET';
+ $('stepDescription').textContent=e?e.description:'На шине пока нет запроса, PC = 0x00000000. Значения x5/x6 после сброса не определены; программа установит их явными инструкциями. Начнём с выборки первой инструкции из ROM.';
+ $('progressFill').style.width=String(100*(position+1)/events.length)+'%';
+ $('progressText').textContent=`Шаг ${position+1} из ${events.length}`;
+ $('operationLabel').textContent=e?`ROM[${e.insn}] · ${ins[e.insn].asm}`:'LUI → ADDI → SW → JAL';
+ $('prevBtn').disabled=position<0;
+ $('nextBtn').disabled=position>=events.length-1;
+ $('nextBtn').textContent=position>=events.length-1?'Готово ✓':'Шаг →';
+ $('ledChoices').innerHTML=LED_PINS.map((pin,i)=>`<button type="button" class="led-choice ${i===target?'selected':''}" data-led="${i}" aria-pressed="${i===target}" title="LED L${i+1}, физический вывод ${pin}">L${i+1}</button>`).join('');
+ $('cSource').innerHTML=`<span class="keyword">volatile uint32_t</span> *LED_REG =\n    (<span class="keyword">volatile uint32_t</span> *)<span class="code-addr">0x20000000</span>;\n\n*LED_REG = <span class="code-value">${ledMask}</span>;  <span style="color:#93acc6">// зажечь L${target+1}</span>\n<span style="color:#93acc6">// пример смысла операции на C</span>`;
+ $('asmRows').innerHTML=ins.map((it,i)=>`<button type="button" class="asm-row ${s.selectedInsn===i?'active':''}" data-insn="${i}" title="Перейти к выборке этой инструкции" aria-label="Инструкция ${i+1}: ${it.asm}, машинное слово ${wordHex(it.word)}"><span class="addr mono">${hex(it.pc,3)}</span><span class="insn mono">${it.asm}</span><span class="rom-hex">${wordHex(it.word)}</span></button>`).join('');
+ const current=ins[s.selectedInsn];
+ $('wordHex').textContent=hex(current.word);
+ $('wordAddr').textContent=`ROM[${s.selectedInsn}] · PC = ${hex(current.pc)}`;
+ $('wordBytes').innerHTML=[0,1,2,3].map(i=>`<span class="byte">${((current.word>>>(8*i))&255).toString(16).toUpperCase().padStart(2,'0')}</span>`).join('');
+ $('bits').innerHTML=fieldsFor(current).map(f=>`<div class="bitfield ${s.decoded?'selected':''}" title="bits ${f.range}"><span>${f.label}</span><b>${f.bits}</b><span>${f.range}</span></div>`).join('');
+ $('fieldDescription').innerHTML=(!s.decoded?'<b>Ожидаемая интерпретация:</b> ':'<b>Декодер распознал:</b> ')+fieldNotes[s.selectedInsn];
+ $('opcodeValue').textContent=current.opcode;
+ $('formatValue').textContent=current.format+'-type';
+ $('decoderValue').textContent=s.decoded?current.feature:'ещё нет';
+ $('immValue').textContent=current.imm;
+ $('pcValue').textContent=hex(s.pc);
+ $('x5Value').textContent=s.x5Valid?hex(s.x5):'не задано';
+ $('x6Value').textContent=s.x6Valid?hex(s.x6):'не задано';
+ $('irValue').textContent=s.ir===null?'—':hex(s.ir);
+ $('cpuNote').textContent=s.cpuNote;
+ $('busNote').textContent=s.busNote;
+ for(const [k,v] of Object.entries(s.bus))$('mem_'+k).textContent=v;
+ $('x5Row').classList.toggle('hot',s.x5Valid);
+ $('x6Row').classList.toggle('hot',s.x6Valid);
+ $('ledsValue').textContent=bin(s.leds,6);
+ $('lednValue').textContent=bin((~s.leds)&63,6);
+ $('lampList').innerHTML=LED_PINS.map((pin,i)=>{const on=!!(s.leds&(1<<i));return `<div class="lamp-item ${on?'on':''}"><div class="lamp" role="img" aria-label="L${i+1} ${on?'горит':'выключен'}"></div><div class="lamp-name">L${i+1}</div><div class="lamp-pin">pin ${pin}</div><div class="pin-level">${on?'LOW · 0':'HIGH · 1'}</div></div>`}).join('');
+ const isOn=!!(s.leds&ledMask);
+ $('ledStatus').innerHTML=isOn?`<strong>L${target+1} горит.</strong> В регистре leds[${target}]=1, поэтому led_n[${target}]=0 на физическом выводе ${LED_PINS[target]}. Остальные пять LED выключены.`:`<strong>Пока не горит.</strong> leds[${target}]=0 → led_n[${target}]=1 (HIGH). Для включения нужна подтверждённая запись SW по адресу 0x20000000.`;
+ $('diagramPin').textContent=`pin ${LED_PINS[target]} → L${target+1}`;
+ $('diagramPinState').textContent=isOn?'LOW → LED ON':'HIGH → LED OFF';
+ document.querySelectorAll('[data-node]').forEach(el=>el.classList.toggle('active',s.active.includes(el.dataset.node)));
+ document.querySelectorAll('[data-edge]').forEach(el=>el.classList.toggle('active',s.edges.includes(el.dataset.edge)));
+ $('romVerilog').textContent=`// Учебный вариант той же 1-КиБ ROM\nmodule boot_rom(input wire clk,\n    input wire [7:0] word_addr,\n    output reg [31:0] rdata);\n  always @(posedge clk) begin\n    case (word_addr)\n${ins.map((it,i)=>`      8'd${i}: rdata <= 32'h${wordHex(it.word).toLowerCase()};`).join('\n')}\n      default: rdata <= 32'h00000013;\n    endcase\n  end\nendmodule`;
+}
+$('ledChoices').addEventListener('click',e=>{const b=e.target.closest('[data-led]');if(b)changeTarget(Number(b.dataset.led));});
+$('asmRows').addEventListener('click',e=>{const b=e.target.closest('[data-insn]');if(!b)return;stopAuto();const i=Number(b.dataset.insn);jump(events.findIndex(ev=>ev.insn===i&&ev.phase==='FETCH · запрос'));});
+$('prevBtn').addEventListener('click',()=>{stopAuto();jump(position-1)});
+$('nextBtn').addEventListener('click',()=>{stopAuto();next()});
+$('resetBtn').addEventListener('click',()=>{stopAuto();jump(-1)});
+$('lightBtn').addEventListener('click',()=>{stopAuto();jump(events.findIndex(ev=>ev.phase==='MMIO · подтверждение'))});
+$('autoBtn').addEventListener('click',startAuto);
+$('speed').addEventListener('change',()=>{if(autoTimer){stopAuto();startAuto();}});
+document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select,button'))return;if(e.key==='ArrowRight'){e.preventDefault();stopAuto();next();}if(e.key==='ArrowLeft'){e.preventDefault();stopAuto();jump(position-1);}if(e.key==='Escape'){stopAuto();jump(-1);}});
+events=buildEvents();render();
+</script>
+</body>
+</html>
