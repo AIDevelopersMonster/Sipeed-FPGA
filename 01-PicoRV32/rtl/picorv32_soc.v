@@ -1,11 +1,11 @@
-// Sipeed-FPGA, 01-PicoRV32, Stage P1 (boot demonstrator)
+// Sipeed-FPGA, 01-PicoRV32, Stage P2 (bidirectional USB/UART console)
 // SPDX-License-Identifier: MIT
 // Board: Tang Nano 9K (27 MHz). No vendor-specific FPGA primitives.
 // Upstream CPU is fetched separately; not vendored in this repository.
 module picorv32_soc (
     input wire clk,
     input wire reset_n,
-    input wire uart_rx,  // Reserved for stage P2 (RX console).
+    input wire uart_rx,  // Tang Nano 9K on-board USB-serial bridge, RX (FPGA pin 18).
     output wire uart_tx,
     output wire [5:0] led_n
 );
@@ -71,6 +71,28 @@ module picorv32_soc (
         .tx(uart_tx), .busy(tx_busy)
     );
 
+    // Receive UART at the same 115200 baud rate as the existing transmitter.
+    wire [7:0] rx_byte;
+    wire rx_valid;
+    wire rx_frame_pulse;
+    uart_rx_8n1 #(.CLOCK_HZ(27_000_000), .BAUD(115200)) u_uart_rx (
+        .clk(clk), .reset_n(reset_n), .rx(uart_rx),
+        .data(rx_byte), .valid(rx_valid), .framing_error(rx_frame_pulse)
+    );
+
+    // Small four-byte FIFO, no RAM or interrupts needed in this stage.
+    // Pop is tied to the CPU's accepted read (not merely to mem_valid).
+    reg [7:0] rx_fifo [0:3];
+    reg [1:0] rx_wr_ptr, rx_rd_ptr;
+    reg [2:0] rx_count;
+    reg rx_overrun, rx_frame_error;
+    wire rx_read_accepted = mem_valid && !mem_ready && is_mmio &&
+                            mem_addr[7:0] == 8'h18 && !(|mem_wstrb) &&
+                            rx_count != 3'd0;
+    wire rx_write_accepted = rx_valid && (rx_count != 3'd4 || rx_read_accepted);
+    wire rx_clear_errors = mem_valid && !mem_ready && is_mmio &&
+                            mem_addr[7:0] == 8'h1C && (|mem_wstrb);
+
     // Common register contract (word accesses):
     // 0x20000000 LED[5:0] R/W
     // 0x20000004 free-running CYCLES R/O
@@ -78,6 +100,9 @@ module picorv32_soc (
     // 0x2000000C TEST_STATUS R/W (firmware writes 0x600DCAFE)
     // 0x20000010 UART_TX W/O (byte in low 8 bits; stalls if busy)
     // 0x20000014 UART_STATUS R/O (bit 0 = ready)
+    // 0x20000018 UART_RX_DATA R/O (low 8 bits; valid read pops one FIFO byte)
+    // 0x2000001C UART_RX_STATUS R/W (bit0: nonempty, bit1: overflow,
+    //                                bit2: framing error; write clears bits1/2)
     // Unmapped accesses terminate with diagnostic read data; not an exception.
     always @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
@@ -89,10 +114,31 @@ module picorv32_soc (
             test_status <= 32'b0;
             tx_start    <= 1'b0;
             tx_byte     <= 8'b0;
+            rx_wr_ptr   <= 2'd0;
+            rx_rd_ptr   <= 2'd0;
+            rx_count    <= 3'd0;
+            rx_overrun  <= 1'b0;
+            rx_frame_error <= 1'b0;
         end else begin
             cycles    <= cycles + 1'b1;
             mem_ready <= 1'b0;
             tx_start  <= 1'b0;
+            if (rx_frame_pulse) rx_frame_error <= 1'b1;
+            if (rx_valid && !rx_write_accepted) rx_overrun <= 1'b1;
+            if (rx_clear_errors) begin
+                rx_overrun <= 1'b0;
+                rx_frame_error <= 1'b0;
+            end
+            if (rx_write_accepted) begin
+                rx_fifo[rx_wr_ptr] <= rx_byte;
+                rx_wr_ptr <= rx_wr_ptr + 1'b1;
+            end
+            if (rx_read_accepted) rx_rd_ptr <= rx_rd_ptr + 1'b1;
+            case ({rx_write_accepted, rx_read_accepted})
+                2'b10: rx_count <= rx_count + 1'b1;
+                2'b01: rx_count <= rx_count - 1'b1;
+                default: ;  // simultaneous push/pop or neither
+            endcase
             if (mem_valid && !mem_ready) begin
                 return_rom <= is_boot;
                 if (is_boot) begin
@@ -131,6 +177,16 @@ module picorv32_soc (
                             mmio_rdata <= {31'b0, !(tx_busy || tx_start)};
                             mem_ready <= 1'b1;
                         end
+                        8'h18: begin
+                            // A read returns the oldest byte and pops it.
+                            // An empty FIFO returns zero; firmware must poll 0x1C.
+                            mmio_rdata <= (rx_count != 0) ? {24'b0, rx_fifo[rx_rd_ptr]} : 32'b0;
+                            mem_ready <= 1'b1;
+                        end
+                        8'h1C: begin
+                            mmio_rdata <= {29'b0, rx_frame_error, rx_overrun, (rx_count != 0)};
+                            mem_ready <= 1'b1;
+                        end
                         default: begin
                             mmio_rdata <= 32'hBAD0_0001;
                             mem_ready <= 1'b1;
@@ -144,5 +200,5 @@ module picorv32_soc (
             end
         end
     end
-    wire _unused = uart_rx ^ mem_instr; // silence basic lint on reserved inputs
+    wire _unused = mem_instr; // Instruction/data distinction is not required by this simple map.
 endmodule

@@ -8,6 +8,7 @@
     <File path="rtl/picorv32_soc.v" type="file.verilog" enable="1"/>
     <File path="rtl/boot_rom.v" type="file.verilog" enable="1"/>
     <File path="rtl/uart_tx_8n1.v" type="file.verilog" enable="1"/>
+    <File path="rtl/uart_rx_8n1.v" type="file.verilog" enable="1"/>
     <File path="vendor/picorv32/picorv32.v" type="file.verilog" enable="1"/>
     <File path="constraints/tang_nano_9k.cst" type="file.cst" enable="1"/>
     <File path="constraints/tang_nano_9k.sdc" type="file.sdc" enable="1"/>
