@@ -36,3 +36,17 @@ The `-UnitOnly` test also returned `LAB03_1_UNIT_RTL_PASS ONLY`. Nonfatal Icarus
 **FETCH** means an **acknowledged instruction read**, not an instruction retirement. **LED_WRITE** means an acknowledged MMIO write, not an optical measurement. The UART trigger is the receiver's valid byte, not proof the CPU consumed the FIFO. An explicit `truncated` or `overlap` flag invalidates completeness. Buffers do not silently wrap.
 
 **Next milestone LAB-03.2:** use a versioned readout transport and a synthesized SoC integration, followed by Gowin PnR/STA and physical testing. The existing LAB-02 source and firmware remain unchanged in LAB-03.1.
+
+## LAB-03 — преподавательские инструменты и аппаратные данные (21.10.2026)
+
+Ветка `feature/picorv32-lab03-uart-trace` содержит не только этап LAB-03.1 (RTL), но и этапы LAB-03.2/03.3 с измерениями на физической Tang Nano 9K, этап LAB-03.4 с анализом трасс и следующие учебные приложения:
+
+| Инструмент | Где находится | Назначение |
+|---|---|---|
+| **Bus Trace Observatory v1.1.0** | [observatory/](observatory/README_RU.md) | HTML-анализатор аппаратных T3, 12 захватов, 269 FETCH, 12 LED_WRITE, Web Serial и сравнение трасс |
+| **Calc Observatory + RV32I decoder v1.1** | [calc/](calc/README.md) | LibreOffice `.ods` и Excel `.xlsx`: пошаговый «ПУЛЬТ», 202 рабочих слова ROM, кодировка I/S/B/U/J, модель MMIO |
+| **PicoRV32 QuizLab v1.0** | [quizlab/](quizlab/README.md) | Автономный HTML-квиз по 50 заданиям, тренировка/экзамен/повтор ошибок, декодер и отчёт |
+
+Программа LAB-03 зафиксирована отдельно от LAB-02: [lab03_boot.hex](../../01-PicoRV32/firmware/lab03_boot.hex), [SoC LAB-03](../../01-PicoRV32/rtl/picorv32_soc_lab03.v). **FETCH — выборка инструкции на шине, а не retirement**; Calc и QuizLab не добавляют аппаратных измерений и не программируют FPGA.
+
+Использование без аппаратной платы: открыть `observatory/index.html` через локальный сервер, `calc/*.ods` в LibreOffice Calc, `quizlab/PicoRV32_QuizLab_v1.0.html` в Edge/Chrome. Детали и проверки — в README соответствующей папки.

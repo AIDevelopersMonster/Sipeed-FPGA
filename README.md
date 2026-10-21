@@ -57,3 +57,14 @@ More: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/TEST_PROTOCOL.md`](
 ## Кратко по-русски
 
 Цель — сравнить четыре способа построения RISC-V-систем на FPGA. Для каждой реализации своя папка, исходники, модель проверки, отчёты по ресурсам и собственная периферия. Общие спецификация, карта регистров и протокол испытаний находятся в `common/` и `docs/`. Первым создаётся минимальный PicoRV32 SoC на Tang Nano 9K с UART, светодиодами и аппаратным счётчиком. Физическая проверка выполнена 19 октября 2026 года: SRAM, UART `PICO` и LED-анимация — PASS.
+
+## LAB-03: PicoRV32 Observatory, Calc и QuizLab
+
+В ветке [`feature/picorv32-lab03-uart-trace`](https://github.com/AIDevelopersMonster/Sipeed-FPGA/tree/feature/picorv32-lab03-uart-trace) опубликован аппаратный эксперимент LAB-03 для Tang Nano 9K (PicoRV32, RV32I) и автономные учебные приложения:
+
+- [Аппаратный Trace Observatory v1.1.0](docs/lab03/observatory/README_RU.md) — трассы шины, реальные измерения и методические материалы.
+- [LibreOffice Calc / Excel Observatory v1.1](docs/lab03/calc/README.md) — 32-битные поля инструкций, ROM, модель MMIO, пошаговое воспроизведение событий.
+- [PicoRV32 QuizLab v1.0](docs/lab03/quizlab/README.md) — HTML-квиз в стиле QuizLaw, 50 заданий, экзамен, повтор ошибок и экспорт результатов.
+- [Общий каталог LAB-03](docs/lab03/README.md) — последовательность этапов и границы доказательств.
+
+**Данные приборов не следует смешивать с симуляцией:** FETCH — принятая шинная выборка, LED_WRITE — принятая запись MMIO. Вывод о retirement или оптическом состоянии LED из этих событий не следует.
