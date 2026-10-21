@@ -1,4 +1,10 @@
-# PicoRV32 LAB-03.1 — real bus-event trace recorder (RTL prototype)
+# PicoRV32 LAB-03 — FPGA bus traces, RTL comparison, учебные инструменты
+
+**Актуальный итог на 22.10.2026:** лаборатория LAB-03 имеет 12 сохранённых аппаратных T3 (269 FETCH и 12 LED_WRITE) и независимо подтверждённое совпадение нормализованных шинных событий **RTL ↔ FPGA** для команд `0` и `4`. [Итоговый протокол и границы доказательства](LAB03_4_FINAL_AUDIT_20261022_RU.md).
+
+**Приоритет документации:** раздел ниже относится только к историческому этапу LAB-03.1 (RTL прототип, до интеграции в плату). Его указание `BOARD NOT TESTED` верно **для версии LAB-03.1 на тот момент**, но не является состоянием всей LAB-03 после испытаний 20–22.10.2026.
+
+## LAB-03.1 — исходный RTL-прототип
 
 **Status: SOURCE_PREFLIGHT_PASS · TRACE_UNIT_RTL_PASS · SOC_TRACE_RTL_PASS · RTL_PASS (local Icarus Verilog, 20 October 2026). Gowin PnR/STA and FPGA BOARD remain NOT TESTED for LAB-03.1.**
 

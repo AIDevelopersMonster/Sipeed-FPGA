@@ -1,12 +1,12 @@
 # Sipeed FPGA — CPU/SoC research line
 
-**Current status: PicoRV32 LAB-02 — BOARD_PASS + HTML_HARDWARE_PASS on Tang Nano 9K (20 October 2026).** Earlier P1 is preserved in Git history. Firmware model, RTL simulation, Gowin PnR/STA at 27 MHz, SRAM programming, UART `PICO` and LED animation were confirmed. The four-instruction interactive demonstration below is a separate conceptual example.
+**Current PicoRV32 status (22 October 2026):** LAB-02 physical UART/LED test and LAB-03 physical T3 capture (12 snapshots) are recorded; LAB-03.4 independently audited matching **accepted-bus core event sequences** for commands `0` and `4` between RTL/Icarus and Tang Nano 9K. This is *not* cycle, retirement or formal whole-SoC equivalence. See [final LAB-03.4 audit](docs/lab03/LAB03_4_FINAL_AUDIT_20261022_RU.md).
 
 One repository; four deliberately independent implementations. Platforms are **Sipeed Tang Nano 9K** and **Tang Primer 25K**. This is **not** the DDF training repository and **not** an Intel MAX 10 project.
 
 | Stage | Folder | CPU/SoC | First target | Current state |
 |---|---|---|---|---|
-| 01 | [`01-PicoRV32`](01-PicoRV32/README.md) | PicoRV32 (RV32I) | Tang Nano 9K | LAB-02: MODEL, RTL, PnR, STA, BOARD and HTML_HARDWARE_PASS (2026-10-20) |
+| 01 | [`01-PicoRV32`](01-PicoRV32/README.md) | PicoRV32 (RV32I) | Tang Nano 9K | LAB-02 BOARD/HTML PASS; LAB-03 T3 physical capture; LAB-03.4 accepted-bus core comparison PASS for `0` and `4` |
 | 02 | [`02-NEORV32`](02-NEORV32/README.md) | NEORV32 (VHDL) | Tang Nano 9K | Research baseline / integration specification |
 | 03 | [`03-LiteX-VexRiscv`](03-LiteX-VexRiscv/README.md) | LiteX with VexRiscv | Tang Primer 25K | Research baseline / integration specification |
 | 04 | [`04-Rocket`](04-Rocket/README.md) | Rocket RV32IC minimal configuration | Tang Primer 25K | Feasibility study, NOT a confirmed fit |
