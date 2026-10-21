@@ -13,11 +13,13 @@
 
 ## Запуск на Windows 10/PowerShell 7
 
-Распаковать архив `LAB03_Observatory_v1.0.zip` **в корень существующего репозитория** `C:\GitHub\Sipeed-FPGA` (без `git add .`). Он содержит новые пути `docs/lab03/observatory/` и `01-PicoRV32/tools/launch_lab03_observatory.ps1`.
+**Версия v1.1.0 уже опубликована в GitHub-ветке** `feature/picorv32-lab03-uart-trace`. На новом компьютере лучше клонировать эту ветку и сразу запускать стенд. Приведённое ниже распаковывание `LAB03_Observatory_v1.1.0.zip` нужно только для автономного обновления существующего стенда; в чистом клоне Git оно не требуется. Подробности — `methodics/INSTALL_RUN_RU.md`.
+
+Распаковать архив `LAB03_Observatory_v1.1.0.zip` **в корень существующего репозитория** `C:\GitHub\Sipeed-FPGA` (без `git add .`). Он содержит новые пути `docs/lab03/observatory/` и `01-PicoRV32/tools/launch_lab03_observatory.ps1`.
 
 ```powershell
 cd C:\GitHub\Sipeed-FPGA
-Expand-Archive "$HOME\Downloads\LAB03_Observatory_v1.0.zip" -DestinationPath . -Force
+Expand-Archive "$HOME\Downloads\LAB03_Observatory_v1.1.0.zip" -DestinationPath . -Force
 python .\docs\lab03\observatory\tests\verify_observatory.py
 & .\01-PicoRV32\tools\launch_lab03_observatory.ps1
 ```

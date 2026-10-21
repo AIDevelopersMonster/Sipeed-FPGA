@@ -1,19 +1,21 @@
-# LAB-03 · PicoRV32 Bus Trace Observatory — teaching interface v1.0
+# LAB-03 · PicoRV32 Bus Trace Observatory — teaching interface v1.1.0
 
 A local, dependency-free browser interface for **observing saved real-FPGA bus traces** from the Tang Nano 9K LAB-03 series. Includes the original unmodified LAB03_3_EVIDENCE.zip archive plus 12 T3 ASCII captures (six command `0`, six command `4`), with 269 accepted instruction FETCH events and 12 final LED MMIO writes. The page performs SHA-256 validation of the bundled raw dumps and the exact LAB-03 ROM (`14b85bc2…b5b8a3d`).
 
 ## Start on Windows PowerShell
 
+**Version 1.1.0 is already published on the `feature/picorv32-lab03-uart-trace` branch.** A new student can clone that branch and run the launcher without extracting any ZIP. The ZIP overlay shown below is intended for updating an existing offline installation. See `methodics/INSTALL_RUN_RU.md` for the clean-clone route.
+
 ```powershell
 cd C:\GitHub\Sipeed-FPGA
-Expand-Archive "$HOME\Downloads\LAB03_Observatory_v1.0.zip" -DestinationPath . -Force
+Expand-Archive "$HOME\Downloads\LAB03_Observatory_v1.1.0.zip" -DestinationPath . -Force
 python .\docs\lab03\observatory\tests\verify_observatory.py
 & .\01-PicoRV32\tools\launch_lab03_observatory.ps1
 ```
 
 Open `http://127.0.0.1:8765/`. Requires Python 3; Chromium/Edge for Web Serial. All external dependencies are avoided.
 
-Four interface areas: **Trace Explorer**, **Trace Comparison**, **Student Worksheet** (Markdown export), **Terminology / T3 Protocol**. Playback replays recorded bus events, not hardware timing. The board can be explicitly opened through Web Serial and queried with one-byte `C`, command `0`..`6`, `T` protocol; data must match strict T3 framing and expected ROM.
+Five interface areas: **Trace Explorer**, **Trace Comparison**, **RV32I Instructions**, **Student Worksheet** (Markdown export), **Terminology / T3 Protocol**. Playback replays recorded bus events, not hardware timing. The board can be explicitly opened through Web Serial and queried with one-byte `C`, command `0`..`6`, `T` protocol; data must match strict T3 framing and expected ROM.
 
 The comparison view starts with **board-versus-board** only. To test RTL↔FPGA, upload actual Icarus-produced dumps `lab03_4_trace_0.txt` and/or `lab03_2_trace_4.txt`. Browser cannot verify the provenance of an uploaded RTL file.
 

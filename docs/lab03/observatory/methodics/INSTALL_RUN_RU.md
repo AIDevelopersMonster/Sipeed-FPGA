@@ -57,10 +57,10 @@ git clone --branch feature/picorv32-lab03-uart-trace `
   https://github.com/AIDevelopersMonster/Sipeed-FPGA.git `
   C:\GitHub\Sipeed-FPGA
 Set-Location C:\GitHub\Sipeed-FPGA
-# Затем пункты A.1, A.3–A.5.
+# ZIP повторно скачивать и распаковывать не нужно. Выполните пункты A.4–A.5.
 ```
 
-Архив Observatory поставляется отдельно от Git-коммита LAB-03, пока изменения v1.1.0 не опубликованы самостоятельным коммитом. Студенту не требуется клонировать внешний PicoRV32 только для анализа архивных трасс.
+Observatory v1.1.0 и методические материалы уже опубликованы в GitHub-ветке `feature/picorv32-lab03-uart-trace` (коммит `aac671312c8b49afc2bea4bca4bb9f1461f19c57`). Для чистого клона архив ZIP не нужен. Студенту не требуется клонировать внешний PicoRV32 только для анализа архивных трасс.
 
 ## C. Работа без физической платы
 
