@@ -1,12 +1,12 @@
-# LAB-04.4 — PiKoSoL Web Control & Terminal (v0.1 preview)
+# LAB-04.4 — PiKoSoL Web Control & Terminal (hardware-verified)
 
 Browser Web Serial UART control panel for hardware-verified PiKoSoL LAB-04.3.2 v0.2.0 on Tang Nano 9K.
 
-**STATUS: SOURCE PREVIEW — LAB-04.4 browser UART hardware acceptance PENDING.** PiKoSoL v0.2.0 firmware and HDMI were already board-validated separately.
+**STATUS: HARDWARE PASS (operator-verified, Tang Nano 9K + CHUWI N100, 23 October 2026).** Real Web Serial commands, LED responses and HDMI GFX/TERM were demonstrated on hardware. This is not an automated multi-platform certification. [Acceptance protocol](../LAB044_ACCEPTANCE_2026-10-23_RU.md).
 
 ## Start
 
-1. Flash the verified .fs file to **SRAM only** using the separately validated openFPGALoader WebUSB/JTAG (FT2232 Interface A) workflow. This preview does NOT program the FPGA.
+1. Flash the verified .fs file to **SRAM only** using [PiKoSoL WebUSB Loader](../web-loader/) on GitHub Pages (FT2232 Interface A). The terminal page itself does not program the FPGA.
 2. Close other programs using COM and optionally close the WebUSB tab.
 3. Open [PiKoSoL Control Center](./index.html) over HTTPS on GitHub Pages using Chrome or Edge.
 4. Click **Подключить COM**, select **USB Serial Port (COMx)** of FT2232 Interface B (not JTAG Debugger), 115200 8N1.
@@ -23,11 +23,10 @@ Browser Web Serial UART control panel for hardware-verified PiKoSoL LAB-04.3.2 v
 - The browser does not write Flash or automatically access USB devices.
 - Bitstream requires SHA-256 verification and SRAM-only operation. The existing JTAG programming workflow is separate.
 
-## LAB-04.4 acceptance pending
+## LAB-04.4 physical acceptance
 
-- Web Serial connection and INFO/MEM/LED ? replies from the real PicoRV32.
-- Physical LED changes and readback.
-- TERM/GFX/KEYS behaviour on connected HDMI.
-- Reconnect/disconnect handling, browser errors and COM ownership.
+- **PASS (operator):** Web Serial connection, true PicoRV32 responses, LED control and HDMI GFX.
+- **PASS (operator):** COM-port contention was diagnosed: another browser tab owned the serial port; closing it restored access.
+- **Not separately certified:** exhaustive reconnection/error/compatibility matrix. Do not claim it without additional test evidence.
 
 Implementation: standalone HTML/CSS/JS, no framework or build step. GitHub repo [AIDevelopersMonster/Sipeed-FPGA](https://github.com/AIDevelopersMonster/Sipeed-FPGA).
