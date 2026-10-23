@@ -10,8 +10,8 @@ function setMask(m){m=m&63;state.mask=m;$("led-mask").textContent="0x"+m.toStrin
 function parseLine(line){
   const s=line.trim();
   if(!s)return;
-  if(s.includes("PiKoSoL")){state.confirmed=true;$("device-confirmed").textContent="PiKoSoL ✓"}
-  const m=s.match(/^M=([0-9A-Fa-f]{2})$/);if(m){setMask(parseInt(m[1],16));state.confirmed=true;$("device-confirmed").textContent="MMIO ✓"}
+  if(s.includes("PiKoSoL LAB-04")){state.confirmed=true;$("device-confirmed").textContent="PiKoSoL ✓";notice("PiKoSoL отвечает по реальному UART — связь подтверждена.")}
+  const m=s.match(/^M=([0-9A-Fa-f]{2})$/);if(m){setMask(parseInt(m[1],16));state.confirmed=true;$("device-confirmed").textContent="MMIO ✓";notice("Получен ответ PicoRV32: маска LED считана из FPGA.")}
   const n=s.match(/^([CL])=([0-6])$/);if(n){const i=Number(n[2]);setMask(n[1]==="C"?(1<<i)-1:1<<(i-1));state.confirmed=true;$("device-confirmed").textContent="MMIO ✓"}
   if(s.includes("MODE: GRAPHICS"))setMode("gfx");
   if(s.includes("MODE: TERMINAL"))setMode("term");
@@ -100,7 +100,7 @@ async function sendLine(cmd){
 function sendCommand(cmd){void sendLine(cmd)}
 function sendLive(raw){
   if(!state.live){notice("Сначала GFX, затем KEYS.",true);return}
-  if(!/^[ijklABRGUW+XO Kt-]$/.test(raw)){notice("Недопустимая клавиша KEYS.",true);return}
+  if(!/^[ijklABRGUWXOKtT+-]$/.test(raw)){notice("Недопустимая клавиша KEYS.",true);return}
   void queueBytes(ENC.encode(raw))
 }
 function graphicsCommand(kind,value){
@@ -123,7 +123,7 @@ document.querySelectorAll("[data-move]").forEach(b=>b.addEventListener("click",(
 document.querySelectorAll("[data-color]").forEach(b=>b.addEventListener("click",()=>graphicsCommand("color",b.dataset.color)));
 document.querySelectorAll("[data-size]").forEach(b=>b.addEventListener("click",()=>graphicsCommand("size",b.dataset.size)));
 $("btn-live-exit").addEventListener("click",()=>{if(state.live)sendLive("T");else notice("Режим KEYS не подтверждён.")});
-$("raw-zone").addEventListener("keydown",ev=>{if(!state.live)return;const key=ev.key;if(key==="ArrowLeft"||key==="ArrowRight"||key==="ArrowUp"||key==="ArrowDown"){ev.preventDefault();sendLive(({ArrowLeft:"j",ArrowRight:"l",ArrowUp:"i",ArrowDown:"k"})[key]);return}if(/^[ijklABRGUW+XOKt-]$/.test(key)){ev.preventDefault();sendLive(key)}});
+$("raw-zone").addEventListener("keydown",ev=>{if(!state.live)return;const key=ev.key;if(key==="ArrowLeft"||key==="ArrowRight"||key==="ArrowUp"||key==="ArrowDown"){ev.preventDefault();sendLive(({ArrowLeft:"j",ArrowRight:"l",ArrowUp:"i",ArrowDown:"k"})[key]);return}if(/^[ijklABRGUWXOKtT+-]$/.test(key)){ev.preventDefault();sendLive(key)}});
 $("btn-recall").addEventListener("click",()=>{if(state.live){notice("Сначала T для выхода из KEYS.",true);return}void queueBytes(Uint8Array.of(0x10,0x0d))});
 $("btn-terminal-clear").addEventListener("click",()=>{state.raw="";$("terminal-output").textContent="";notice("Очищено только окно браузера. HDMI не затронут.")});
 $("btn-copy-log").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(state.raw);notice("Журнал скопирован.")}catch(e){notice("Не удалось скопировать: "+e.message,true)}});
