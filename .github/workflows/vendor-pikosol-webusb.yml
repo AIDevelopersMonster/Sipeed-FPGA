@@ -37,11 +37,14 @@ jobs:
           npm_pack="$(npm pack "@yowasp/openfpgaloader@${OFL_VERSION}" --pack-destination "$tmp" --silent)"
           tar -xzf "$tmp/$npm_pack" -C "$tmp"
           base="$tmp/package/gen"
-          for asset in bundle.js openFPGALoader.worker.js openFPGALoader.wasm; do
-            test -s "$base/$asset" || { echo "Missing $asset" >&2; exit 1; }
+          echo "Package gen/ contents:"
+          ls -lah "$base"
+          for asset in bundle.js openFPGALoader.wasm; do
+            test -s "$base/$asset" || { echo "Missing required $asset" >&2; exit 1; }
           done
           mkdir -p docs/lab04/web-loader/vendor
-          cp "$base/bundle.js" "$base/openFPGALoader.worker.js" "$base/openFPGALoader.wasm" docs/lab04/web-loader/vendor/
+          # Copy the entire runtime gen directory: worker is optional in some versions.
+          cp -a "$base/." docs/lab04/web-loader/vendor/
           cp "$tmp/package/package.json" docs/lab04/web-loader/vendor/npm-package.json
           sha256sum docs/lab04/web-loader/vendor/* > docs/lab04/web-loader/vendor/SHA256SUMS.txt
           ls -lh docs/lab04/web-loader/vendor/
