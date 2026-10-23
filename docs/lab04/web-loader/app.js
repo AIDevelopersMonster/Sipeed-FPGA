@@ -6,7 +6,8 @@
  */
 const $=id=>document.getElementById(id);
 const FW_SHA="6862c034715dbf557c93c8f8af8d8aa856ca8f4e62997660cea9740f3efda356";
-const FW_URL="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-v0.2.0/picorv32_lab04_hdmi_nano9k.fs";
+const FW_URL="./firmware/picorv32_lab04_hdmi_nano9k.fs";
+const RELEASE_URL="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-v0.2.0/picorv32_lab04_hdmi_nano9k.fs";
 const ENGINE_URL="./vendor/bundle.js";
 let device=null, firmware=null, loadedSha="", isVerified=false, busy=false, engine=null;
 const logEl=$("log");
@@ -36,14 +37,14 @@ $("input-file").addEventListener("change",async e=>{
 });
 $("custom-confirm").addEventListener("change",ready);
 $("load-github").addEventListener("click",async()=>{
-  status("Получение аппаратно проверенного .fs из GitHub Releases...");log("Получаем прошивку "+FW_URL);
+  status("Получение проверенного .fs с нашего GitHub Pages...");log("Получаем прошивку "+FW_URL);
   try{
     const response=await fetch(FW_URL,{mode:"cors",redirect:"follow",cache:"no-store"});
     if(!response.ok)throw new Error("HTTP "+response.status);
     await acceptFile(new Uint8Array(await response.arrayBuffer()),"picorv32_lab04_hdmi_nano9k.fs");
   }catch(e){
-    status("Браузер не смог напрямую получить файл из GitHub Releases (возможен CORS). Скачайте .fs по ссылке и выберите локальный файл. "+e.message,"error");
-    log("GitHub release fetch: "+e.message+"; local file fallback available");
+    status("Автоматическая загрузка с GitHub Pages недоступна. Скачайте .fs из Releases и выберите его вручную. "+e.message,"error");
+    log("GitHub Pages firmware fetch: "+e.message+"; local file fallback available");
   }
 });
 async function connect(){
@@ -96,7 +97,7 @@ async function program(){
 $("program").addEventListener("click",program);
 $("clear-log").addEventListener("click",()=>{logEl.textContent=""});
 $("save-log").addEventListener("click",()=>{const url=URL.createObjectURL(new Blob([logEl.textContent],{type:"text/plain;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="PiKoSoL_WebUSB_log.txt";a.click();setTimeout(()=>URL.revokeObjectURL(url),300)});
-$("release-download").href=FW_URL;
+$("release-download").href=RELEASE_URL;
 const secure=window.isSecureContext&&"usb" in navigator;
 metric("usb-support",secure?"ДОСТУПЕН ✓":"НЕДОСТУПЕН",secure);
 metric("isolation-status",window.crossOriginIsolated?"ГОТОВО ✓":"НЕТ COOP/COEP",window.crossOriginIsolated);
