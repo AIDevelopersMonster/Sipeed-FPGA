@@ -17,3 +17,5 @@
 *.pof
 *.bit
 .DS_Store
+/01-PicoRV32/lab04/backups/
+/01-PicoRV32/lab04/**/*.bak_*
