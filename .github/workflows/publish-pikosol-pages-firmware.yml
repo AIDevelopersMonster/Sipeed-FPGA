@@ -1,0 +1,63 @@
+name: Publish verified PiKoSoL firmware to Pages
+# Copy the official, SHA-256-pinned release bitstream into the same origin as the WebUSB loader.
+# The browser cannot reliably fetch the release download URL directly because of CORS.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-pikosol-pages-firmware.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-firmware:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Download official v0.2.0 FPGA SRAM image and verify SHA-256
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dest="docs/lab04/web-loader/firmware"
+          file="picorv32_lab04_hdmi_nano9k.fs"
+          mkdir -p "$dest"
+          gh release download pikosol-v0.2.0 \
+            --repo AIDevelopersMonster/Sipeed-FPGA \
+            --pattern "$file" \
+            --dir "$dest" \
+            --clobber
+          test -s "$dest/$file"
+          test "$(stat -c%s "$dest/$file")" -eq 3558473
+          printf '%s  %s\n' \
+            '6862c034715dbf557c93c8f8af8d8aa856ca8f4e62997660cea9740f3efda356' \
+            "$dest/$file" | sha256sum --check
+          (cd "$dest" && sha256sum "$file" > SHA256SUMS.txt)
+          ls -lh "$dest"
+
+      - name: Commit site-hosted, verified release image
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="docs/lab04/web-loader/firmware"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The repository excludes build products by default: explicitly add only this
+          # SHA-256-verified GitHub Pages distribution copy, not arbitrary .fs files.
+          git add -f "$dest/picorv32_lab04_hdmi_nano9k.fs"
+          git add "$dest/SHA256SUMS.txt"
+          if git diff --cached --quiet; then
+            echo "Pages firmware image already matches official release"
+          else
+            git commit -m "build(pikosol): publish verified v0.2.0 SRAM image on Pages"
+            git push origin HEAD:main
+          fi
