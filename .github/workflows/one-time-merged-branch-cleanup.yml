@@ -1,0 +1,83 @@
+name: One-time cleanup of fully merged branches
+# Temporary housekeeping workflow. Keep the allowlist conservative and SHA-pinned.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/one-time-merged-branch-cleanup.yml"
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  prune-fully-merged:
+    if: github.repository == 'AIDevelopersMonster/Sipeed-FPGA'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main with complete history
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Delete only allowlisted branches with no unique commits
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+
+          # Preserve branches with open PRs. A separate connector audit
+          # already verified all eight candidates are fully behind main.
+          open_pr_heads="$(gh api -X GET "repos/${GITHUB_REPOSITORY}/pulls" \
+            -f state=open -f per_page=100 --jq '.[].head.ref')"
+
+          deleted=0
+          skipped=0
+          while read -r branch expected; do
+            [ -n "$branch" ] || continue
+            if [ "$branch" = "main" ]; then
+              echo "::error::Refusing to delete the default branch"
+              exit 1
+            fi
+            actual="$(git ls-remote --heads origin "refs/heads/$branch" | cut -f1)"
+            if [ -z "$actual" ]; then
+              echo "SKIP (already absent): $branch"
+              skipped=$((skipped+1))
+              continue
+            fi
+            if [ "$actual" != "$expected" ]; then
+              echo "::warning::SKIP (branch advanced since review): $branch; $actual != $expected"
+              skipped=$((skipped+1))
+              continue
+            fi
+            if printf '%s\n' "$open_pr_heads" | grep -Fxq "$branch"; then
+              echo "::warning::SKIP (open PR): $branch"
+              skipped=$((skipped+1))
+              continue
+            fi
+            if ! git merge-base --is-ancestor "$expected" refs/remotes/origin/main; then
+              echo "::warning::SKIP (unique commits not in main): $branch"
+              skipped=$((skipped+1))
+              continue
+            fi
+            echo "DELETE: $branch (fully merged at $expected)"
+            git push origin --delete "$branch"
+            deleted=$((deleted+1))
+          done <<'ALLOWLIST'
+          docs/lab02-startup-two-routes-s2 ee60a62e92fe079d601474217c8ac386899f096c
+          docs/lab044-hardware-acceptance-cleanup cb5691046900bf2477e78271fa302f550e6d020b
+          feature/lab044-pikosol-webusb-loader 62df93e4f5fedee4ed938fb5dce47412ba1c5a27
+          feature/lab044-web-serial-control 13080c6c718f0150599e76ec1a4682004035e140
+          feature/picorv32-uart-console-lab02 793f8ff45840f0dea42cb1b6a74d2594c03a0496
+          feature/pikosol-lab0432-v0200 345ff1307c3ec1930797be8c80b13761629b3478
+          fix/pikosol-webusb-vendored-runtime 2986742a761b510ccd4556ea4c37c7126820e09a
+          fix/webusb-github-pages-firmware-fetch a9aed34406ad91c5a37e839d643353cb1a1e5840
+          ALLOWLIST
+
+          echo "Cleanup completed: deleted=$deleted skipped=$skipped"
+          git ls-remote --heads origin
