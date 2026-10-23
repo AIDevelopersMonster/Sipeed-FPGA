@@ -19,7 +19,7 @@
       <div class="top-links">
         <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases" target="_blank" rel="noopener noreferrer">Прошивки ↗</a>
-        <a href="https://ofl.trabucayre.com/" target="_blank" rel="noopener noreferrer">WebUSB программатор ↗</a>
+        <a href="../web-loader/">Прошивка FPGA / WebUSB ↗</a>
       </div>
     </header>
 
@@ -195,7 +195,7 @@
       </section>
 
       <section class="notes-grid" aria-label="Сведения об устройстве">
-        <div class="info-note"><div class="card-caption">ПОШАГОВО</div><h3>1. Загрузите PiKoSoL</h3><p>На отдельной странице <a href="https://ofl.trabucayre.com/" target="_blank" rel="noopener noreferrer">openFPGALoader WebUSB</a> выберите <code>tangnano9k</code>, загрузите проверенный <code>.fs</code> <strong>только в SRAM</strong>. Затем закройте вкладку программатора, если она удерживает USB.</p></div>
+        <div class="info-note"><div class="card-caption">ПОШАГОВО</div><h3>1. Загрузите PiKoSoL</h3><p>На отдельной странице <a href="../web-loader/">PiKoSoL WebUSB Loader</a> выберите <code>tangnano9k</code>, загрузите проверенный <code>.fs</code> <strong>только в SRAM</strong>. Затем закройте вкладку программатора, если она удерживает USB.</p></div>
         <div class="info-note"><div class="card-caption">СВЯЗЬ</div><h3>2. Подключите UART</h3><p>В Chrome/Edge нажмите «Подключить COM», выберите последовательный порт FT2232 <strong>Interface B</strong>, затем «Проверить PicoRV32». JTAG-интерфейс A и UART-интерфейс B — разные каналы.</p></div>
         <div class="info-note"><div class="card-caption">ПРОТОКОЛ</div><h3>3. Отправляйте команды</h3><p>Строковые команды завершаются <code>CR</code>, вывод читается с реального UART. В GFX+KEYS работает поток одиночных клавиш без Enter. HTML не эмулирует RISC-V.</p></div>
       </section>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="PiKoSoL WebUSB Loader: прошивка Sipeed Tang Nano 9K непосредственно с GitHub Pages, WebUSB/JTAG, только SRAM.">
+  <title>PiKoSoL · WebUSB FPGA Loader</title>
+  <link rel="stylesheet" href="./style.css">
+  <!-- GitHub Pages cannot add COOP/COEP HTTP headers; this service worker supplies them. -->
+  <script src="./coi-serviceworker.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="../../"><span class="logo">P<span>:</span></span><span>PiKoSoL <small>WEBUSB LOADER</small></span></a>
+      <nav aria-label="Навигация">
+        <a href="../web-control/">Терминал Web Serial ↗</a>
+        <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0" target="_blank" rel="noopener noreferrer">Релиз v0.2.0 ↗</a>
+        <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">LAB-04.4 · FPGA FLASHING IN THE BROWSER</div>
+          <h1>Прошиваем FPGA.<br><span>Прямо с GitHub.</span></h1>
+          <p>Собственный браузерный загрузчик PiKoSoL на основе WebAssembly openFPGALoader. Подключите Tang Nano 9K, выберите проверенную прошивку и отправьте её в FPGA через WebUSB — без Gowin Programmer на компьютере.</p>
+          <div class="badges"><span>Tang Nano 9K</span><span>GW1NR-9C</span><span>FT2232 · JTAG A</span><span class="safe">Только SRAM</span></div>
+        </div>
+        <aside class="card summary">
+          <div class="kicker">DEVICE PROFILE / LOCKED</div>
+          <h2>PiKoSoL v0.2.0</h2>
+          <div class="pair"><span>Board</span><b>tangnano9k</b></div>
+          <div class="pair"><span>Cable</span><b>ft2232</b></div>
+          <div class="pair"><span>Target</span><b class="good">Volatile SRAM</b></div>
+          <div class="pair"><span>Firmware</span><b>.fs / Gowin</b></div>
+          <div class="pair"><span>Source</span><b>GitHub Release</b></div>
+          <p class="hint">В интерфейсе нет команд стирания или записи встроенной Flash. После отключения питания SRAM-конфигурация теряется.</p>
+        </aside>
+      </section>
+
+      <div class="stats">
+        <div class="stat"><span>WebUSB</span><strong id="usb-support">ПРОВЕРЯЕТСЯ</strong></div>
+        <div class="stat"><span>Изоляция WASM</span><strong id="isolation-status">ПРОВЕРЯЕТСЯ</strong></div>
+        <div class="stat"><span>Движок openFPGALoader</span><strong id="engine-status">НЕ ЗАГРУЖЕН</strong></div>
+        <div class="stat"><span>USB-JTAG</span><strong id="jtag-status">НЕ ПОДКЛЮЧЁН</strong></div>
+      </div>
+
+      <div class="grid">
+        <section class="card step">
+          <div class="kicker">ШАГ 01 · BITSTREAM</div>
+          <h2>Выберите прошивку</h2>
+          <p>Проверенная аппаратно <strong>PiKoSoL v0.2.0</strong> имеет фиксированную контрольную сумму SHA-256.</p>
+          <div class="row-buttons">
+            <button id="load-github" class="button primary" type="button">↓ Получить .fs с GitHub Pages</button>
+            <label for="input-file" class="button secondary file-label" role="button" tabindex="0">Выбрать .fs на компьютере</label>
+            <input id="input-file" type="file" accept=".fs" hidden>
+          </div>
+          <p class="small">Если автоматическая загрузка ещё не опубликована, <a id="release-download" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-v0.2.0/picorv32_lab04_hdmi_nano9k.fs">скачайте файл из GitHub Releases</a> и выберите его второй кнопкой.</p>
+          <div class="selected-file"><div><small>ВЫБРАННЫЙ ФАЙЛ</small><strong id="firmware-name">Нет файла</strong></div><span id="firmware-size">—</span></div>
+          <div class="hash"><small>SHA-256</small><code id="actual-sha">Файл ещё не выбран</code></div>
+          <div id="hash-result" class="notice neutral" role="status">Контрольная сумма не проверена.</div>
+          <label class="check"><input id="custom-confirm" type="checkbox" disabled> Разрешить пользовательский .fs с отличающимся SHA-256 (непроверенная прошивка)</label>
+        </section>
+
+        <section class="card step">
+          <div class="kicker">ШАГ 02 · USB-JTAG</div>
+          <h2>Подключите Tang Nano 9K</h2>
+          <p>Выберите в окне Chrome устройство <strong>JTAG Debugger</strong> (FT2232, VID:PID <code>0403:6010</code>). В Windows интерфейс A должен работать через WinUSB; UART-интерфейс B не меняем.</p>
+          <button id="connect-jtag" class="button secondary full" type="button">⌁ Выбрать JTAG Debugger</button>
+          <div class="device" id="device-message">Разрешение браузера на WebUSB ещё не предоставлено.</div>
+          <div class="line"></div>
+          <div class="kicker">ШАГ 03 · SRAM</div>
+          <h2>Программирование</h2>
+          <p>Фиксированная команда:</p>
+          <pre class="cli" id="command-preview">openFPGALoader -c ft2232 -b tangnano9k pikosol.fs</pre>
+          <button id="program" class="button program full" type="button" disabled>▶ Загрузить PiKoSoL в SRAM</button>
+          <p class="small">Кнопка доступна после выбора файла и USB-JTAG. Во время загрузки не отключайте USB. Успешное завершение программы отдельно проверяйте на HDMI.</p>
+          <a id="terminal-link" class="button terminal full" href="../web-control/">Открыть терминал Web Serial →</a>
+        </section>
+      </div>
+
+      <section class="card log-card">
+        <div class="log-heading"><div><div class="kicker">LIVE CONSOLE</div><h2>Протокол openFPGALoader</h2></div><div><button class="button small" id="clear-log" type="button">Очистить</button><button class="button small" id="save-log" type="button">Сохранить .txt</button></div></div>
+        <pre id="log" class="console" role="log" aria-live="off">PiKoSoL WebUSB Loader
+Готовится среда программирования...
+</pre>
+        <div id="operation-status" class="notice neutral" role="status">Операция не выполнялась.</div>
+      </section>
+
+      <section class="how">
+        <div><b>01 / Подготовка</b><p>Прошивка загружается в SRAM FPGA. JTAG A: WinUSB. UART B: обычный COM-порт.</p></div>
+        <div><b>02 / WebUSB</b><p>Chrome или Edge по HTTPS запрашивает разрешение на конкретную USB-плату. Доступ не предоставляется автоматически.</p></div>
+        <div><b>03 / Терминал</b><p>После загрузки FPGA переходите в PiKoSoL Control Center и подключайте UART через Web Serial.</p></div>
+      </section>
+    </main>
+    <footer>
+      <span>PiKoSoL · Sipeed-FPGA · LAB-04.4 · WebUSB</span>
+      <span>openFPGALoader WebAssembly / YoWASP · coi-serviceworker (MIT) · исходники открыты</span>
+    </footer>
+  </div>
+</body>
+</html>
