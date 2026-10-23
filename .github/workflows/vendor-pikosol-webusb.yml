@@ -1,0 +1,64 @@
+name: Vendor PiKoSoL WebUSB runtime
+# Publish a reproducible WASM/WebUSB programming runtime as part of GitHub Pages.
+# This avoids brittle runtime imports from a third-party CDN.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/vendor-pikosol-webusb.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  vendor-openfpgaloader:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Download fixed published YoWASP WebUSB build from npm
+        shell: bash
+        env:
+          OFL_VERSION: 1.1.1-182.269
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          npm_pack="$(npm pack "@yowasp/openfpgaloader@${OFL_VERSION}" --pack-destination "$tmp" --silent)"
+          tar -xzf "$tmp/$npm_pack" -C "$tmp"
+          base="$tmp/package/gen"
+          for asset in bundle.js openFPGALoader.worker.js openFPGALoader.wasm; do
+            test -s "$base/$asset" || { echo "Missing $asset" >&2; exit 1; }
+          done
+          mkdir -p docs/lab04/web-loader/vendor
+          cp "$base/bundle.js" "$base/openFPGALoader.worker.js" "$base/openFPGALoader.wasm" docs/lab04/web-loader/vendor/
+          cp "$tmp/package/package.json" docs/lab04/web-loader/vendor/npm-package.json
+          sha256sum docs/lab04/web-loader/vendor/* > docs/lab04/web-loader/vendor/SHA256SUMS.txt
+          ls -lh docs/lab04/web-loader/vendor/
+          node --check docs/lab04/web-loader/app.js
+          node --check docs/lab04/web-loader/vendor/bundle.js
+          git status --short
+
+      - name: Commit verified runtime assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/lab04/web-loader/vendor
+          if git diff --cached --quiet; then
+            echo "Runtime files already match the pinned npm version"
+          else
+            git commit -m "build(webusb): vendor pinned openFPGALoader WASM runtime"
+            git push origin HEAD:main
+          fi

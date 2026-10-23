@@ -7,7 +7,7 @@
 const $=id=>document.getElementById(id);
 const FW_SHA="6862c034715dbf557c93c8f8af8d8aa856ca8f4e62997660cea9740f3efda356";
 const FW_URL="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-v0.2.0/picorv32_lab04_hdmi_nano9k.fs";
-const ENGINE_URL="https://cdn.jsdelivr.net/npm/@yowasp/openfpgaloader@0.13.1-121.18/gen/bundle.js";
+const ENGINE_URL="./vendor/bundle.js";
 let device=null, firmware=null, loadedSha="", isVerified=false, busy=false, engine=null;
 const logEl=$("log");
 function log(message){const date=new Date();logEl.textContent+="["+date.toLocaleTimeString("ru-RU")+"] "+message+"\n";if(logEl.textContent.length>90000)logEl.textContent=logEl.textContent.slice(-80000);logEl.scrollTop=logEl.scrollHeight;}
