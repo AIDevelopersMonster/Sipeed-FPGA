@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="PiKoSoL Web Control Center — настоящий UART-терминал и панель управления PicoRV32 на Tang Nano 9K по Web Serial.">
+  <title>PiKoSoL Control Center | LAB-04.4</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="masthead">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">P<span>:</span></div>
+        <div class="brand-name">PiKoSoL <span>CONTROL CENTER</span></div>
+      </div>
+      <div class="top-links">
+        <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases" target="_blank" rel="noopener noreferrer">Прошивки ↗</a>
+        <a href="https://ofl.trabucayre.com/" target="_blank" rel="noopener noreferrer">WebUSB программатор ↗</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> Sipeed FPGA · LAB-04.4 · Web Serial</div>
+          <h1>Управляйте <span>RISC-V</span><br>из браузера.</h1>
+          <p>Реальный USB-UART терминал и интерактивная панель управления <strong>PiKoSoL v0.2.0</strong> на Tang Nano 9K. Все команды выполняет PicoRV32 внутри FPGA, а не браузерная модель.</p>
+          <div class="chip-row"><span>RV32I</span><span>640×480 HDMI</span><span>115200 · 8N1</span><span>FT2232 · Interface B</span></div>
+        </div>
+        <aside class="connection-box" aria-label="Управление соединением">
+          <div class="card-caption">USB-UART LINK</div>
+          <div class="connection-state"><span class="status-led" id="status-led"></span><strong id="status-text">Не подключено</strong></div>
+          <p class="small" id="port-label">Выберите последовательный порт платы в Chrome или Edge.</p>
+          <div class="button-row">
+            <button id="btn-connect" class="button primary" type="button">Подключить COM</button>
+            <button id="btn-disconnect" class="button secondary" type="button" disabled>Отключить</button>
+          </div>
+          <button id="btn-test" class="button ghost full requires-link" type="button" disabled>Проверить PicoRV32 — INFO + LED ?</button>
+          <p class="micro">Выбирайте <strong>USB Serial Port (COMx)</strong>, не JTAG Debugger. Другие терминалы должны быть закрыты.</p>
+        </aside>
+      </section>
+
+      <section class="metrics" aria-label="Связь и диагностика">
+        <div class="metric"><span>Подключение</span><strong id="port-state">ОТКЛЮЧЕНО</strong></div>
+        <div class="metric"><span>Ответ процессора</span><strong id="device-confirmed">НЕ ПРОВЕРЕН</strong></div>
+        <div class="metric"><span>Получено</span><strong id="rx-count">0 B</strong></div>
+        <div class="metric"><span>Передано</span><strong id="tx-count">0 B</strong></div>
+        <div class="metric"><span>Видеорежим</span><strong id="mode-indicator">НЕИЗВЕСТЕН</strong></div>
+      </section>
+
+      <div class="workspace">
+        <section class="card terminal-card" aria-labelledby="terminal-title">
+          <div class="card-heading">
+            <div>
+              <span class="card-caption">00 · UART / REAL HARDWARE</span>
+              <h2 id="terminal-title">Интерактивный терминал <span class="terminal-green">●</span></h2>
+            </div>
+            <div class="terminal-ops">
+              <button id="btn-recall" class="button small requires-link" type="button" disabled title="Ctrl-P + Enter: повторить предыдущую команду">↶ Повтор</button>
+              <button id="btn-terminal-clear" class="button small" type="button">Очистить окно</button>
+              <button id="btn-copy-log" class="button small" type="button">Копировать</button>
+              <button id="btn-save-log" class="button small" type="button">Сохранить .txt</button>
+            </div>
+          </div>
+          <div class="terminal-screen" id="terminal-scroll">
+            <div class="term-toolbar"><span class="term-led"></span><span class="term-led"></span><span class="term-led"></span><span>PiKoSoL / Serial console / CPU TX → Browser</span></div>
+            <pre id="terminal-output" role="log" aria-live="off" aria-label="Принимаемые байты UART">PiKoSoL WEB CONTROL / LAB-04.4
+Ожидается соединение с настоящей FPGA...
+Локальное эхо отключено: символы должен подтвердить PicoRV32.
+</pre>
+          </div>
+          <form id="command-form" class="command-form">
+            <label for="command-input" class="command-prefix">PiKoSoL&gt;</label>
+            <input id="command-input" type="text" placeholder="HELP, INFO, MEM, LED 3, GFX..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" maxlength="47" disabled aria-label="Команда PicoRV32">
+            <button id="btn-send" class="button primary" type="submit" disabled>Отправить ↵</button>
+          </form>
+          <div class="command-footer"><span>Команды: ASCII ≤ 47 символов · отправка <code>CR (0x0D)</code></span><span id="live-status">Режим: строковый ввод</span></div>
+          <div id="notice" class="notice" role="status" aria-live="polite">Порт ещё не открыт. Никакие команды не отправляются.</div>
+          <div class="quick-help">
+            <strong>Частые команды</strong>
+            <div class="pill-list">
+              <button class="pill requires-link" data-cmd="HELP" disabled>HELP</button>
+              <button class="pill requires-link" data-cmd="INFO" disabled>INFO</button>
+              <button class="pill requires-link" data-cmd="MEM" disabled>MEM</button>
+              <button class="pill requires-link" data-cmd="STATUS" disabled>STATUS</button>
+              <button class="pill requires-link" data-cmd="PANEL" disabled>PANEL</button>
+              <button class="pill requires-link" data-cmd="CLS" disabled>CLS (HDMI)</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="side-stack">
+          <section class="card led-card" aria-labelledby="led-title">
+            <div class="card-caption">01 · MMIO / PHYSICAL OUTPUT</div>
+            <h2 id="led-title">Светодиоды FPGA</h2>
+            <p class="support-text">Индикаторы обновляются <strong>только после ответа процессора</strong> <code>M=xx</code>, <code>C=n</code> или <code>L=n</code>. Цвет кнопки не имитирует результат.</p>
+            <div class="led-bank" id="led-bank" aria-label="Шесть светодиодов">
+              <div class="led-cell"><span class="led-bulb" data-led="0"></span><span>L1</span></div>
+              <div class="led-cell"><span class="led-bulb" data-led="1"></span><span>L2</span></div>
+              <div class="led-cell"><span class="led-bulb" data-led="2"></span><span>L3</span></div>
+              <div class="led-cell"><span class="led-bulb" data-led="3"></span><span>L4</span></div>
+              <div class="led-cell"><span class="led-bulb" data-led="4"></span><span>L5</span></div>
+              <div class="led-cell"><span class="led-bulb" data-led="5"></span><span>L6</span></div>
+            </div>
+            <div class="readback"><span>Прочитанная маска</span><strong id="led-mask">—</strong></div>
+            <div class="group-label">Включить первые N светодиодов</div>
+            <div class="button-matrix seven">
+              <button class="chip-button requires-link" data-cmd="LED 0" disabled>0</button>
+              <button class="chip-button requires-link" data-cmd="LED 1" disabled>1</button>
+              <button class="chip-button requires-link" data-cmd="LED 2" disabled>2</button>
+              <button class="chip-button requires-link" data-cmd="LED 3" disabled>3</button>
+              <button class="chip-button requires-link" data-cmd="LED 4" disabled>4</button>
+              <button class="chip-button requires-link" data-cmd="LED 5" disabled>5</button>
+              <button class="chip-button requires-link" data-cmd="LED 6" disabled>6</button>
+            </div>
+            <div class="group-label">Включить один светодиод</div>
+            <div class="button-matrix six">
+              <button class="chip-button requires-link" data-cmd="a" disabled>L1</button>
+              <button class="chip-button requires-link" data-cmd="b" disabled>L2</button>
+              <button class="chip-button requires-link" data-cmd="c" disabled>L3</button>
+              <button class="chip-button requires-link" data-cmd="d" disabled>L4</button>
+              <button class="chip-button requires-link" data-cmd="e" disabled>L5</button>
+              <button class="chip-button requires-link" data-cmd="f" disabled>L6</button>
+            </div>
+            <button class="button outline full requires-link" data-cmd="LED ?" type="button" disabled>↻ Считать фактическую маску</button>
+          </section>
+
+          <section class="card mode-card" aria-labelledby="mode-title">
+            <div class="card-caption">02 · VIDEO MODE</div>
+            <h2 id="mode-title">HDMI / TERM ↔ GFX</h2>
+            <p class="support-text">Режимы изменяются внутри PiKoSoL; браузер передаёт команды по UART.</p>
+            <div class="button-row">
+              <button class="button outline requires-link" id="btn-term" data-cmd="TERM" type="button" disabled>⌘ TERM</button>
+              <button class="button outline requires-link" id="btn-gfx" data-cmd="GFX" type="button" disabled>▣ GFX</button>
+              <button class="button outline requires-link" id="btn-keys" data-cmd="KEYS" type="button" disabled>⌨ KEYS</button>
+            </div>
+            <p class="micro">Сначала <strong>GFX</strong>, затем <strong>KEYS</strong> для управления без Enter. Клавиша <kbd>T</kbd> возвращает в TERM.</p>
+          </section>
+        </div>
+      </div>
+
+      <section class="card graphics-card" aria-labelledby="graphics-title">
+        <div class="card-heading">
+          <div>
+            <span class="card-caption">03 · GRAPHICS / GOWIN VIDEO MMIO</span>
+            <h2 id="graphics-title">Управление объектами A/B</h2>
+          </div>
+          <div class="mode-note">Canvas FPGA: x 32–448 · y 112–344</div>
+        </div>
+        <div class="graphics-layout">
+          <div class="graphic-controls">
+            <div class="group-label">Выбрать объект</div>
+            <div class="button-row">
+              <button class="button selectable requires-link" id="obj-a" data-obj="A" disabled>Объект A</button>
+              <button class="button selectable requires-link" id="obj-b" data-obj="B" disabled>Объект B</button>
+            </div>
+            <div class="group-label">Направления (шаг 8 пикселей)</div>
+            <div class="dpad">
+              <div></div><button class="dpad-key requires-link" data-move="I" title="Вверх / I" disabled>↑<small>I</small></button><div></div>
+              <button class="dpad-key requires-link" data-move="J" title="Влево / J" disabled>←<small>J</small></button>
+              <div class="dpad-center">A / B</div>
+              <button class="dpad-key requires-link" data-move="L" title="Вправо / L" disabled>→<small>L</small></button>
+              <div></div><button class="dpad-key requires-link" data-move="K" title="Вниз / K" disabled>↓<small>K</small></button><div></div>
+            </div>
+            <div class="group-label">Цвет выбранного объекта</div>
+            <div class="color-controls">
+              <button class="color-chip red requires-link" data-color="R" disabled title="Красный">R</button>
+              <button class="color-chip green requires-link" data-color="G" disabled title="Зелёный">G</button>
+              <button class="color-chip blue requires-link" data-color="U" disabled title="Синий">U</button>
+              <button class="color-chip white requires-link" data-color="W" disabled title="Белый">W</button>
+            </div>
+            <div class="group-label">Ширина</div>
+            <div class="button-row">
+              <button class="button outline requires-link" data-size="-" disabled>− 8 px</button>
+              <button class="button outline requires-link" data-size="+" disabled>+ 8 px</button>
+            </div>
+          </div>
+          <div class="keyboard-card">
+            <div class="card-caption">DIRECT INPUT · OPTIONAL LIVE KEYS</div>
+            <h3>Клавиатура без Enter</h3>
+            <p class="support-text">После <code>GFX → KEYS</code> кнопки посылают одиночные байты <code>i/j/k/l</code>. Для физических клавиш нажмите на область ниже.</p>
+            <div id="raw-zone" class="raw-zone" tabindex="0" role="group" aria-label="Область управления FPGA с клавиатуры">
+              <div class="raw-keys">← ↑ ↓ → &nbsp; · &nbsp; I J K L</div>
+              <strong>Нажмите здесь для ввода с клавиатуры</strong>
+              <span>Реакция — на аппаратном HDMI, не в этой схеме</span>
+            </div>
+            <button id="btn-live-exit" class="button secondary full requires-link" type="button" disabled>Вернуться в TERM — T</button>
+            <p class="micro">Модель изображения намеренно не подменяет фактический HDMI: положение объектов проверяйте на мониторе или через команду PANEL.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="notes-grid" aria-label="Сведения об устройстве">
+        <div class="info-note"><div class="card-caption">ПОШАГОВО</div><h3>1. Загрузите PiKoSoL</h3><p>На отдельной странице <a href="https://ofl.trabucayre.com/" target="_blank" rel="noopener noreferrer">openFPGALoader WebUSB</a> выберите <code>tangnano9k</code>, загрузите проверенный <code>.fs</code> <strong>только в SRAM</strong>. Затем закройте вкладку программатора, если она удерживает USB.</p></div>
+        <div class="info-note"><div class="card-caption">СВЯЗЬ</div><h3>2. Подключите UART</h3><p>В Chrome/Edge нажмите «Подключить COM», выберите последовательный порт FT2232 <strong>Interface B</strong>, затем «Проверить PicoRV32». JTAG-интерфейс A и UART-интерфейс B — разные каналы.</p></div>
+        <div class="info-note"><div class="card-caption">ПРОТОКОЛ</div><h3>3. Отправляйте команды</h3><p>Строковые команды завершаются <code>CR</code>, вывод читается с реального UART. В GFX+KEYS работает поток одиночных клавиш без Enter. HTML не эмулирует RISC-V.</p></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>PiKoSoL · LAB-04.4 Web Serial Control Center · экспериментальная веб-панель</span>
+      <span>MIT · Никакой записи во Flash или автоматического доступа к USB</span>
+    </footer>
+  </div>
+</body>
+</html>
