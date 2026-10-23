@@ -1,0 +1,27 @@
+// LAB-04.1 Tang Nano 9K. HDMI pairs from Sipeed's official PicoTiny CST.
+// HDMI negative pins are paired through Gowin ELVDS_OBUF; only + nets constrained.
+// Onboard LEDs and reset/clock reuse the validated LAB-03 pinout.
+IO_LOC "clk" 52;
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "reset_n" 3;
+IO_PORT "reset_n" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+IO_LOC "led_n[0]" 10;
+IO_LOC "led_n[1]" 11;
+IO_LOC "led_n[2]" 13;
+IO_LOC "led_n[3]" 14;
+IO_LOC "led_n[4]" 15;
+IO_LOC "led_n[5]" 16;
+IO_PORT "led_n[0]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[1]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[2]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[3]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[4]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[5]" IO_TYPE=LVCMOS18;
+IO_LOC "tmds_clk_p" 69,68;
+IO_PORT "tmds_clk_p" PULL_MODE=NONE DRIVE=8;
+IO_LOC "tmds_d_p[0]" 71,70;
+IO_LOC "tmds_d_p[1]" 73,72;
+IO_LOC "tmds_d_p[2]" 75,74;
+IO_PORT "tmds_d_p[0]" PULL_MODE=NONE DRIVE=8;
+IO_PORT "tmds_d_p[1]" PULL_MODE=NONE DRIVE=8;
+IO_PORT "tmds_d_p[2]" PULL_MODE=NONE DRIVE=8;

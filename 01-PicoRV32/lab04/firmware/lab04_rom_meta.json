@@ -1,0 +1,36 @@
+{
+  "schema": "LAB0432_ROM_v2",
+  "capacity_words": 4096,
+  "active_instructions": 2596,
+  "padding_nop": 1500,
+  "source_sha256": "e824349bafd1696515d089d98c50b387579431e42de36a282628edc6cbc71ed6",
+  "rom_sha256": "67254c252fece3e9b57c2ee9440505e7fa2755d15c2e8275bafdab65002f9c87",
+  "generated_rtl_sha256": "f96961efeb4a7ee8fe70c06837a2adae40dd87257944e1c49cf13b74a99c5daf",
+  "instruction_set": [
+    "lui",
+    "add",
+    "sub",
+    "addi",
+    "andi",
+    "xori",
+    "srli",
+    "slli",
+    "sw",
+    "lw",
+    "beq",
+    "bne",
+    "jal",
+    "jalr"
+  ],
+  "command_contract": {
+    "digits_0_to_6": "LED count (prefix mask)",
+    "a_to_f": "single LED 1..6 + Enter",
+    "?": "readback raw LED mask + Enter",
+    "A/B": "select graphics object",
+    "i/j/k/l": "move 8 pixels + Enter",
+    "R/G/U/W": "object color",
+    "X/O/K": "toggle enable, outline, checker",
+    "+/-": "width +/-8",
+    "p": "ASCII panel to UART and HDMI"
+  }
+}

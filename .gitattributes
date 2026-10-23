@@ -1,0 +1,2 @@
+# Preserve LF endings for SHA256-verified LAB-04 sources
+01-PicoRV32/lab04/** text=auto eol=lf
