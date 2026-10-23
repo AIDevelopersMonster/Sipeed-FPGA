@@ -50,6 +50,10 @@ The earlier LAB-04 documentation was written before hardware testing and still c
 - Движок `@yowasp/openfpgaloader@1.1.1-182.269` и эталонный `.fs` размещены рядом с веб-страницей; прошивка проверяется по SHA-256.
 - Это операторские аппаратные испытания одной установки, а не универсальная сертификация всех ОС, плат и браузеров.
 
+## Статья / Publication
+
+Двуязычная техническая статья о PiKoSoL (русская и английская версии) опубликована в Zenodo: [**DOI 10.5281/zenodo.23593101**](https://doi.org/10.5281/zenodo.23593101). В статье описаны архитектура, браузерная прошивка, Web Serial, команды, инструменты разработки и границы аппаратных подтверждений. DOI относится к публикации, а не к самому образу `.fs`.
+
 ## Scope and known limitations
 
 - No filesystem, processes, preemptive scheduling, networking, USB-host keyboard or complete OS semantics.
