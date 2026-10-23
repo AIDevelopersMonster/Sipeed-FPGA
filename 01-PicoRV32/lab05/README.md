@@ -38,3 +38,11 @@ No board programming is performed by these scripts.
 | ROM / shell integration | **PENDING** |
 
 Use actual validated reports, never infer LUT/BSRAM usage from the capacity figure alone.
+
+## Experimental sector-reader RTL (unverified)
+
+`rtl/lab05_sd_init_read0.v` now includes an independent SDHC/SDXC SPI-mode initialization and CMD17 LBA0 read engine. It has bounded CMD0/CMD8/CMD55/ACMD41/CMD58 waits, 512-byte BSRAM sector buffer, and CRC16 checking. `peek_addr`/`peek_data` is a synchronous byte lookup port for future CPU MMIO. SDSC is explicitly unsupported.
+
+**Warning:** this source has not passed SD-card model functional simulation, Gowin synthesis, STA, or board tests. CI currently checks compilation only for the new engine; the existing SPI-byte engine is separately loopback-tested. It is NOT wired into the v0.2.0 PiKoSoL top, has no UART status and no FAT32 yet. Do not program a bitstream or claim hardware success on its basis.
+
+**Timebox:** prioritize deterministic simulation, then isolated top-level MMIO + board read before implementing FAT32 read-only DIR/TYPE. FAT32 and writing must not displace the board acceptance gate.
