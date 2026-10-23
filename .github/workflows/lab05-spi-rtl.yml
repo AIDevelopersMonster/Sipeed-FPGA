@@ -20,6 +20,7 @@ jobs:
           iverilog -g2012 -s tb_lab05_spi_byte -o /tmp/lab05.vvp rtl/lab05_spi_byte.v tests/tb_lab05_spi_byte.v
           iverilog -g2012 -s lab05_sd_init_read0 -o /tmp/lab05_sd.vvp rtl/lab05_spi_byte.v rtl/lab05_sd_init_read0.v
           iverilog -g2012 -s tb_lab05_sd_init_read0 -o /tmp/lab05_sd_tb.vvp rtl/lab05_spi_byte.v rtl/lab05_sd_init_read0.v tests/tb_lab05_sd_init_read0.v
+          iverilog -g2012 -s lab05_sd_probe_top -o /tmp/lab05_probe.vvp rtl/lab05_spi_byte.v rtl/lab05_sd_init_read0.v rtl/lab05_sd_probe_top.v ../rtl/uart_tx_8n1.v
           vvp /tmp/lab05_sd_tb.vvp | tee /tmp/lab05_sd_tb.log
           grep -q 'LAB05_SDHC_READ0_TB_PASS' /tmp/lab05_sd_tb.log
           vvp /tmp/lab05.vvp | tee /tmp/lab05.log
