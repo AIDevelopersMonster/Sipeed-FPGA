@@ -8,6 +8,14 @@ Tang Nano 9K / Gowin GW1NR-9C with CHUWI Intel N100 / Windows 11: first-party Gi
 
 [**LAB-04.4 acceptance report (RU)**](docs/lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md) · [LAB-04.3.2 CPU/HDMI](docs/lab04/README.md) · [WebUSB guide](docs/lab04/web-loader/README.md) · [Web Serial guide](docs/lab04/web-control/README.md).
 
+## Publication / Публикация
+
+The bilingual (RU/EN) technical article describing PiKoSoL architecture, WebUSB SRAM programming, Web Serial control, engineering tools and hardware acceptance is available on Zenodo:
+
+**[PiKoSoL technical article — DOI: 10.5281/zenodo.23593101](https://doi.org/10.5281/zenodo.23593101)**
+
+This publication describes the experimental platform. It is separate from the [firmware v0.2.0 release](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0) and does not change the FPGA bitstream.
+
 **Historical progress follows; the LAB-02 status below is no longer the newest milestone.**
 
 
