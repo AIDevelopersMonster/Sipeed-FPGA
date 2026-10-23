@@ -1,5 +1,8 @@
 # 01 — PicoRV32 / Tang Nano 9K
 
+**Актуальный статус на 23.10.2026:** [PiKoSoL LAB-04.3.2](../docs/lab04/README.md) — аппаратно проверенный CPU+HDMI; [LAB-04.4](../docs/lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md) — браузерный WebUSB SRAM-программатор и Web Serial-управление (операторский аппаратный PASS). Ниже сохранён исторический протокол LAB-02.
+
+
 ## Current lab — LAB-02 USB-UART / HTML-linked LED control (20 October 2026)
 
 **Verified:** MODEL_PASS, RTL_PASS, PNR_PASS, STA_PASS, BOARD_PASS, HTML_HARDWARE_PASS. The physical FPGA receives commands `0`–`6` and `?` over its onboard USB UART, controls L1–L6 via MMIO and replies `L=n`. Web Serial linked HTML maps its conceptual step 14 to an acknowledged hardware LED change, including reversible 13 → 14 → 13 → 14 behavior. Manual, automatic and three-LED linked tests were reported successful.
