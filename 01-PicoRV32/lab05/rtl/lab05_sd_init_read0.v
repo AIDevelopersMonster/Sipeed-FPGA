@@ -4,7 +4,10 @@
 // Produces full 512-byte synchronous sector RAM plus CRC16 verification.
 // Experimental source, NOT hardware qualified.
 // SPDX-License-Identifier: MIT
-module lab05_sd_init_read0 (
+module lab05_sd_init_read0 #(
+    parameter integer HALF_PERIOD = 64,
+    parameter integer STARTUP_CYCLES = 27000
+) (
     input wire clk,
     input wire reset_n,
     input wire start,
@@ -33,7 +36,7 @@ module lab05_sd_init_read0 (
     reg [7:0] spi_tx;
     wire spi_busy,spi_done;
     wire [7:0] spi_rx;
-    lab05_spi_byte #(.HALF_PERIOD(64)) u_spi (
+    lab05_spi_byte #(.HALF_PERIOD(HALF_PERIOD)) u_spi (
         .clk(clk),.reset_n(reset_n),.start(spi_start),.tx_data(spi_tx),
         .miso(sd_miso),.sck(sd_sck),.mosi(sd_mosi),
         .busy(spi_busy),.done(spi_done),.rx_data(spi_rx)
@@ -44,7 +47,7 @@ module lab05_sd_init_read0 (
     reg [2:0] cmd_pos, extra_pos;
     reg [5:0] command;
     reg [5:0] r1_poll;
-    reg [8:0] acmd_attempts;
+    reg [11:0] acmd_attempts;
     reg [12:0] token_polls;
     reg [8:0] data_pos;
     reg [7:0] r7_vhs, ocr_high, crc_hi;
@@ -129,7 +132,7 @@ module lab05_sd_init_read0 (
                 end
                 S_STARTUP: begin
                     // 1 ms of stable powered card supply after FPGA start.
-                    if (startup_count == 16'd26999)
+                    if (startup_count == STARTUP_CYCLES-1)
                         state <= S_SEND;
                     else
                         startup_count <= startup_count+1'b1;
@@ -208,7 +211,7 @@ module lab05_sd_init_read0 (
                                         if (spi_rx==8'h00) begin
                                             command<=6'd58;
                                             phase<=PH_GAP;
-                                        end else if (spi_rx==8'h01 && acmd_attempts!=9'd255) begin
+                                        end else if (spi_rx==8'h01 && acmd_attempts!=12'd2047) begin
                                             acmd_attempts<=acmd_attempts+1'b1;
                                             command<=6'd55;
                                             phase<=PH_GAP;
