@@ -1,5 +1,10 @@
 # Research roadmap / этапы
 
+> **Актуализация 23.10.2026:** таблица ниже отражает исходный план на 19 октября. Испытания PicoRV32 P1/LAB-02, CPU/HDMI PiKoSoL LAB-04.3.2 и браузерной среды LAB-04.4 завершены с аппаратным подтверждением. [Протокол LAB-04.4](lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md). NEORV32, LiteX/VexRiscv и Rocket остаются исследовательскими направлениями без подтверждённой аппаратной приёмки.
+
+## Исторический план на 19.10.2026
+
+
 | Milestone | Exit condition | Status 2026-10-19 |
 |---|---|---|
 | P0. Repository architecture | folders, source pins, rules | PREPARED |

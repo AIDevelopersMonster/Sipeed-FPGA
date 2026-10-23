@@ -1,12 +1,23 @@
 # Sipeed FPGA — CPU/SoC research line
 
+**Current milestone (23 October 2026): PiKoSoL LAB-04.4 — WebUSB + Web Serial, HARDWARE PASS (operator-confirmed).**
+
+[**GitHub Pages: Start**](https://aidevelopersmonster.github.io/Sipeed-FPGA/) · [**1. Program FPGA / WebUSB**](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/) · [**2. Control CPU / Web Serial**](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/) · [**Release PiKoSoL v0.2.0**](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0)
+
+Tang Nano 9K / Gowin GW1NR-9C with CHUWI Intel N100 / Windows 11: first-party GitHub Pages fetch of SHA-256-verified `.fs`; WebUSB SRAM programming over FT2232 JTAG A (WinUSB); true PicoRV32 UART terminal over Web Serial FT2232 B (115200 8N1), control of hardware LEDs, HDMI TERM and GFX. Hardware results were reported by the operator; CI verified delivery of the bundled WebAssembly runtime and firmware. This is **not** an exhaustive cross-platform certification. Firmware/RTL not changed for the web controls.
+
+[**LAB-04.4 acceptance report (RU)**](docs/lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md) · [LAB-04.3.2 CPU/HDMI](docs/lab04/README.md) · [WebUSB guide](docs/lab04/web-loader/README.md) · [Web Serial guide](docs/lab04/web-control/README.md).
+
+**Historical progress follows; the LAB-02 status below is no longer the newest milestone.**
+
+
 **Current status: PicoRV32 LAB-02 — BOARD_PASS + HTML_HARDWARE_PASS on Tang Nano 9K (20 October 2026).** Earlier P1 is preserved in Git history. Firmware model, RTL simulation, Gowin PnR/STA at 27 MHz, SRAM programming, UART `PICO` and LED animation were confirmed. The four-instruction interactive demonstration below is a separate conceptual example.
 
 One repository; four deliberately independent implementations. Platforms are **Sipeed Tang Nano 9K** and **Tang Primer 25K**. This is **not** the DDF training repository and **not** an Intel MAX 10 project.
 
 | Stage | Folder | CPU/SoC | First target | Current state |
 |---|---|---|---|---|
-| 01 | [`01-PicoRV32`](01-PicoRV32/README.md) | PicoRV32 (RV32I) | Tang Nano 9K | LAB-02: MODEL, RTL, PnR, STA, BOARD and HTML_HARDWARE_PASS (2026-10-20) |
+| 01 | [`01-PicoRV32`](01-PicoRV32/README.md) | PicoRV32 (RV32I) | Tang Nano 9K | LAB-04.4 WEBUSB + WEBSERIAL hardware pass (operator); LAB-04.3.2 CPU/HDMI hardware pass; LAB-02 completed 2026-10-20 |
 | 02 | [`02-NEORV32`](02-NEORV32/README.md) | NEORV32 (VHDL) | Tang Nano 9K | Research baseline / integration specification |
 | 03 | [`03-LiteX-VexRiscv`](03-LiteX-VexRiscv/README.md) | LiteX with VexRiscv | Tang Primer 25K | Research baseline / integration specification |
 | 04 | [`04-Rocket`](04-Rocket/README.md) | Rocket RV32IC minimal configuration | Tang Primer 25K | Feasibility study, NOT a confirmed fit |

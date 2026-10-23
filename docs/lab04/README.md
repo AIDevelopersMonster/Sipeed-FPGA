@@ -31,7 +31,7 @@ The earlier LAB-04 documentation was written before hardware testing and still c
 - SHA-256: `6862C034715DBF557C93C8F8AF8D8AA856CA8F4E62997660CEA9740F3EFDA356`
 - Board: Sipeed Tang Nano 9K / GW1NR-9C. Gowin Programmer operation index **2** is SRAM-only.
 
-Generated `.fs` files are excluded from the Git source tree. Distribute the validated image as a GitHub Release asset with its checksum; a new synthesis must undergo its own timing and hardware checks.
+Синтезированные рабочие файлы исключены из исходных RTL-каталогов. Исключение — явная копия проверенного релизного `.fs` в `docs/lab04/web-loader/firmware/` для работы GitHub Pages. Любая новая сборка требует собственной проверки STA и аппаратной приёмки.
 
 ## Source and test references
 
@@ -40,9 +40,15 @@ Generated `.fs` files are excluded from the Git source tree. Distribute the vali
 - [SHA-256 source manifest](../../01-PicoRV32/lab04/SHA256SUMS.txt), [source verifier](../../01-PicoRV32/lab04/tools/verify_kit.py), [RTL test driver](../../01-PicoRV32/lab04/tools/test_lab04.ps1), [Gowin build](../../01-PicoRV32/lab04/tools/build_lab04.ps1), [STA checker](../../01-PicoRV32/lab04/tools/check_sta_v018b.py), [board acceptance](../../01-PicoRV32/lab04/tools/test_lab0432_board.ps1).
 - [Pinned Sipeed TMDS / HDMI reference](https://github.com/sipeed/TangNano-9K-example/tree/c3b795799f23de91982be52db4273a8eea100cdb/picotiny).
 
-## WebUSB programmer — experimental, NOT board-validated
+## LAB-04.4 — GitHub Pages WebUSB + Web Serial: hardware PASS (operator-verified)
 
-[openFPGALoader Web Interface](https://ofl.trabucayre.com/) is a real browser-based WebUSB/WASM implementation, and openFPGALoader includes the `tangnano9k` profile. Browser programming with **this particular board and Windows 10 driver configuration** has NOT been tested yet. First test device discovery in Chrome **without** changing system drivers. If programming is supported, select **SRAM, not Flash**, and verify the `.fs` SHA-256 above. The proven Gowin CLI SRAM programmer remains the fallback.
+[**Полный протокол аппаратной приёмки LAB-04.4 (RU)**](LAB044_ACCEPTANCE_2026-10-23_RU.md) · [PiKoSoL WebUSB Loader](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/) · [Web Control Center](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/).
+
+- Подтверждено пользователем 23 октября 2026 года на CHUWI N100 / Windows 11: программирование SRAM со своей GitHub Pages, настоящий UART/Web Serial, светодиоды и HDMI.
+- Кнопка автоматической загрузки `.fs` с той же GitHub Pages также подтверждена после устранения междоменного запроса.
+- WebUSB: FT2232 Interface A (WinUSB); Web Serial: Interface B (FTDI COM-порт), 115200 8N1.
+- Движок `@yowasp/openfpgaloader@1.1.1-182.269` и эталонный `.fs` размещены рядом с веб-страницей; прошивка проверяется по SHA-256.
+- Это операторские аппаратные испытания одной установки, а не универсальная сертификация всех ОС, плат и браузеров.
 
 ## Scope and known limitations
 

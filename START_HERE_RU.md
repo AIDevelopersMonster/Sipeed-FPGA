@@ -1,5 +1,8 @@
 # Первый запуск линии Sipeed FPGA (Windows 10 / PowerShell 7)
 
+> **Историческая инструкция начального bootstrap.** Репозиторий уже существует: не выполняйте `git init` и `gh repo create` повторно. Актуальная демонстрация [WebUSB](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/) → [Web Serial](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/). [Протокол LAB-04.4](docs/lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md). Текст ниже сохранён как исходный исторический процесс.
+
+
 **Этот архив не меняет ваши существующие репозитории и не содержит .git.** Установка идёт в новый каталог `C:\GitHub\Sipeed-FPGA`; репозитории `DDF` и MAX10 не затрагиваются.
 
 ## A. Безопасная распаковка
