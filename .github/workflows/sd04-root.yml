@@ -1,0 +1,39 @@
+name: SD-04 read-only ROOT UART gate
+on:
+  push:
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd04-directory/**'
+      - '.github/workflows/sd04-root.yml'
+  pull_request:
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd04-directory/**'
+      - '.github/workflows/sd04-root.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Python directory decoder tests
+        run: python -m unittest discover -s boards/tang-nano-9k/experiments/sd04-directory/tests -p 'test_*.py' -v
+      - name: Full RTL compile with frozen SD-03 dependencies
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments
+          iverilog -g2005 -s sd04_root_dump_top -o /tmp/sd04_top.vvp \
+            "$d/sd-mbr-fat32/rtl/spi_byte.v" \
+            "$d/sd-mbr-fat32/rtl/sd_read_sector.v" \
+            "$d/sd-mbr-fat32/rtl/uart_tx_8n1.v" \
+            "$d/sd-mbr-fat32/rtl/sd03_mbr_parser.v" \
+            "$d/sd-mbr-fat32/rtl/sd03_fat32_bpb.v" \
+            "$d/sd-mbr-fat32/rtl/sd03_volume_scanner.v" \
+            "$d/sd04-directory/rtl/sd04_root_dump_top.v"
+      - name: UART streaming integration regression
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments/sd04-directory
+          iverilog -g2005 -s tb_sd04_root_dump -o /tmp/sd04_tb.vvp \
+            "$d/rtl/sd04_root_dump_top.v" "$d/tests/tb_sd04_root_dump.v"
+          vvp /tmp/sd04_tb.vvp | tee /tmp/sd04_tb.log
+          grep -q SD04_ROOT_DUMP_TB_PASS /tmp/sd04_tb.log
