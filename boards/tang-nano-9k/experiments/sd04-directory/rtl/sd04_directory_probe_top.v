@@ -23,9 +23,9 @@ module sd04_directory_probe_top #(
  wire sd_busy,sd_done,sd_initialized;
  wire [7:0] sd_error;
  reg [8:0] dir_peek_addr;
+ reg scan_mode; // must precede mux references in Verilog-2005
  wire [8:0] sd_peek_addr;
  assign sd_peek_addr=scan_mode?scan_peek_addr:dir_peek_addr;
- reg scan_mode;
  wire sd_start=scan_mode?scan_sd_start:root_read_start;
  wire [31:0] sd_lba=scan_mode?scan_sd_lba:root_read_lba;
  lab05_sd_read_sector #(.HALF_PERIOD(HALF_PERIOD),.STARTUP_CYCLES(STARTUP_CYCLES)) u_reader(
