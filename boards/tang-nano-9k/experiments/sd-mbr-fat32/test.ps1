@@ -17,4 +17,13 @@ try {
     $outLines | ForEach-Object { Write-Host $_ }
     if($rc -ne 0 -or -not (($outLines -join [char]10).Contains('SD03_FAT32_BPB_TB_PASS'))){throw 'SD-03 BPB test FAIL'}
   } finally {Remove-Item -LiteralPath $other -Force -ErrorAction SilentlyContinue}
+
+  $scan=Join-Path ([IO.Path]::GetTempPath()) ('sd03scan_'+[guid]::NewGuid().ToString('N')+'.vvp')
+  try {
+    & iverilog -g2005 -s tb_sd03_volume_scanner -o $scan (Join-Path $here 'rtl\sd03_mbr_parser.v') (Join-Path $here 'rtl\sd03_fat32_bpb.v') (Join-Path $here 'rtl\sd03_volume_scanner.v') (Join-Path $here 'tests\tb_sd03_volume_scanner.v')
+    if($LASTEXITCODE -ne 0){throw 'SD-03 scanner compile FAIL'}
+    $scanLines=@(& vvp $scan); $scanRC=$LASTEXITCODE
+    $scanLines | ForEach-Object { Write-Host $_ }
+    if($scanRC -ne 0 -or -not (($scanLines -join [char]10).Contains('SD03_SCANNER_TB_PASS'))){throw 'SD-03 scanner integration FAIL'}
+  } finally {Remove-Item -LiteralPath $scan -Force -ErrorAction SilentlyContinue}
 } finally { Remove-Item -LiteralPath $out -Force -ErrorAction SilentlyContinue }
