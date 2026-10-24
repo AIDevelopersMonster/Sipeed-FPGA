@@ -1,0 +1,34 @@
+name: SD-03 MBR FAT32 educational RTL
+on:
+  push:
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd-mbr-fat32/**'
+      - '.github/workflows/sd03-mbr-fat32.yml'
+  pull_request:
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd-mbr-fat32/**'
+      - '.github/workflows/sd03-mbr-fat32.yml'
+jobs:
+  mbr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Test independent MBR parser
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments/sd-mbr-fat32
+          iverilog -g2005 -s tb_sd03_mbr -o /tmp/sd03.vvp "$d/rtl/sd03_mbr_parser.v" "$d/tests/tb_sd03_mbr.v"
+          vvp /tmp/sd03.vvp | tee /tmp/sd03.log
+          grep -q SD03_MBR_TB_PASS /tmp/sd03.log
+          iverilog -g2005 -s tb_sd03_fat32_bpb -o /tmp/sd03_bpb.vvp "$d/rtl/sd03_fat32_bpb.v" "$d/tests/tb_sd03_fat32_bpb.v"
+          vvp /tmp/sd03_bpb.vvp | tee /tmp/sd03_bpb.log
+          grep -q SD03_FAT32_BPB_TB_PASS /tmp/sd03_bpb.log
+          iverilog -g2005 -s sd03_volume_scanner -o /tmp/sd03_scan.vvp "$d/rtl/sd03_mbr_parser.v" "$d/rtl/sd03_fat32_bpb.v" "$d/rtl/sd03_volume_scanner.v"
+          echo SD03_SCAN_RTL_COMPILE_PASS
+          iverilog -g2005 -s tb_sd03_volume_scanner -o /tmp/sd03_scan_tb.vvp "$d/rtl/sd03_mbr_parser.v" "$d/rtl/sd03_fat32_bpb.v" "$d/rtl/sd03_volume_scanner.v" "$d/tests/tb_sd03_volume_scanner.v"
+          vvp /tmp/sd03_scan_tb.vvp | tee /tmp/sd03_scan_tb.log
+          grep -q SD03_SCANNER_TB_PASS /tmp/sd03_scan_tb.log
+          iverilog -g2005 -s sd03_mbr_fat32_probe_top -o /tmp/sd03_hw.vvp "$d/rtl/spi_byte.v" "$d/rtl/sd_read_sector.v" "$d/rtl/uart_tx_8n1.v" "$d/rtl/sd03_mbr_parser.v" "$d/rtl/sd03_fat32_bpb.v" "$d/rtl/sd03_volume_scanner.v" "$d/rtl/sd03_mbr_fat32_probe_top.v"
+          echo SD03_HARDWARE_TOP_COMPILE_PASS

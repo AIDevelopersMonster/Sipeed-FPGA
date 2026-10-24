@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>SD-03.4 — Интерактивный атлас MBR и FAT32 на FPGA · v2 HEX</title>
+<style>
+:root{--bg:#09111e;--surface:#111f32;--surface2:#172940;--line:#304158;--ink:#eff5fd;--muted:#a6b6cc;--blue:#62ccff;--green:#70e6ad;--amber:#ffcf83;--violet:#af9bff;--red:#ff9c94;--shadow:0 14px 48px #02081470}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse 80% 520px at 15% -10%,#22436a55,transparent),radial-gradient(ellipse 65% 480px at 95% 4%,#17594f36,transparent),var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;line-height:1.5}
+button,input{font:inherit}button{cursor:pointer}a{color:#9bdcff}a:hover{color:#d1f4ff}header,.wrap,footer{max-width:1260px;margin:auto;padding-left:25px;padding-right:25px}header{padding-top:31px;padding-bottom:20px}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:2.2px;color:var(--blue);font-weight:750}.hero{display:flex;justify-content:space-between;gap:24px;align-items:center}.hero-copy{max-width:800px}.hero h1{font-size:clamp(32px,4.3vw,56px);line-height:1.09;margin:12px 0 16px;letter-spacing:-1.7px}.hero p{color:var(--muted);font-size:16px;margin:0;max-width:810px}.brand{display:grid;place-items:center;border:1px solid #4b7893;border-radius:18px;background:linear-gradient(145deg,#1d3856,#122236);min-width:170px;min-height:143px;box-shadow:var(--shadow);transform:rotate(2deg)}.chip{width:98px;height:70px;background:linear-gradient(145deg,#1a2944,#080e1a);border:6px double #7392aa;border-radius:9px;display:grid;place-items:center;box-shadow:0 0 25px #3c9fe663;position:relative}.chip:before,.chip:after{content:"";position:absolute;left:-16px;right:-16px;height:1px;background:repeating-linear-gradient(90deg,#97aab8 0 6px,transparent 6px 13px)}.chip:before{top:16px}.chip:after{bottom:16px}.chip span{font-size:14px;letter-spacing:1px;color:#bfeaff;font-weight:800}.brand small{display:block;margin-top:4px;color:#b9d6e8;font-size:10px;letter-spacing:1.4px}
+.meta{margin-top:23px;display:flex;flex-wrap:wrap;gap:8px}.pill{display:inline-flex;gap:7px;align-items:center;border:1px solid #35536d;border-radius:100px;padding:6px 11px;font-size:12px;color:#c7d9eb;background:#14263b}.pill b{color:#7deab4}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green)}
+.wrap{padding-bottom:50px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:7px 0 24px}.metric{padding:18px;border:1px solid var(--line);background:linear-gradient(150deg,#15263d,#0c192a);border-radius:13px;min-width:0}.metric strong{display:block;font-weight:800;font-size:clamp(20px,2.5vw,30px);letter-spacing:-.8px}.metric small{font-size:12px;display:block;color:var(--muted);margin-top:3px}.metric.read strong{color:var(--blue)}.metric.calc strong{color:var(--green)}
+.shell{display:grid;grid-template-columns:225px minmax(0,1fr);gap:16px;align-items:start}.aside{background:#111e30;border:1px solid var(--line);padding:14px;border-radius:15px;position:sticky;top:16px;box-shadow:var(--shadow)}.aside h2{font-size:13px;text-transform:uppercase;letter-spacing:1.25px;margin:2px 10px 13px;color:var(--muted)}.nav-item{display:flex;gap:10px;align-items:center;text-align:left;width:100%;border:1px solid transparent;background:none;color:#bdcede;border-radius:10px;padding:13px 10px;font-size:14px;margin:2px 0}.nav-item:hover{background:#233852}.nav-item.active{background:#1c3a50;border-color:#3c6680;color:#fff;font-weight:750}.nav-num{display:grid;place-items:center;min-width:24px;height:24px;border:1px solid #5e718b;border-radius:7px;font-size:11px;font-variant-numeric:tabular-nums}.nav-item.active .nav-num{color:#071b27;background:var(--blue);border-color:var(--blue)}.aside-note{margin:18px 5px 4px;border-top:1px solid #2d435b;padding:14px 7px 0;color:#9fb2c7;font-size:12px}
+main{min-width:0}.panel{border:1px solid #314861;border-radius:15px;background:linear-gradient(155deg,#13243a 10%,#101c2e 90%);box-shadow:var(--shadow);overflow:hidden}.panel-head{padding:20px 23px;border-bottom:1px solid #2a3f54;display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.panel-head h2{font-size:23px;line-height:1.15;margin:0}.panel-head p{font-size:13px;color:var(--muted);margin:7px 0 0;max-width:660px}.panel-body{padding:22px 23px 25px}.view{display:none}.view.active{display:block}.tag{font-size:11px;letter-spacing:.4px;border:1px solid #526b82;color:#b4d5f3;border-radius:99px;padding:4px 10px;white-space:nowrap}.tag.actual{border-color:#477b9c;color:#b4eaff;background:#142e43}.tag.derived{border-color:#48785e;color:#a3eac3;background:#173b2f}.tag.unknown{border-color:#6b6474;color:#d1c4cf;background:#312838}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 19px;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:7px}.legend em{width:11px;height:11px;border-radius:3px;display:inline-block;background:var(--blue)}.legend .cal em{background:var(--green)}.legend .unk em{background:#778195}.legend .ex em{background:var(--amber)}
+.sector-strip{display:grid;grid-template-columns:minmax(84px,.85fr) minmax(72px,.76fr) minmax(136px,2.1fr) minmax(136px,2.1fr) minmax(140px,2.65fr);gap:5px;width:100%;min-height:137px}.zone{border:1px solid #5b8098;border-radius:9px;padding:11px 7px 9px;text-align:left;background:#193a53;color:#e8f7ff;min-width:0;position:relative;transition:transform .16s,border .16s,background .16s}.zone:hover,.zone.selected{transform:translateY(-3px);border-color:#9ae3ff;background:#234c65}.zone.calculated{background:#1c4237;border-color:#477e65}.zone.calculated.selected,.zone.calculated:hover{background:#27604d;border-color:#91f6bd}.zone.void{background:#253247;border-color:#44546a;color:#d0d6e5}.zone strong{display:block;font-size:13px;white-space:normal;line-height:1.25}.zone .address{font-family:Consolas,"Courier New",monospace;font-size:13px;font-weight:800;margin-bottom:9px;display:block}.zone small{display:block;opacity:.84;font-size:11px;line-height:1.35;margin-top:9px}.zone .zone-status{margin-top:6px;display:inline-block;font-size:10px;border:1px solid currentColor;border-radius:3px;padding:1px 5px}.callout{margin-top:17px;background:#102b3c;border:1px solid #3e647b;border-radius:10px;padding:15px 16px;min-height:105px}.callout strong{font-size:17px}.callout p{margin:6px 0 0;font-size:14px;color:#c7d6e5}.callout .info-foot{color:#9dbcd0;margin-top:7px;font-size:12px}.callout.calcbox{background:#143024;border-color:#38715b}.callout.calcbox .info-foot{color:#b1d5c6}
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:21px 0 6px}.step{background:#111d2d;border:1px solid #33495e;border-radius:11px;padding:13px;text-align:left;color:#a9bfd2}.step b{display:block;font-size:13px;color:#e7f0f8}.step small{font-size:11px}.step.active{border-color:#6ec7f9;background:#1d4057}.step.active b{color:var(--blue)}.step .stepno{color:#8ccce4;font-size:11px;letter-spacing:1px;display:block;margin-bottom:4px}.controls{margin-top:11px;display:flex;gap:9px;flex-wrap:wrap}.action{background:#65caff;color:#0a1a24;border:0;padding:10px 15px;border-radius:9px;font-weight:750}.action:hover{background:#a2e4ff}.action.ghost{background:#172e43;color:#d8eaf7;border:1px solid #436782}.action.ghost:hover{background:#24445b}.stepdesc{color:#d8e7f3;background:#0e1e30;border:1px solid #2f4b65;border-radius:10px;padding:13px 15px;font-size:14px;margin-top:12px}
+.subheading{font-size:16px;font-weight:800;margin:23px 0 11px}.byteband{display:flex;min-height:76px;border:1px solid #466078;border-radius:10px;overflow:hidden;background:#152a40}.byteband button{color:#eaf1fc;border:0;border-right:1px solid #526079;padding:13px 9px;background:#1e3953;text-align:center;min-width:0;flex:1}.byteband button:last-child{border-right:0}.byteband button:hover,.byteband button.selected{background:#276381}.byteband button:nth-child(2n){background:#21394f}.byteband button:nth-child(2n):hover,.byteband button:nth-child(2n).selected{background:#276381}.byteband button span{font:800 12px Consolas,"Courier New",monospace;display:block}.byteband button small{display:block;font-size:10px;margin-top:7px;color:#bacbd9}.byteband button.wide{flex:3}.byteband button.tiny{flex:.8}.byteband.tight button{padding:10px 5px;min-height:65px}.byteband.tight button span{font-size:11px}
+.field-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-top:15px}.info-card{background:#0f2033;border:1px solid #334c65;border-radius:11px;padding:15px;min-height:132px}.info-card h3{font-size:15px;margin:0 0 8px}.info-card p{margin:0;color:#bfd0e0;font-size:13px}.info-card code,.mono{font-family:Consolas,"Courier New",monospace;white-space:normal}.info-card code{color:var(--green)}.hint{border-left:3px solid var(--amber);background:#332b2038;padding:10px 13px;margin-top:14px;color:#f5ddbd;font-size:13px;border-radius:0 8px 8px 0}
+.fieldtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}.fieldtable th{text-align:left;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#a5c7dd;padding:10px;border-bottom:1px solid #4c6173}.fieldtable td{padding:12px 10px;border-bottom:1px solid #263e54}.fieldtable tr{cursor:pointer}.fieldtable tr:hover,.fieldtable tr.chosen{background:#1d4055}.fieldtable td:first-child{font-family:Consolas,"Courier New",monospace;color:#e7b9e8}.fieldtable td:nth-child(2){font-family:Consolas,"Courier New",monospace;color:#a2e2fa}.fieldtable td:nth-child(3){font-weight:700}
+.arith{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}.eq{border:1px solid #40665b;background:#153327;border-radius:12px;padding:19px 16px}.eq .eq-name{color:#b2e9d0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px}.eq .eq-num{font:800 clamp(19px,2.7vw,28px) Consolas,monospace;color:#c2ffdf;margin-top:10px}.eq .eq-formula{font:12px/1.5 Consolas,monospace;margin-top:9px;color:#d3e4df}.eq p{font-size:12px;color:#abcabb;margin:10px 0 0}.formula-list{background:#0f2033;border:1px solid #34516b;border-radius:12px;margin-top:15px;padding:16px}.formula-list p{font-size:14px;margin:9px 0;color:#ceddeb}.formula-list code{color:#9ce4ff}
+.lookup{display:flex;gap:9px;align-items:end;flex-wrap:wrap;margin:15px 0}.lookup label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}.lookup input{width:195px;color:#fff;background:#0b1d2e;border:1px solid #4c708d;border-radius:9px;padding:10px 12px;outline:0}.lookup input:focus{border-color:var(--blue)}.lookup-output{padding:13px;border:1px solid #496378;border-radius:9px;min-height:72px;background:#0e2233;font-size:13px;color:#d7e8fa}.lookup-output strong{color:#c8f3ff}
+.flowchart{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0 18px}.flow-node{background:#14314a;border:1px solid #3b789c;border-radius:9px;padding:14px 8px;text-align:center;font-size:12px;position:relative}.flow-node:not(:last-child):after{content:"→";position:absolute;right:-13px;top:39%;z-index:2;color:#9ddfff;font-size:19px}.flow-node strong{display:block;color:#bce8ff;font-size:14px}.flow-node small{display:block;margin-top:4px;color:#a1b9d3}.provenance{background:#152235;border:1px solid #384b62;padding:15px;border-radius:11px;font-size:13px;color:#b9cee0}.provenance strong{color:#eff6ff}.proof{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.proof div{border:1px solid #375768;padding:15px;border-radius:9px;background:#142a3a}.proof strong{display:block;color:#a5e2ff;font-size:22px}.proof small{display:block;color:#b5c9dc;font-size:12px;margin-top:2px}footer{padding-bottom:32px;font-size:12px;color:#829cb3}footer .footer-line{border-top:1px solid #2c465b;padding-top:17px}code{overflow-wrap:anywhere}
+@media(max-width:1000px){.shell{grid-template-columns:1fr}.aside{position:relative;top:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.aside h2{display:none}.nav-item{width:auto;padding:10px;margin:0;flex:1;min-width:130px;justify-content:center}.aside-note{display:none}.sector-strip{grid-template-columns:repeat(5,minmax(0,1fr))}.zone .address{font-size:11px}.zone{padding:9px 6px}}
+@media(max-width:720px){header,.wrap,footer{padding-left:15px;padding-right:15px}.brand{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.panel-head,.panel-body{padding:16px}.panel-head h2{font-size:20px}.panel-head{flex-wrap:wrap}.sector-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.zone{min-height:91px}.zone:last-child{grid-column:span 2}.timeline{grid-template-columns:repeat(2,1fr)}.field-grid{grid-template-columns:1fr}.arith{grid-template-columns:1fr}.flowchart{grid-template-columns:1fr}.flow-node:not(:last-child):after{content:"↓";top:auto;right:49%;bottom:-19px}.proof{grid-template-columns:1fr}.byteband{flex-wrap:wrap}.byteband button,.byteband button.wide,.byteband button.tiny{flex:1 1 25%;min-width:70px}.fieldtable{font-size:11px}.fieldtable td,.fieldtable th{padding:9px 5px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+/* SD-03 v2: binary-sector laboratory. Existing v1 layouts stay untouched. */
+.raw-intro{border:1px solid #44708b;border-radius:12px;background:linear-gradient(130deg,#173650,#14263b);padding:16px 18px;margin-bottom:19px;color:#d6e7f4}
+.raw-intro strong{color:#b3edff}.raw-intro p{margin:6px 0 0;color:#b4cbdd;font-size:13px}
+.raw-upload-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.raw-upload{display:block;border:1px dashed #56809a;border-radius:12px;padding:15px;background:#0b1c2f;min-width:0;cursor:pointer}
+.raw-upload:hover,.raw-upload:focus-within{border-color:#8bdbf5;background:#142e47}
+.raw-upload strong{display:block;color:#e2f6ff;font-size:14px;margin-bottom:4px}
+.raw-upload small{color:#a4bfd4;font-size:11px;display:block;min-height:31px}
+.raw-upload input{display:block;width:100%;margin-top:11px;font-size:12px;max-width:100%;color:#c6e8ff}
+.raw-upload input::file-selector-button{border:1px solid #507992;border-radius:7px;background:#193954;padding:6px 8px;color:#eef8ff;margin-right:8px;cursor:pointer}
+.raw-actions{display:flex;flex-wrap:wrap;gap:9px;margin:13px 0}
+.raw-status{padding:13px 15px;border:1px solid #416786;border-radius:10px;background:#102e43;font-size:13px;color:#d1ecff;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.raw-status.error{border-color:#9b5d5d;background:#3d2227;color:#ffe4e0}
+.raw-status.ok{border-color:#479b74;background:#15382c;color:#d5ffe6}
+.raw-status.mixed{border-color:#9b7a4e;background:#342a1c;color:#ffe5bc}
+.raw-badges{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 18px}
+.raw-badges span{border:1px solid #476077;border-radius:999px;padding:4px 9px;font-size:11px;color:#bad4e9;background:#162d43}
+.raw-badges span.live{border-color:#468fbd;background:#133b57;color:#abedff}
+.raw-badges span.sim{border-color:#987944;background:#422f18;color:#ffdfa7}
+.raw-badges span.verified{border-color:#3e8b67;background:#173e31;color:#b2f9d7}
+.raw-two{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:18px}
+.raw-sector{background:#0b1a2b;border:1px solid #34506b;border-radius:12px;padding:14px;min-width:0}
+.raw-sector h3{margin:0;font-size:17px;color:#d5f4ff}
+.raw-sector .raw-sub{font-size:12px;color:#b4cadd;margin:6px 0 11px;min-height:38px}
+.raw-select{width:100%;border:1px solid #477088;border-radius:8px;background:#132f46;color:#e8f4ff;padding:9px;font-size:12px}
+.hex-outer{overflow-x:auto;border:1px solid #365773;border-radius:8px;background:#091627;margin-top:10px;max-height:530px;overflow-y:auto}
+.hex-inner{min-width:565px;padding:8px 9px;font:12px/1.35 Consolas,"Cascadia Mono",monospace}
+.hex-row{display:grid;grid-template-columns:45px minmax(384px,1fr) 147px;gap:7px;align-items:center;border-bottom:1px solid #243b53;padding:2px 0}
+.hex-row:last-child{border:0}.hex-offset{color:#819dbb;text-align:right;font-size:11px}
+.hex-bytes{display:grid;grid-template-columns:repeat(16,minmax(21px,1fr));gap:1px}
+.hex-byte{border:0;border-radius:3px;min-width:21px;height:24px;background:transparent;color:#aabed5;padding:2px 0;font:12px Consolas,monospace;text-align:center}
+.hex-byte:hover,.hex-byte:focus-visible{background:#41749b;color:white;outline:1px solid #a6dfff}
+.hex-byte.in-field{background:#244b68;color:#d9f5ff}
+.hex-byte.is-selected{background:#287fac;color:white;outline:1px solid #a3eeff}
+.hex-ascii{letter-spacing:.7px;font-size:11px;color:#a9c8d8;white-space:pre}
+.hex-placeholder{padding:16px;color:#a9c2d6;font-size:13px;min-height:66px}
+.hex-detail{padding:11px 12px;background:#12283c;border:1px solid #365877;border-radius:9px;min-height:86px;color:#d7eafa;font-size:13px;margin-top:10px;line-height:1.55;word-break:break-word}
+.hex-detail b{color:#9ae2ff}.hex-detail code{font-size:12px;color:#b1efcf}
+.raw-table{width:100%;border-collapse:collapse;margin:13px 0;color:#d5e7f7;font-size:12px}
+.raw-table th{text-align:left;color:#96beda;font-size:11px;letter-spacing:.4px;border-bottom:1px solid #46647b;padding:10px 8px}
+.raw-table td{border-bottom:1px solid #294058;padding:9px 8px;vertical-align:top;font-family:Consolas,monospace;word-break:break-word}
+.raw-table tr:last-child td{border:0}.raw-table tbody tr:hover{background:#18374e}
+.raw-table .match{color:#7cedbd;font-weight:700}.raw-table .different{color:#ffb7a1;font-weight:700}.raw-table .unknown{color:#b1b9c9}
+.raw-warning{border-left:3px solid #ffce7c;background:#36291e;padding:10px 12px;color:#ffdfab;border-radius:0 8px 8px 0;margin:15px 0;font-size:12px}
+.raw-how{background:#11273a;border:1px solid #35546e;border-radius:11px;padding:14px;margin:18px 0 0;color:#bacde0;font-size:13px}
+.raw-how strong{color:#deecfa}.raw-how p{margin:8px 0 0}.raw-how code{color:#a9e8ff}
+@media(max-width:1100px){.raw-two{grid-template-columns:1fr}}
+@media(max-width:750px){.raw-upload-grid{grid-template-columns:1fr}.raw-upload small{min-height:unset}.raw-sector{padding:10px}.hex-inner{padding:6px}}
+
+</style>
+</head>
+<body>
+<header>
+ <div class="hero">
+  <div class="hero-copy">
+   <div class="eyebrow">Sipeed FPGA / Tang Nano 9K / SD-03.4</div>
+   <h1>Как FPGA находит<br><span style="color:var(--blue)">FAT32</span> на microSD</h1>
+   <p>Интерактивный разбор реального эксперимента 24.10.2026: где FPGA действительно считала 512 байтов, как нашла раздел MBR и какие адреса вычислила из BPB.</p>
+  </div>
+  <div class="brand" aria-label="Условное изображение микросхемы FPGA"><div><div class="chip"><span>FPGA</span></div><small>GW1NR-9C · 27 MHz</small></div></div>
+ </div>
+ <div class="meta"><span class="pill"><span class="dot"></span><b>HARDWARE FUNCTIONAL PASS</b></span><span class="pill">Без процессора · Без записи на SD</span><span class="pill">SPI / CMD17 / 512 B</span><span class="pill">База: UART + RTL · v2: локальные HEX-дампы по выбору</span></div>
+</header>
+<div class="wrap">
+ <div class="metrics">
+  <div class="metric read"><strong>2 сектора</strong><small>Физически прочитаны FPGA: LBA 0 и LBA 64</small></div>
+  <div class="metric calc"><strong>2112</strong><small>Адрес первой FAT: <b>вычислен</b></small></div>
+  <div class="metric calc"><strong>17472</strong><small>Область данных и ROOT: <b>вычислены</b></small></div>
+  <div class="metric"><strong>983 007</strong><small>Число кластеров по валидатору BPB</small></div>
+ </div>
+ <div class="shell">
+  <nav class="aside" aria-label="Разделы демонстрации"><h2>Исследование</h2>
+    <button class="nav-item active" data-view="map"><span class="nav-num">01</span> Карта microSD</button>
+    <button class="nav-item" data-view="mbr"><span class="nav-num">02</span> MBR · LBA 0</button>
+    <button class="nav-item" data-view="bpb"><span class="nav-num">03</span> VBR / BPB · LBA 64</button>
+    <button class="nav-item" data-view="math"><span class="nav-num">04</span> Адресная арифметика</button>
+    <button class="nav-item" data-view="flow"><span class="nav-num">05</span> Контроллер FPGA</button>
+    <button class="nav-item" data-view="raw"><span class="nav-num">06</span> Бинарные сектора / HEX</button>
+    <div class="aside-note">Карта — учебная модель на основе аппаратной телеметрии. Там, где исходные байты не были выведены через UART, они не выдумываются.</div>
+  </nav>
+  <main>
+   <section id="view-map" class="view active panel" aria-label="Карта microSD">
+    <div class="panel-head"><div><h2>Где именно мы читали?</h2><p>Два обращения к SDHC и несколько вычисленных адресов. Нажимайте на области или проиграйте четыре этапа работы автомата.</p></div><span class="tag actual">Эксперимент SD-03.4</span></div>
+    <div class="panel-body">
+     <div class="legend"><span><em></em>Физически считано CMD17</span><span class="cal"><em></em>Только вычислен адрес</span><span class="unk"><em></em>Не исследовано</span></div>
+     <div class="sector-strip" id="zones">
+      <button class="zone selected" data-zone="mbr"><span class="address">LBA 0</span><strong>MBR</strong><small>Таблица разделов</small><span class="zone-status">ЧИТАЛИ</span></button>
+      <button class="zone void" data-zone="gap"><span class="address">1–63</span><strong>Промежуток</strong><small>До первого раздела</small><span class="zone-status">НЕ ЧИТАЛИ</span></button>
+      <button class="zone" data-zone="vbr"><span class="address">LBA 64</span><strong>VBR / BPB</strong><small>Начало раздела; далее reserved</small><span class="zone-status">ЧИТАЛИ</span></button>
+      <button class="zone calculated" data-zone="fat"><span class="address">LBA 2112</span><strong>FAT</strong><small>Адрес первой таблицы</small><span class="zone-status">ВЫЧИСЛИЛИ</span></button>
+      <button class="zone calculated" data-zone="root"><span class="address">LBA 17472</span><strong>DATA / ROOT</strong><small>Область данных, кластер 2</small><span class="zone-status">ВЫЧИСЛИЛИ</span></button>
+     </div>
+     <div class="callout" id="zone-detail" aria-live="polite"></div>
+     <h3 class="subheading">Четыре действия аппаратного автомата</h3>
+     <div class="timeline" id="timeline"><button class="step active" data-step="0"><span class="stepno">01 · CMD17</span><b>Считать LBA 0</b><small>512 байтов MBR</small></button><button class="step" data-step="1"><span class="stepno">02 · PARSE</span><b>Найти раздел</b><small>Выход VOL=64</small></button><button class="step" data-step="2"><span class="stepno">03 · CMD17</span><b>Считать LBA 64</b><small>512 байтов VBR</small></button><button class="step" data-step="3"><span class="stepno">04 · COMPUTE</span><b>Посчитать адреса</b><small>FAT / DATA / ROOT</small></button></div>
+     <div class="stepdesc" id="step-description" aria-live="polite"></div>
+     <div class="controls"><button class="action" id="next-step">Следующий этап →</button><button class="action ghost" id="play-steps">▶ Проиграть</button><button class="action ghost" id="reset-steps">С начала</button></div>
+     <div class="hint"><b>Масштаб условный.</b> На реальной карте между LBA 64 и 2112 находится область зарезервированных секторов, а LBA 2112–17471 заняты таблицами FAT. Длины прямоугольников специально не пропорциональны длинам областей.</div>
+    </div>
+   </section>
+   <section id="view-mbr" class="view panel" aria-label="Структура сектора MBR">
+    <div class="panel-head"><div><h2>MBR: физически считанный сектор LBA 0</h2><p>512 байтов. Позиции байтов соответствуют формату MBR; фактический полный hex-dump платы нам пока не передан.</p></div><span class="tag actual">CMD17(0) · READ</span></div>
+    <div class="panel-body">
+     <h3 class="subheading" style="margin-top:0">Сектор 0: диапазоны байтов</h3>
+     <div class="byteband" id="mbr-bands"><button class="wide selected" data-mbr="bootstrap"><span>0–445</span><small>Загрузочная область / код</small></button><button data-mbr="table"><span>446–509</span><small>4 × 16 байтов · разделы</small></button><button class="tiny" data-mbr="sign"><span>510–511</span><small>55 AA</small></button></div>
+     <div class="callout" id="mbr-band-detail"></div>
+     <h3 class="subheading">Одна 16-байтовая запись раздела: выберите поле</h3>
+     <div class="byteband tight" id="entry-fields"><button data-entry="flag"><span>+0</span><small>Флаг</small></button><button data-entry="chs1"><span>+1…3</span><small>CHS</small></button><button data-entry="type"><span>+4</span><small>Тип</small></button><button data-entry="chs2"><span>+5…7</span><small>CHS</small></button><button class="selected" data-entry="start"><span>+8…11</span><small>Start LBA</small></button><button data-entry="count"><span>+12…15</span><small>Секторы</small></button></div>
+     <div class="field-grid"><div class="info-card" id="entry-detail"></div><div class="info-card"><h3>Что именно известно?</h3><p>Декодер выдал <code>VOL=00000040</code>, то есть начало раздела <code>64</code>. В виде little-endian это <code>40 00 00 00</code>. Тип был из семейства <code>0B/0C</code>, но его конкретное значение и номер записи в UART не выводились.</p></div></div>
+     <div class="hint">Подпись <code>55 AA</code> на байтах 510–511 была проверена, однако <b>сама по себе не доказывает FAT32</b>. Поэтому FPGA дополнительно прочитала VBR выбранного раздела.</div>
+    </div>
+   </section>
+   <section id="view-bpb" class="view panel" aria-label="Структура загрузочного сектора FAT32">
+    <div class="panel-head"><div><h2>VBR / BPB: физически считанный LBA 64</h2><p>После MBR контроллер сделал второй CMD17 по найденному адресу и проверил геометрию FAT32. Нажмите строку, чтобы узнать роль поля.</p></div><span class="tag actual">CMD17(64) · READ</span></div>
+    <div class="panel-body">
+     <table class="fieldtable"><thead><tr><th>Байты</th><th>Поле BPB</th><th>Значение в данном эксперименте</th></tr></thead><tbody id="bpb-rows"></tbody></table>
+     <div class="callout" id="bpb-detail" aria-live="polite"></div>
+     <div class="hint"><b>Никаких вымышленных hex-байтов.</b> «Проверено валидатором» означает, что RTL принял геометрию. Не все оригинальные поля BPB были переданы в UART. Для их точного отображения нужен безопасный read-only дамп сектора 64.</div>
+    </div>
+   </section>
+   <section id="view-math" class="view panel" aria-label="Расчёт адресов FAT32">
+    <div class="panel-head"><div><h2>От BPB к абсолютным LBA</h2><p>По двум считанным секторам FPGA рассчитала положение FAT и области данных. «Абсолютный» LBA отсчитывается от самого начала карты.</p></div><span class="tag derived">Вычислено в FPGA</span></div>
+    <div class="panel-body">
+     <div class="arith"><div class="eq"><span class="eq-name">Первый сектор FAT</span><div class="eq-num">2112</div><div class="eq-formula">64 + 2048 = 2112</div><p>Начало раздела + число зарезервированных секторов</p></div><div class="eq"><span class="eq-name">Первый сектор DATA</span><div class="eq-num">17472</div><div class="eq-formula">2112 + 15360 = 17472</div><p>К первой FAT прибавили суммарный объём всех FAT</p></div><div class="eq"><span class="eq-name">Первый сектор ROOT</span><div class="eq-num">17472</div><div class="eq-formula">DATA + (2−2) × SPC</div><p>Корневой каталог начинается с кластера 2</p></div></div>
+     <div class="formula-list"><p><code>FirstFAT = PartitionStart + RsvdSecCnt</code></p><p><code>FirstData = FirstFAT + NumFATs × FATSz32</code></p><p><code>ClusterN = FirstData + (N − 2) × SecPerClus</code></p><p><code>ClusterCount = floor(DataSectors / SecPerClus)</code></p></div>
+     <h3 class="subheading">Адресный инспектор (считывания НЕ выполняет)</h3>
+     <div class="lookup"><div><label for="lba-search">Введите абсолютный LBA, десятичный</label><input id="lba-search" type="number" inputmode="numeric" min="0" max="4294967295" step="1" value="17472"></div><button class="action" id="inspect-lba">Определить область</button></div>
+     <div class="lookup-output" id="lookup-result" aria-live="polite"></div>
+     <div class="hint">Мы знаем суммарный размер FAT-зоны: <code>15360</code> секторов. Число FAT и размер каждой отдельно в этом UART отсутствуют. Число кластеров <code>983007</code> было вычислено аппаратным BPB-валидатором, но исходные <code>TotSec32</code> и <code>SecPerClus</code> не выводились.</div>
+    </div>
+   </section>
+   <section id="view-flow" class="view panel" aria-label="Архитектура SD-03.4">
+    <div class="panel-head"><div><h2>Что внутри FPGA, и что будет дальше?</h2><p>SD-03 расширяет проверенный SPI/SDHC-контроллер обработчиками данных. Это отдельная воспроизводимая лаборатория, ещё не часть исполняемой системы PiKoSoL.</p></div><span class="tag">Текущая архитектура</span></div>
+    <div class="panel-body">
+     <div class="flowchart"><div class="flow-node"><strong>microSDHC</strong><small>SPI / CMD17</small></div><div class="flow-node"><strong>BSRAM</strong><small>512 байтов</small></div><div class="flow-node"><strong>MBR</strong><small>Найти раздел</small></div><div class="flow-node"><strong>BPB</strong><small>Проверка тома</small></div><div class="flow-node"><strong>UART</strong><small>Сводка адресов</small></div></div>
+     <div class="proof"><div><strong>0 / 0</strong><small>Нарушений Setup / Hold на 27 МГц</small></div><div><strong>32%</strong><small>Логические ресурсы GW1NR-9C</small></div><div><strong>4%</strong><small>Использование BSRAM</small></div></div>
+     <h3 class="subheading">Доказано / ещё не реализовано</h3>
+     <div class="field-grid"><div class="info-card" style="border-color:#3b886b"><h3 style="color:var(--green)">✓ SD-03.4</h3><p>Физическое чтение MBR и VBR, выбор раздела, проверки BPB, расчёт FAT/DATA/ROOT, UART. Функциональная аппаратная приёмка на одной карте.</p></div><div class="info-card" style="border-color:#7b6752"><h3 style="color:var(--amber)">○ SD-04</h3><p>Физическое чтение сектора корневого каталога <code>LBA 17472</code>, декодирование 32-байтовых записей, FAT-цепочки и содержимое файлов. Этого пока не было.</p></div></div>
+     <h3 class="subheading">Оригинальная строка UART</h3>
+     <div class="provenance"><code id="uart-line">SD03 RESULT=MBR_FAT32    VOL=00000040 FAT=00000840 DATA=00004440 ROOT=00004440 CLUS=000EFFDF E=00</code><div class="controls"><button class="action ghost" id="copy-uart">Скопировать UART</button></div></div>
+     <div class="hint">Верификация: Icarus RTL SIM PASS; внутренний Gowin STA PASS; аппаратный UART принят от оператора. Не проверены внешние задержки SD MISO, побайтное сравнение с ПК, другие карты и содержимое файлов.</div>
+    </div>
+   </section>
+   <section id="view-raw" class="view panel" aria-label="Инспектор настоящих бинарных секторов">
+    <div class="panel-head"><div><h2>HEX-инспектор: настоящие сектора MBR / VBR</h2><p>Загрузите два 512-байтовых сектора либо образ всей карты. Браузер покажет реальные байты, таблицу разделов, BPB и сравнение с UART SD-03.4.</p></div><span class="tag actual">v2 · LOCAL FILE API</span></div>
+    <div class="panel-body">
+     <div class="raw-intro"><strong>Важное разграничение</strong><p>По умолчанию здесь есть только подтверждённые значения UART SD-03.4. Настоящие HEX-байты появятся <b>только после выбора ваших файлов</b>. Учебный пример создаёт синтетические, явно помеченные данные. Содержимое файлов обрабатывается локально в браузере: серверу оно не отправляется, на SD ничего не записывается.</p></div>
+     <div class="raw-upload-grid">
+      <label class="raw-upload"><strong>1 · MBR, сектор LBA 0</strong><small>Выберите ровно 512 байтов из начала носителя. Поля таблицы находятся на смещениях 446…509.</small><input id="raw-mbr-file" type="file" accept=".bin,.dat,.raw,.mbr,.img,application/octet-stream" aria-label="Выбрать бинарный сектор MBR длиной 512 байтов"></label>
+      <label class="raw-upload"><strong>2 · VBR, сектор раздела</strong><small>Для нашего SD-03 это LBA 64, но у другой карты адрес может отличаться.</small><input id="raw-vbr-file" type="file" accept=".bin,.dat,.raw,.vbr,.img,application/octet-stream" aria-label="Выбрать бинарный сектор VBR длиной 512 байтов"></label>
+      <label class="raw-upload"><strong>Альтернатива · образ карты</strong><small>Любой образ с размером, кратным 512. Прочитаем только LBA 0 и, если найден, загрузочный сектор нужного раздела.</small><input id="raw-image-file" type="file" accept=".img,.bin,.raw,.dd,.iso,application/octet-stream" aria-label="Выбрать файл бинарного образа SD-карты"></label>
+     </div>
+     <div class="raw-actions">
+      <button class="action" id="raw-synthetic" type="button">▶ Учебный пример (синтетика)</button>
+      <button class="action ghost" id="raw-clear" type="button">Очистить загруженные сектора</button>
+     </div>
+     <div id="raw-status" class="raw-status" role="status" aria-live="polite">Реальные 512-байтовые дампы ещё не загружены. Ниже HEX-представление не построено, потому что исходные байты неизвестны.</div>
+     <div id="raw-badges" class="raw-badges"><span>Источник: аппаратный UART, только значения адресов</span><span>HEX: ещё нет данных</span></div>
+     <div class="raw-two">
+      <div class="raw-sector"><h3>MBR · физический LBA 0</h3><p class="raw-sub" id="raw-mbr-summary">Выберите MBR 512 байтов, образ карты или синтетический пример.</p><label for="raw-mbr-field" class="label">Подсветить поле (реальные смещения)</label><select id="raw-mbr-field" class="raw-select" aria-label="Выбрать поле MBR для подсветки"></select><div class="hex-outer"><div id="raw-mbr-hex" class="hex-inner"><p class="hex-placeholder">Нет байтов — мы не создаём фиктивный дамп.</p></div></div><div id="raw-mbr-detail" class="hex-detail" aria-live="polite">Смещения 0…511 известны по спецификации, но значения байтов пока неизвестны.</div></div>
+      <div class="raw-sector"><h3>VBR / BPB · сектор тома</h3><p class="raw-sub" id="raw-vbr-summary">Для проверенной карты VBR находился на LBA 64.</p><label for="raw-vbr-field" class="label">Подсветить поле BPB (реальные смещения)</label><select id="raw-vbr-field" class="raw-select" aria-label="Выбрать поле BPB для подсветки"></select><div class="hex-outer"><div id="raw-vbr-hex" class="hex-inner"><p class="hex-placeholder">Нет байтов — реальные параметры BPB без файла не отображаются.</p></div></div><div id="raw-vbr-detail" class="hex-detail" aria-live="polite">Нужен бинарный сектор VBR, а не только строка UART.</div></div>
+     </div>
+     <h3 class="subheading">Таблица разделов MBR из загруженных байтов</h3>
+     <div id="raw-partitions"><p class="hex-placeholder">Нет бинарного MBR. В UART аппаратного эксперимента указан адрес выбранного раздела 64, но не все четыре записи.</p></div>
+     <h3 class="subheading">Проверка BPB по правилам RTL SD-03</h3>
+     <div id="raw-validation" class="raw-status">Не выполнена: исходный VBR не загружен.</div>
+     <h3 class="subheading">Сверка локального дампа с аппаратным UART</h3>
+     <p style="color:var(--muted);font-size:13px">Эталон из реального FPGA UART: <code>VOL=64, FAT=2112, DATA=17472, ROOT=17472, CLUS=983007</code>. Совпадение вычислений означает согласованность данных, но не доказывает, что загруженный файл получен с той же физической карты.</p>
+     <div id="raw-compare"></div>
+     <div class="raw-warning"><strong>Не путайте источники.</strong> Устройство SD-03 реально читало LBA 0 и LBA 64. Инспектор HTML показывает байты <em>выбранных на ПК файлов</em> и может дополнительно проанализировать сектор образа. Он не передаёт эти файлы на FPGA и не превращает вычисленные LBA 2112/17472 в аппаратно прочитанные сектора.</div>
+     <div class="raw-how"><strong>Как получить данные для этой вкладки?</strong><p>Нужны точные <code>512</code> байтов физического LBA 0 и <code>512</code> байтов физического LBA 64 — либо бинарный образ устройства. Копия обычного файла из FAT32 <b>не подходит</b>: у неё другие байты. Делайте дамп только средствами чтения с явно выбранного устройства; не форматируйте карту и не записывайте на неё. Текущий SD-03 выдаёт сводную строку UART, а не полный дамп — его можно добавить отдельной read-only лабораторной функцией.</p></div>
+    </div>
+   </section>
+  </main>
+ </div>
+</div>
+<footer><div class="footer-line">SD-03.4 · Интерактивный атлас v2 · Эксперимент Tang Nano 9K · 24 октября 2026 · Офлайн HTML без внешних библиотек.<br><a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/pull/17" target="_blank" rel="noopener">Исходники и протокол GitHub PR #17</a> · <a href="https://youtu.be/KdMJc_Ly7fQ" target="_blank" rel="noopener">Видео предыдущего SD-02</a>. Иллюстрация структуры построена по декодированным значениям UART, не по полному секторному дампу.</div></footer>
+<script>
+(function(){
+'use strict';
+var currentView='map',stepIndex=0,timer=null;
+var UART='SD03 RESULT=MBR_FAT32    VOL=00000040 FAT=00000840 DATA=00004440 ROOT=00004440 CLUS=000EFFDF E=00';
+function el(id){return document.getElementById(id)}
+function showView(v){currentView=v;document.querySelectorAll('.view').forEach(function(node){node.classList.toggle('active',node.id==='view-'+v)});document.querySelectorAll('.nav-item').forEach(function(node){node.classList.toggle('active',node.dataset.view===v)});}
+document.querySelectorAll('.nav-item').forEach(function(b){b.addEventListener('click',function(){showView(b.dataset.view)})});
+var zoneContent={
+ mbr:['MBR · LBA 0','Физическое чтение: CMD17(0), 512 байтов. Таблица разделов расположена на байтах 446–509; декодер определил FAT32-кандидат с началом LBA 64.','После чтения FPGA не обязана повторно получать LBA 0.'],
+ gap:['Промежуток LBA 1–63','Между MBR и началом найденного раздела находится 63 сектора. SD-03 их не читала и не характеризовала.','Не следует утверждать, что они нулевые.'],
+ vbr:['VBR/BPB · LBA 64','Физическое чтение: CMD17(64), ещё 512 байтов в тот же BSRAM-буфер. Проверены сигнатура, BPB и допустимость геометрии FAT32.','Здесь находится начало раздела, но содержимое следующих зарезервированных секторов ещё не исследовано.'],
+ fat:['FAT · LBA 2112','Этот абсолютный адрес ВЫЧИСЛЕН из VBR: 64 + 2048 = 2112. SD-03 не выполняла CMD17 по LBA 2112.','Чтение содержимого FAT и следование цепочкам кластеров — будущая работа.'],
+ root:['DATA / ROOT · LBA 17472','Этот абсолютный адрес ВЫЧИСЛЕН: 2112 + 15360 = 17472. Корневой каталог начинается с первого кластера области данных.','Содержимое сектора 17472 ещё не прочитано. Это первый очевидный адрес для SD-04.']
+};
+function selectZone(z){document.querySelectorAll('.zone').forEach(function(b){b.classList.toggle('selected',b.dataset.zone===z)});var x=zoneContent[z],node=el('zone-detail');node.classList.toggle('calcbox',z==='fat'||z==='root');node.innerHTML='<strong>'+x[0]+'</strong><p>'+x[1]+'</p><div class="info-foot">'+x[2]+'</div>'}
+document.querySelectorAll('[data-zone]').forEach(function(b){b.addEventListener('click',function(){selectZone(b.dataset.zone)})});
+var steps=[
+ ['Шаг 1 — физическое чтение LBA 0. Контроллер посылает CMD17(0), получает сектор в BSRAM и проверяет SDHC CRC16. Далее анализируются байты 446–511.','mbr'],
+ ['Шаг 2 — разбор MBR. Среди четырёх записей FPGA выбрала кандидата FAT32 (код раздела 0B/0C) и выдала начальный абсолютный адрес VOL = 0x40 = 64. Нового обращения к карте на этом шаге нет.','mbr'],
+ ['Шаг 3 — физическое чтение LBA 64. FPGA посылает второй CMD17 по найденному адресу, получает загрузочный сектор раздела и проверяет BPB в том же 512-байтовом буфере.','vbr'],
+ ['Шаг 4 — вычисление в логике FPGA. По BPB рассчитаны адреса FAT = 2112, DATA = 17472, ROOT = 17472 и 983007 кластеров. По этим адресам в SD-03 дополнительные чтения не выполнялись.','root']
+];
+function setStep(i){stepIndex=i;document.querySelectorAll('[data-step]').forEach(function(b){b.classList.toggle('active',Number(b.dataset.step)===i)});el('step-description').textContent=steps[i][0];selectZone(steps[i][1])}
+document.querySelectorAll('[data-step]').forEach(function(b){b.addEventListener('click',function(){stop();setStep(Number(b.dataset.step))})});
+function stop(){if(timer!==null){clearInterval(timer);timer=null;el('play-steps').textContent='▶ Проиграть'}}
+el('next-step').addEventListener('click',function(){stop();setStep((stepIndex+1)%4)});
+el('reset-steps').addEventListener('click',function(){stop();setStep(0)});
+el('play-steps').addEventListener('click',function(){if(timer!==null){stop();return}setStep(0);el('play-steps').textContent='■ Остановить';timer=setInterval(function(){if(stepIndex===3){stop();return}setStep(stepIndex+1)},1600)});
+var mbrBand={bootstrap:['Байты 0–445: загрузочная область','Классический MBR резервирует до таблицы разделов 446 байтов. Их реальные значения не записывались в UART; контроллеру не требовалось декодировать загрузочный код.'],table:['Байты 446–509: таблица разделов','Четыре записи по 16 байтов. FPGA анализировала тип, начальный LBA, длину и флаг загрузочности; результат одного выбранного раздела — VOL=64.'],sign:['Байты 510–511: сигнатура 55 AA','Валидатор MBR потребовал корректную сигнатуру. Подпись подтверждает форму загрузочного сектора, а не тип содержимого раздела.']};
+function selectMbrBand(id){document.querySelectorAll('[data-mbr]').forEach(function(b){b.classList.toggle('selected',b.dataset.mbr===id)});var c=mbrBand[id];el('mbr-band-detail').innerHTML='<strong>'+c[0]+'</strong><p>'+c[1]+'</p>'}
+document.querySelectorAll('[data-mbr]').forEach(function(b){b.addEventListener('click',function(){selectMbrBand(b.dataset.mbr)})});
+var entry={flag:['Флаг загрузки (+0)','Парсер допускает 0x00 (не активен) или 0x80 (активен). Каким был флаг на реальной карте, UART не сообщает.'],chs1:['CHS начала (+1…3)','Историческое поле Cylinder/Head/Sector. SD-03 работает с LBA и эти три байта не использует для вычисления адреса.'],type:['Тип раздела (+4)','Выбранный тип принадлежит FAT32-кандидатам 0x0B или 0x0C. Конкретное значение не входило в UART, поэтому не подставляем его.'],chs2:['CHS конца (+5…7)','Историческая CHS-граница, не использованная в нашей аппаратной LBA-адресации.'],start:['Начальный сектор (+8…11)','Декодировано FPGA: VOL = 0x00000040 = LBA 64. В little-endian 4 байта соответствовали бы 40 00 00 00. Это реконструкция из декодированного адреса, не независимый hex-dump.'],count:['Число секторов раздела (+12…15)','В MBR есть 32-битная длина раздела в секторах. Парсер передавал её валидатору для проверки границ, но в UART это число не выводилось.']};
+function selectEntry(id){document.querySelectorAll('[data-entry]').forEach(function(b){b.classList.toggle('selected',b.dataset.entry===id)});var x=entry[id];el('entry-detail').innerHTML='<h3>'+x[0]+'</h3><p>'+x[1]+'</p>'}
+document.querySelectorAll('[data-entry]').forEach(function(b){b.addEventListener('click',function(){selectEntry(b.dataset.entry)})});
+var fields=[
+ {range:'0, 3–10',name:'Jump / OEM',value:'Типовой BPB принят',detail:'Начальный переход EB/E9 проверен; OEM-поле не передано в UART. exFAT-подпись обрабатывается отдельно как неподдерживаемая.'},
+ {range:'11–12',name:'BytsPerSec',value:'512 байтов · проверено',detail:'RTL принимает именно 512 байтов на сектор. Little-endian значение 512 представимо как 00 02; исходный VBR не был выгружен байт-в-байт.'},
+ {range:'13',name:'SecPerClus',value:'Степень двойки · точное неизвестно',detail:'Допустимы 1, 2, 4, 8, 16, 32 или 64/128 секторов на кластер. Конкретное значение не передано через UART.'},
+ {range:'14–15',name:'RsvdSecCnt',value:'2048 секторов · вычислено',detail:'FAT − VOL = 2112 − 64 = 2048. Это число выведено из аппаратных результатов; типичная little-endian запись 00 08.'},
+ {range:'16',name:'NumFATs',value:'1 или 2 · точное неизвестно',detail:'В нашем RTL допустимо 1 или 2 экземпляра FAT. Из UART известен их суммарный размер 15360 секторов, но не индивидуальная длина.'},
+ {range:'17–18, 19–20',name:'RootEntCnt / TotSec16',value:'0 · проверено',detail:'В FAT32 RootEntCnt и TotSec16 должны быть нулевыми в рассматриваемом валидаторе.'},
+ {range:'22–23',name:'FATSz16',value:'0 · проверено',detail:'Для FAT32 размер одной FAT задаётся 32-битным полем FATSz32, а 16-битное поле здесь равно нулю.'},
+ {range:'32–35',name:'TotSec32',value:'Не передано в UART',detail:'Полное число секторов тома участвовало в проверках границ и расчёте числа кластеров, но его значение не выведено.'},
+ {range:'36–39',name:'FATSz32',value:'Не передано отдельно',detail:'Вместе с NumFATs образует произведение 15360 секторов: DATA − FAT. Примерное значение нельзя выдавать за факт.'},
+ {range:'44–47',name:'RootClus',value:'2 · следует из ROOT=DATA',detail:'Формула ROOT = DATA + (RootClus−2)×SecPerClus. При положительном SecPerClus и равенстве адресов RootClus=2.'},
+ {range:'48–51',name:'FSInfo / BkBootSec',value:'Проверены по диапазонам',detail:'Парсер проверяет размещение служебных секторов в зарезервированной области. Конкретные индексы не были выведены.'},
+ {range:'510–511',name:'Boot signature',value:'55 AA · проверено',detail:'Валидатор потребовал 55 AA как завершающую сигнатуру VBR; подпись в одиночку не определяет FAT32.'}
+];
+var tbody=el('bpb-rows');fields.forEach(function(x,i){var tr=document.createElement('tr');tr.tabIndex=0;tr.innerHTML='<td>'+x.range+'</td><td>'+x.name+'</td><td>'+x.value+'</td>';tr.addEventListener('click',function(){selectField(i)});tr.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();selectField(i)}});tbody.appendChild(tr)});
+function selectField(i){Array.prototype.forEach.call(tbody.rows,function(r,j){r.classList.toggle('chosen',j===i)});var x=fields[i];el('bpb-detail').innerHTML='<strong>'+x.name+' · смещение '+x.range+'</strong><p>'+x.detail+'</p>'}
+function lookup(){var text=el('lba-search').value.trim(),n=Number(text),output=el('lookup-result');if(!text||!Number.isSafeInteger(n)||n<0||n>4294967295){output.textContent='Введите целое неотрицательное число LBA в пределах 0…4294967295.';return}var message;if(n===0)message='LBA 0 — MBR. В SD-03 действительно считали этот сектор.';else if(n<64)message='LBA '+n+' — промежуток между MBR и разделом. В SD-03 не читали.';else if(n===64)message='LBA 64 — VBR/BPB. Второй сектор, действительно считанный в SD-03.';else if(n<2112)message='LBA '+n+' — зарезервированная область раздела. Адрес входит в разметку, но сектор не читали.';else if(n===2112)message='LBA 2112 — первая FAT. Адрес только вычислен; содержимое не читали.';else if(n<17472)message='LBA '+n+' — область FAT (совокупно до LBA 17471). Точный номер копии FAT требует NumFATs/FATSz32.';else if(n===17472)message='LBA 17472 — начало области DATA и первого кластера ROOT. Адрес вычислен, не читали.';else message='LBA '+n+' — адрес не раньше начала DATA. Принадлежность самому тому нельзя подтвердить без полной границы раздела из BPB.';output.innerHTML='<strong>'+n+' (0x'+n.toString(16).toUpperCase().padStart(8,'0')+')</strong><br>'+message}
+el('inspect-lba').addEventListener('click',lookup);el('lba-search').addEventListener('keydown',function(e){if(e.key==='Enter')lookup()});
+el('copy-uart').addEventListener('click',function(){var b=this;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(UART).then(function(){b.textContent='Скопировано ✓';setTimeout(function(){b.textContent='Скопировать UART'},1600)}).catch(function(){fallbackCopy(b)})}else fallbackCopy(b)});
+function fallbackCopy(b){var input=document.createElement('textarea');input.value=UART;document.body.appendChild(input);input.select();try{document.execCommand('copy');b.textContent='Скопировано ✓'}catch(e){b.textContent='Выделите строку выше'}input.remove();setTimeout(function(){b.textContent='Скопировать UART'},1600)}
+selectZone('mbr');setStep(0);selectMbrBand('bootstrap');selectEntry('start');selectField(3);lookup();
+})();
+</script>
+<script>
+/* SD-03 HTML v2: independent, local-only binary sector inspector. */
+(function(){
+'use strict';
+var R={VOL:64,FAT:2112,DATA:17472,ROOT:17472,CLUS:983007};
+var S={mbr:null,vbr:null,mbrSource:'',vbrSource:'',sourceType:'none',imageLba:null,error:'',selected:{mbr:-1,vbr:-1}};
+var $=function(id){return document.getElementById(id)};
+var h=function(x,n){return Number(x).toString(16).toUpperCase().padStart(n||2,'0')};
+var le16=function(a,o){return a[o]+256*a[o+1]};
+var le32=function(a,o){return a[o]+256*a[o+1]+65536*a[o+2]+16777216*a[o+3]};
+var put16=function(a,o,v){a[o]=v%256;a[o+1]=Math.floor(v/256)%256};
+var put32=function(a,o,v){for(var i=0;i<4;i++)a[o+i]=Math.floor(v/Math.pow(256,i))%256};
+var bytesText=function(a,start,len){return Array.from(a.slice(start,start+len),function(b){return h(b,2)}).join(' ')};
+var safeAscii=function(a,start,len){return Array.from(a.slice(start,start+len),function(b){return (b>=32&&b<=126)?String.fromCharCode(b):'.'}).join('')};
+function showStatus(t,kind){var x=$('raw-status');x.textContent=t;x.className='raw-status'+(kind?' '+kind:'')}
+function mbrParsed(a){
+ if(!a)return null;
+ var signature=a[510]===0x55&&a[511]===0xaa,entries=[];
+ for(var i=0;i<4;i++){
+  var o=446+16*i;
+  entries.push({index:i,boot:a[o],type:a[o+4],lba:le32(a,o+8),count:le32(a,o+12)});
+ }
+ var protective=signature&&entries[0].type===0xee;
+ var candidate=(!signature||protective)?null:entries.find(function(p){return(p.type===0x0b||p.type===0x0c)&&(p.boot===0||p.boot===0x80)&&p.lba>0&&p.count>0})||null;
+ return {signature:signature,entries:entries,protective:protective,candidate:candidate};
+}
+function vbrParsed(a,base,bound){
+ if(!a)return null;
+ var bps=le16(a,11),spc=a[13],res=le16(a,14),nfat=a[16],rootent=le16(a,17),tot16=le16(a,19),fatsz16=le16(a,22),tot=le32(a,32),fatsz=le32(a,36),fsver=le16(a,42),rootclus=le32(a,44),fsinfo=le16(a,48),backup=le16(a,50);
+ var sig=a[510]===0x55&&a[511]===0xaa,oem=safeAscii(a,3,8);
+ var reasons=[];
+ if(!sig)reasons.push('В конце VBR нет обязательной сигнатуры 55 AA.');
+ if(oem==='EXFAT   ')reasons.push('OEM-подпись EXFAT: этот формат не поддерживается BPB-валидатором SD-03.');
+ if(a[0]!==0xeb&&a[0]!==0xe9)reasons.push('Начальный код перехода не EB/E9.');
+ if(bps!==512)reasons.push('BytsPerSec должен быть 512 (получено '+bps+').');
+ if(![1,2,4,8,16,32,64,128].includes(spc))reasons.push('SecPerClus должен быть степенью двойки в диапазоне 1…128.');
+ if(res===0)reasons.push('RsvdSecCnt = 0.');
+ if(nfat!==1&&nfat!==2)reasons.push('NumFATs должен быть 1 или 2.');
+ if(rootent!==0||tot16!==0||fatsz16!==0)reasons.push('Ненулевые поля RootEntCnt / TotSec16 / FATSz16.');
+ if(tot===0||fatsz===0)reasons.push('TotSec32 или FATSz32 = 0.');
+ if(fsver!==0)reasons.push('FSVer не равен 0.');
+ if(rootclus<2)reasons.push('RootClus меньше 2.');
+ if(fsinfo!==0xffff&&fsinfo>=res)reasons.push('FSInfo вне reserved-области.');
+ if(backup!==0xffff&&backup>=res)reasons.push('Backup boot sector вне reserved-области.');
+ var relData=res+nfat*fatsz;
+ if(tot<=relData)reasons.push('Область FAT выходит за пределы тома.');
+ if(bound>0&&tot>bound)reasons.push('Том по TotSec32 больше длины раздела по MBR.');
+ if(base+tot>4294967296)reasons.push('Конец тома за 32-битной границей LBA.');
+ var validSpc=[1,2,4,8,16,32,64,128].includes(spc);
+ var clusters=(tot>relData&&validSpc)?Math.floor((tot-relData)/spc):NaN;
+ if(!Number.isFinite(clusters)||clusters<65525||clusters>0x0fffffef)reasons.push('Число кластеров не соответствует диапазону FAT32.');
+ if(Number.isFinite(clusters)&&fatsz*128<clusters+2)reasons.push('Таблица FAT не вмещает записи для всех кластеров.');
+ if(Number.isFinite(clusters)&&rootclus-2>=clusters)reasons.push('RootClus вне диапазона кластеров данных.');
+ var rootRel=relData+(rootclus-2)*spc;
+ if(rootRel>=tot)reasons.push('Корневой кластер находится за границей тома.');
+ if(base+res>4294967295||base+relData>4294967295||base+rootRel>4294967295)reasons.push('Абсолютный FAT/DATA/ROOT LBA не умещается в 32 бита.');
+ return {valid:reasons.length===0,reasons:reasons,sig:sig,oem:oem,bps:bps,spc:spc,res:res,nfat:nfat,rootent:rootent,tot16:tot16,fatsz16:fatsz16,tot:tot,fatsz:fatsz,rootclus:rootclus,fsver:fsver,fsinfo:fsinfo,backup:backup,base:base,bound:bound,firstFat:base+res,firstData:base+relData,firstRoot:base+rootRel,clusters:clusters};
+}
+function decideBase(m){
+ if(m&&m.candidate)return {base:m.candidate.lba,bound:m.candidate.count,source:'выбранный MBR раздел '+(m.candidate.index+1)};
+ if(S.sourceType==='superfloppy')return {base:0,bound:0,source:'superfloppy / физический LBA 0'};
+ if(S.vbr)return {base:64,bound:0,source:'условно VOL=64 из аппаратного UART (не подтверждено MBR из выбранного файла)'};
+ return {base:0,bound:0,source:'не определён'};
+}
+var mbrFields=[{name:'Загрузочная область (0–445)',start:0,len:446},{name:'Таблица разделов (446–509)',start:446,len:64}];
+for(var x=0;x<4;x++){
+ var o=446+x*16,n='Раздел '+(x+1);
+ mbrFields.push({name:n+' · флаг',start:o,len:1});
+ mbrFields.push({name:n+' · CHS начала',start:o+1,len:3});
+ mbrFields.push({name:n+' · тип',start:o+4,len:1});
+ mbrFields.push({name:n+' · CHS конца',start:o+5,len:3});
+ mbrFields.push({name:n+' · Start LBA',start:o+8,len:4});
+ mbrFields.push({name:n+' · число секторов',start:o+12,len:4});
+}
+mbrFields.push({name:'Сигнатура MBR · 55 AA',start:510,len:2});
+var vbrFields=[
+ ['Jump (EB/E9)',0,3],['OEM name',3,8],['BytsPerSec',11,2],['SecPerClus',13,1],['RsvdSecCnt',14,2],['NumFATs',16,1],['RootEntCnt',17,2],['TotSec16',19,2],['Media',21,1],['FATSz16',22,2],['SecPerTrk',24,2],['NumHeads',26,2],['HiddSec',28,4],['TotSec32',32,4],['FATSz32',36,4],['ExtFlags',40,2],['FSVer',42,2],['RootClus',44,4],['FSInfo',48,2],['BkBootSec',50,2],['DrvNum',64,1],['BootSig',66,1],['VolID',67,4],['VolLab',71,11],['FilSysType (текст, не признак FAT32)',82,8],['Boot signature · 55 AA',510,2]
+].map(function(v){return {name:v[0],start:v[1],len:v[2]}});
+var fields={mbr:mbrFields,vbr:vbrFields};
+function findField(type,index){
+ var arr=fields[type].filter(function(f){return index>=f.start&&index<f.start+f.len});
+ arr.sort(function(a,b){return a.len-b.len});return arr[0]||null;
+}
+function renderHex(type){
+ var bytes=S[type],target=$('raw-'+type+'-hex');target.textContent='';
+ if(!bytes){var p=document.createElement('p');p.className='hex-placeholder';p.textContent='Бинарный сектор 512 байтов не загружен. Hex-значения не моделируются.';target.appendChild(p);return}
+ var selected=S.selected[type],f=selected>=0?findField(type,selected):null;
+ var frag=document.createDocumentFragment();
+ for(var row=0;row<32;row++){
+  var tr=document.createElement('div');tr.className='hex-row';
+  var offset=document.createElement('span');offset.className='hex-offset';offset.textContent=h(row*16,4);tr.appendChild(offset);
+  var cells=document.createElement('div');cells.className='hex-bytes';
+  for(var col=0;col<16;col++){
+    var idx=row*16+col,b=document.createElement('button');b.type='button';b.className='hex-byte';
+    b.textContent=h(bytes[idx],2);b.dataset.index=String(idx);
+    b.setAttribute('aria-label',type.toUpperCase()+' byte '+idx+' hex '+h(bytes[idx],2));
+    if(f&&idx>=f.start&&idx<f.start+f.len)b.classList.add('in-field');
+    if(idx===selected)b.classList.add('is-selected');
+    b.addEventListener('click',function(){selectByte(type,Number(this.dataset.index))});
+    cells.appendChild(b);
+  }
+  tr.appendChild(cells);
+  var ascii=document.createElement('span');ascii.className='hex-ascii';ascii.textContent=safeAscii(bytes,row*16,16);tr.appendChild(ascii);
+  frag.appendChild(tr);
+ }
+ target.appendChild(frag);
+}
+function selectByte(type,index){
+ S.selected[type]=index;renderHex(type);
+ var a=S[type],f=findField(type,index),d=$('raw-'+type+'-detail');
+ if(!a){d.textContent='Нет исходных байтов.';return}
+ var focus=f?f.start:index,len=f?f.len:1,body='';
+ if(type==='mbr'&&f){
+  var part=Math.floor((focus-446)/16),within=(focus-446)%16;
+  if(part>=0&&part<4){
+   if(within===8)body=' · адрес LBA = '+le32(a,focus);
+   else if(within===12)body=' · длина = '+le32(a,focus)+' секторов';
+   else if(within===4)body=' · тип = 0x'+h(a[focus],2);
+   else if(within===0)body=' · загрузочный флаг = 0x'+h(a[focus],2);
+  }
+ }
+ if(type==='vbr'&&f){
+  if([1,2,4].includes(len))body=' · little-endian = '+(len===4?le32(a,focus):len===2?le16(a,focus):a[focus]);
+  if(f.name==='OEM name'||f.name==='VolLab'||f.name.startsWith('FilSysType'))body=' · ASCII = '+JSON.stringify(safeAscii(a,focus,len));
+ }
+ d.textContent=(f?f.name:'Неименованное поле')+' | смещение '+focus+' (0x'+h(focus,3)+'), '+len+' байт.\nHEX: '+bytesText(a,focus,len)+body;
+ var sel=$('raw-'+type+'-field');if(f){for(var i=0;i<sel.options.length;i++)if(Number(sel.options[i].value)===fields[type].indexOf(f)){sel.selectedIndex=i;break}}
+}
+function populateSelect(type){
+ var s=$('raw-'+type+'-field');s.textContent='';
+ fields[type].forEach(function(f,i){var opt=document.createElement('option');opt.value=String(i);opt.textContent=f.name+' [0x'+h(f.start,3)+'…0x'+h(f.start+f.len-1,3)+']';s.appendChild(opt)});
+ s.addEventListener('change',function(){var f=fields[type][Number(s.value)];if(f){selectByte(type,f.start);var btn=$('raw-'+type+'-hex').querySelector('[data-index="'+f.start+'"]');if(btn)btn.scrollIntoView({block:'nearest'})}});
+}
+function renderPartition(m){
+ var el=$('raw-partitions');el.textContent='';
+ if(!m){el.textContent='Нет загруженных данных MBR. Из UART известен только VOL=64.';return}
+ var table=document.createElement('table');table.className='raw-table';
+ table.innerHTML='<thead><tr><th>Запись</th><th>Boot</th><th>Тип</th><th>Start LBA</th><th>Секторов</th><th>Статус</th></tr></thead>';
+ var body=document.createElement('tbody');
+ m.entries.forEach(function(p){
+  var tr=document.createElement('tr'),vals=[String(p.index+1),'0x'+h(p.boot,2),'0x'+h(p.type,2),String(p.lba),String(p.count),m.candidate&&m.candidate.index===p.index?'КАНДИДАТ FAT32':p.type===0xee?'Protective GPT':'—'];
+  vals.forEach(function(v,i){var td=document.createElement('td');td.textContent=v;if(i===5&&m.candidate&&m.candidate.index===p.index)td.className='match';tr.appendChild(td)});body.appendChild(tr)
+ });
+ table.appendChild(body);el.appendChild(table);
+ var caption=document.createElement('p');caption.style.color=m.signature?'#b5d7e9':'#ffb7a1';caption.style.fontSize='12px';caption.textContent=m.signature?'MBR signature 55 AA: присутствует. '+(m.protective?'Защитный GPT (EE) — FAT32 по MBR не объявляется.':m.candidate?'Выбран FAT32-кандидат (требуется проверка VBR).':'Допустимых записей типа 0B/0C не найдено.'):'Сигнатура MBR неверна. Таблица не признаётся корректной.';el.appendChild(caption);
+}
+function renderValidation(parsed,base){
+ var x=$('raw-validation');x.className='raw-status';
+ if(!S.vbr){x.textContent='VBR отсутствует. Нет оснований проверять конкретные значения BPB.';return}
+ var details='Источник адреса тома: '+base.source+'\n'+
+ 'BytsPerSec='+parsed.bps+'; SecPerClus='+parsed.spc+'; RsvdSecCnt='+parsed.res+'; NumFATs='+parsed.nfat+'; FATSz32='+parsed.fatsz+'; TotSec32='+parsed.tot+'; RootClus='+parsed.rootclus+'.';
+ if(parsed.valid){x.classList.add('ok');x.textContent='BPB соответствует реализованным проверкам RTL SD-03.\n'+details+'\nВычислено из загруженных байтов: FAT='+parsed.firstFat+', DATA='+parsed.firstData+', ROOT='+parsed.firstRoot+', CLUS='+parsed.clusters+'.'}
+ else {x.classList.add('mixed');x.textContent='BPB не прошёл проверки RTL SD-03 ('+parsed.reasons.length+' замечаний).\n'+details+'\n• '+parsed.reasons.join('\n• ')}
+}
+function renderCompare(m,v,base){
+ var target=$('raw-compare');target.textContent='';
+ var table=document.createElement('table');table.className='raw-table';
+ table.innerHTML='<thead><tr><th>Поле</th><th>UART на FPGA</th><th>По локальным байтам</th><th>Сверка</th></tr></thead>';
+ var rowData=[['VOL',R.VOL,m&&m.candidate?m.candidate.lba:S.sourceType==='superfloppy'?0:null],
+ ['FAT',R.FAT,v&&v.valid?v.firstFat:null],['DATA',R.DATA,v&&v.valid?v.firstData:null],['ROOT',R.ROOT,v&&v.valid?v.firstRoot:null],['CLUS',R.CLUS,v&&v.valid?v.clusters:null]];
+ var tbody=document.createElement('tbody');
+ rowData.forEach(function(row){var tr=document.createElement('tr');var vals=[row[0],String(row[1]),row[2]===null?'—':String(row[2]),row[2]===null?'неизвестно':row[1]===row[2]?'СОВПАДАЕТ':'РАСХОЖДЕНИЕ'];
+ vals.forEach(function(text,i){var td=document.createElement('td');td.textContent=text;if(i===3)td.className=row[2]===null?'unknown':row[1]===row[2]?'match':'different';tr.appendChild(td)});tbody.appendChild(tr)});
+ table.appendChild(tbody);target.appendChild(table);
+ if(S.vbr&&!m?.candidate&&S.sourceType!=='superfloppy'){
+  var p=document.createElement('p');p.style.cssText='font-size:12px;color:#ffcf83';p.textContent='VBR загружен без MBR: вычисления используют условное VOL=64 из UART; это не подтверждение физического расположения файла.';target.appendChild(p);
+ }
+}
+function render(){
+ var m=mbrParsed(S.mbr),base=decideBase(m),v=vbrParsed(S.vbr,base.base,base.bound);
+ $('raw-mbr-summary').textContent=S.mbr?(S.mbrSource+' · 512 байтов · '+(m.signature?'55 AA':'нет 55 AA')):'Нет загруженного MBR.';
+ $('raw-vbr-summary').textContent=S.vbr?(S.vbrSource+' · 512 байтов · '+base.source):'Нет загруженного VBR.';
+ var badges=$('raw-badges');badges.textContent='';
+ [['Аппаратная база: UART SD-03.4','verified'],[S.mbr?'HEX MBR: загружен':'HEX MBR: нет',S.mbr?'live':''],[S.vbr?'HEX VBR: загружен':'HEX VBR: нет',S.vbr?'live':''],[S.sourceType==='synthetic'?'ИСТОЧНИК: СИНТЕТИКА':'ИСТОЧНИК: '+(S.sourceType==='image'?'ОБРАЗ':'ФАЙЛЫ'),S.sourceType==='synthetic'?'sim':'']].forEach(function(pair){var z=document.createElement('span');z.textContent=pair[0];if(pair[1])z.className=pair[1];badges.appendChild(z)});
+ renderHex('mbr');renderHex('vbr');
+ renderPartition(m);renderValidation(v,base);renderCompare(m,v,base);
+ if(S.mbr&&S.selected.mbr>=0)selectByte('mbr',S.selected.mbr);
+ else $('raw-mbr-detail').textContent=S.mbr?'Выберите поле или байт MBR для побайтной расшифровки.':'Точные значения всех полей недоступны без файла.';
+ if(S.vbr&&S.selected.vbr>=0)selectByte('vbr',S.selected.vbr);
+ else $('raw-vbr-detail').textContent=S.vbr?'Выберите поле BPB или байт в HEX-таблице.':'Загрузите 512-байтовый сектор VBR.';
+}
+function clearFiles(){S.mbr=null;S.vbr=null;S.mbrSource='';S.vbrSource='';S.sourceType='none';S.imageLba=null;S.error='';S.selected={mbr:-1,vbr:-1};['raw-mbr-file','raw-vbr-file','raw-image-file'].forEach(function(id){$(id).value=''});render();showStatus('Загруженные данные очищены. Эталонная строка UART SD-03.4 осталась доступной в других вкладках.','')}
+function ensure512(file){if(file.size!==512)throw new Error('Нужен ровно один сектор 512 байтов. Файл «'+file.name+'» имеет размер '+file.size+' байтов. Для полного образа используйте третье поле.')}
+async function fromExactFile(which,file){
+ if(!file)return;
+ try{
+  ensure512(file);
+  var b=new Uint8Array(await file.arrayBuffer());
+  if(b.byteLength!==512)throw new Error('Не удалось прочитать все 512 байтов.');
+  S[which]=b;S[which+'Source']=file.name;S.sourceType='files';S.error='';S.selected[which]=-1;
+  render();showStatus('Локальный файл «'+file.name+'» принят как '+which.toUpperCase()+' (512 байтов). Отображены его фактические байты. Сверьте источник и физический LBA файла.','ok');
+ }catch(e){S.error=String(e.message||e);showStatus(S.error,'error')}
+}
+async function fromImage(file){
+ if(!file)return;
+ try{
+  if(file.size<512||file.size%512!==0)throw new Error('Размер образа должен быть кратен 512 байтам и не меньше 512.');
+  var first=new Uint8Array(await file.slice(0,512).arrayBuffer());
+  var m=mbrParsed(first),v=null,lba=null,msg='';
+  if(m.protective){msg='Обнаружен protective MBR (GPT). FAT32-раздел не выбирается: разбор GPT в SD-03 отсутствует.'}
+  else if(m.candidate){
+   lba=m.candidate.lba;
+   var off=lba*512;
+   if(off+512<=file.size){v=new Uint8Array(await file.slice(off,off+512).arrayBuffer());msg='Прочитан VBR из образа по LBA '+lba+' (байтовое смещение '+off+').'}
+   else msg='В MBR выбран LBA '+lba+', но файл образа слишком короткий, чтобы взять 512 байтов по этому адресу.';
+  }else{
+   var v0=vbrParsed(first,0,0);
+   if(v0.valid){v=first;lba=0;msg='LBA 0 распознан как FAT32 superfloppy (VBR без MBR).'}
+   else msg='В LBA 0 нет поддержанного FAT32 MBR-кандидата. Следующий VBR автоматически не определяется.';
+  }
+  S.mbr=first;S.vbr=v;S.mbrSource=file.name+' · LBA 0';S.vbrSource=v?file.name+' · LBA '+lba:'';
+  S.sourceType=lba===0?'superfloppy':'image';S.imageLba=lba;S.selected={mbr:-1,vbr:-1};
+  render();showStatus('Образ '+file.name+' ('+file.size+' байтов). Прочитан только LBA 0'+(v?', а также VBR по LBA '+lba:'')+'. '+msg,m.protective?'mixed':'ok');
+ }catch(e){showStatus('Не удалось прочитать образ: '+String(e.message||e),'error')}
+}
+function synthetic(){
+ var a=new Uint8Array(512),b=new Uint8Array(512),part=446;
+ a[part]=0;a[part+4]=0x0c;put32(a,part+8,64);put32(a,part+12,7881464);a[510]=0x55;a[511]=0xaa;
+ b[0]=0xeb;b[1]=0x3c;b[2]=0x90;
+ 'MSDOS5.0'.split('').forEach(function(ch,i){b[3+i]=ch.charCodeAt(0)});
+ put16(b,11,512);b[13]=8;put16(b,14,2048);b[16]=2;put32(b,32,7881464);
+ put32(b,36,7680);put32(b,44,2);put16(b,48,1);put16(b,50,6);
+ 'FAT32   '.split('').forEach(function(ch,i){b[82+i]=ch.charCodeAt(0)});
+ b[510]=0x55;b[511]=0xaa;
+ S.mbr=a;S.vbr=b;S.mbrSource='СИНТЕТИЧЕСКИЙ MBR (не с карты)';S.vbrSource='СИНТЕТИЧЕСКИЙ VBR (не с карты)';
+ S.sourceType='synthetic';S.imageLba=null;S.selected={mbr:454,vbr:14};render();
+ showStatus('УЧЕБНЫЕ ДАННЫЕ — НЕ С СУЩЕСТВУЮЩЕЙ КАРТЫ! Сгенерированы правдоподобные сектора, намеренно согласованные с UART SD-03.4. Для фактической верификации загрузите собственные бинарные дампы.','mixed');
+}
+populateSelect('mbr');populateSelect('vbr');
+$('raw-mbr-file').addEventListener('change',function(){fromExactFile('mbr',this.files[0])});
+$('raw-vbr-file').addEventListener('change',function(){fromExactFile('vbr',this.files[0])});
+$('raw-image-file').addEventListener('change',function(){fromImage(this.files[0])});
+$('raw-synthetic').addEventListener('click',synthetic);
+$('raw-clear').addEventListener('click',clearFiles);
+render();
+// Expose pure decoders to offline automated smoke tests only; no browser-side network access.
+window.SD03DemoV2={parseMbr:mbrParsed,parseBpb:vbrParsed,synthetic:synthetic,reset:clearFiles,reference:R};
+})();
+
+</script>
+</body>
+</html>
