@@ -22,4 +22,6 @@
 
 [**SD and microSD on FPGA** (English PDF)](../../../../docs/education/SD_FPGA_EN_v0.1.pdf) · [Editable manuscript](../../../../docs/education/SD_FPGA_EN_v0.1.md).
 
-The English edition distinguishes the published Verilog reference from illustrative SystemVerilog/VHDL designs. DOI pending author-supplied publication identifier.
+The English edition distinguishes the published Verilog reference from illustrative SystemVerilog/VHDL designs. Zenodo DOI: [10.5281/zenodo.23608853](https://doi.org/10.5281/zenodo.23608853).
+
+**DOI-linked English manuscript:** [SD v0.1.1 Markdown](../../../../docs/education/SD_FPGA_EN_v0.1.1.md). The original v0.1 PDF remains archived unchanged.

@@ -21,4 +21,6 @@ SPI: **SCK** — такт; **MOSI** — выход мастера; **MISO** — 
 
 [**SPI on FPGA: From the Bus to Verified RTL** (English PDF)](../../../../docs/education/SPI_FPGA_EN_v0.1.pdf) · [Editable manuscript](../../../../docs/education/SPI_FPGA_EN_v0.1.md).
 
-The English edition distinguishes the published Verilog reference from illustrative SystemVerilog/VHDL designs. DOI pending author-supplied publication identifier.
+The English edition distinguishes the published Verilog reference from illustrative SystemVerilog/VHDL designs. Zenodo DOI: [10.5281/zenodo.23608792](https://doi.org/10.5281/zenodo.23608792).
+
+**DOI-linked English manuscript:** [SPI v0.1.1 Markdown](../../../../docs/education/SPI_FPGA_EN_v0.1.1.md). The original v0.1 PDF remains archived unchanged.

@@ -11,6 +11,15 @@ Two illustrated, editable technical teaching manuscripts with corresponding down
 
 **Evidence boundary:** original SD probe hardware result: `SD PASS SIG=55AA` twice; standalone published SD-01 has RTL CI PASS, not independently retested bitstream. SystemVerilog and VHDL portions are educational sketches, not certified alternate implementations.
 
-**DOI:** pending author-supplied identifiers; do not infer one from a different project.
+## Zenodo publications and citations
+
+| Publication | Zenodo DOI | Original PDF (v0.1) | DOI-linked editable reprint (v0.1.1) |
+|---|---|---|---|
+| SPI on FPGA: From the Bus to Verified RTL | [10.5281/zenodo.23608792](https://doi.org/10.5281/zenodo.23608792) | [SPI v0.1 PDF](SPI_FPGA_EN_v0.1.pdf) | [SPI v0.1.1 Markdown](SPI_FPGA_EN_v0.1.1.md) |
+| SD and microSD on FPGA | [10.5281/zenodo.23608853](https://doi.org/10.5281/zenodo.23608853) | [SD v0.1 PDF](SD_FPGA_EN_v0.1.pdf) | [SD v0.1.1 Markdown](SD_FPGA_EN_v0.1.1.md) |
+
+The DOIs were supplied by the publication author on 24 October 2026. The repository's original v0.1 PDFs remain unchanged. v0.1.1 is a bibliographic-only update, **not a claim that GitHub v0.1.1 is the exact file deposited at Zenodo**. Open the DOI landing pages for the authoritative registered metadata. The DOI-linked v0.1.1 reprint PDFs can be independently regenerated from the editable source with the booklet build assets.
+
+
 
 PDF is the publication/viewing artifact; Markdown is the maintained source. Editable Markdown references figures under `assets/`; the PDFs contain the fully rendered diagrams. The complete authoring package with image assets and PDF-build scripts can also be downloaded from the accompanying publication bundle.
