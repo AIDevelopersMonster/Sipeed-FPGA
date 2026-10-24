@@ -56,3 +56,7 @@ Educational manuscripts: [MBR and FAT32 concepts](../../../../docs/education/MBR
 [Open demo/index.html](demo/index.html) (download the single file for offline use). The new sixth tab **«Бинарные сектора / HEX»** accepts independent 512-byte MBR and VBR files, or a full SD-card image (reads only the required 512-byte slices via the browser File API, not the complete image into RAM). It shows 512 actual hex bytes with named fields, decodes up to four MBR partition entries, validates FAT32 BPB geometry, compares calculated values to the observed physical UART `VOL=64 FAT=2112 DATA=17472 ROOT=17472 CLUS=983007`. An optional generated example is loudly marked **synthetic**, not a capture of the user's card. No network, FPGA reprogramming, SD writes or hidden modification of the loaded files. Automated desktop and mobile Chromium smoke tests were run on synthetic MBR/VBR, whole-image, superfloppy, protective GPT and wrong-size inputs; they do not substitute for independent host extraction of real sectors.
 
 **For SD-04:** [versioned shared SDHC core architecture and acceptance contract](SD04_SHARED_CORE_ARCHITECTURE.md). This document defines the intended reusable core without modifying the frozen SD-01/02/03 RTL or claiming SD-04 hardware acceptance.
+
+## Video demonstration
+
+[SD-03.4 MBR/FAT32 on Tang Nano 9K — hardware demo](https://youtu.be/BhSR5UGi3A8) (link supplied by the experiment author). The hardware acceptance [UART receipt](acceptance/SD03_HARDWARE_ACCEPTANCE_2026-10-24.md) preserves the exact observed output.

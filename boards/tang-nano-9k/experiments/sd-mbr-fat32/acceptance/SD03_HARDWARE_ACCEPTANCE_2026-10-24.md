@@ -55,3 +55,8 @@ The hardware read LBA0, selected an MBR FAT32 candidate, read and checked its pa
 **Next:** host-side read-only check of partition offset and BPB; then FAT directory and chain reading as a separate lab. Preserve SD-01, SD-02, and PiKoSoL unchanged.
 
 [Initial build and timing history](SD03_BUILD_2026-10-24.md) · [UART transcript](SD03_UART_2026-10-24.txt).
+
+## Published video
+
+- [SD-03.4 FPGA MBR/FAT32 hardware demonstration — author-provided YouTube link](https://youtu.be/BhSR5UGi3A8).
+- The URL was supplied by the experiment operator; video metadata and exact frames were not independently verified. The verbatim hardware UART remains the primary evidence.
