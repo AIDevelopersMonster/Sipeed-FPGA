@@ -23,5 +23,5 @@ jobs:
           iverilog -g2012 -s tb_sd02_multilba -o /tmp/sd02.vvp "$d/rtl/spi_byte.v" "$d/rtl/sd_read_sector.v" "$d/tests/tb_sd02_multilba.v"
           vvp /tmp/sd02.vvp | tee /tmp/sd02.log
           grep -q SD02_MULTI_LBA_TB_PASS /tmp/sd02.log
-          iverilog -g2012 -s sd02_multilba_probe_top -o /tmp/sd02_top.vvp "$d/rtl/spi_byte.v" "$d/rtl/sd_read_sector.v" "$d/rtl/uart_tx_8n1.v" "$d/rtl/sd02_multilba_probe_top.v"
-          echo SD02_HARDWARE_TOP_RTL_COMPILE_PASS
+          iverilog -g2005 -s sd02_multilba_probe_top -o /tmp/sd02_top.vvp "$d/rtl/spi_byte.v" "$d/rtl/sd_read_sector.v" "$d/rtl/uart_tx_8n1.v" "$d/rtl/sd02_multilba_probe_top.v"
+          echo SD02_HARDWARE_TOP_VERILOG2005_COMPILE_PASS
