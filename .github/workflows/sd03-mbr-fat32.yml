@@ -1,0 +1,24 @@
+name: SD-03 MBR FAT32 educational RTL
+on:
+  push:
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd-mbr-fat32/**'
+      - '.github/workflows/sd03-mbr-fat32.yml'
+  pull_request:
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd-mbr-fat32/**'
+      - '.github/workflows/sd03-mbr-fat32.yml'
+jobs:
+  mbr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Test independent MBR parser
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments/sd-mbr-fat32
+          iverilog -g2005 -s tb_sd03_mbr -o /tmp/sd03.vvp "$d/rtl/sd03_mbr_parser.v" "$d/tests/tb_sd03_mbr.v"
+          vvp /tmp/sd03.vvp | tee /tmp/sd03.log
+          grep -q SD03_MBR_TB_PASS /tmp/sd03.log
