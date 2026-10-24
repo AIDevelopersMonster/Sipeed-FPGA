@@ -5,3 +5,7 @@ Independent, single-clock, parameterized FIFO with valid/ready handshake. No UAR
 `iverilog -g2005 -s tb_sync_fifo -o fifo.vvp rtl/sync_fifo.v tests/tb_sync_fifo.v && vvp fifo.vvp`
 
 **Integration:** HOST-00 will use FIFO for UART bytes; LIFO is not suitable for UART byte ordering. A future streaming project can independently choose the required buffering depth and RAM inference architecture.
+
+## Интерактивная учебная страница
+
+[**FIFO: модель кольцевой очереди, указатели, full/empty и handshake**](demo/index.html). Самостоятельный офлайн HTML без внешних библиотек: шаги CLK, операции PUSH/POP, переполнение, чтение из пустой очереди, одновременное чтение и запись. Это JavaScript-модель поведения RTL, не реальная телеметрия платы.

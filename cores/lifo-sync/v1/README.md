@@ -5,3 +5,7 @@ Independent, single-clock parameterized LIFO with the same valid/ready external 
 `iverilog -g2005 -s tb_sync_lifo -o lifo.vvp rtl/sync_lifo.v tests/tb_sync_lifo.v && vvp lifo.vvp`
 
 LIFO is an educational building block for stack-like tasks and is **not inserted in the UART receive/transmit path**. Packaging and tests are independent from the UART, HOST-00 and SDHC modules.
+
+## Интерактивная учебная страница
+
+[**LIFO: модель стека, указатель вершины, PUSH/POP**](demo/index.html). Самостоятельный офлайн HTML с пошаговыми тактами, заменой вершины при одновременных операциях, переполнением и underflow. Это учебная модель, а не физическое измерение FPGA.
