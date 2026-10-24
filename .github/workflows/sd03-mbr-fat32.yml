@@ -30,3 +30,5 @@ jobs:
           iverilog -g2005 -s tb_sd03_volume_scanner -o /tmp/sd03_scan_tb.vvp "$d/rtl/sd03_mbr_parser.v" "$d/rtl/sd03_fat32_bpb.v" "$d/rtl/sd03_volume_scanner.v" "$d/tests/tb_sd03_volume_scanner.v"
           vvp /tmp/sd03_scan_tb.vvp | tee /tmp/sd03_scan_tb.log
           grep -q SD03_SCANNER_TB_PASS /tmp/sd03_scan_tb.log
+          iverilog -g2005 -s sd03_mbr_fat32_probe_top -o /tmp/sd03_hw.vvp "$d/rtl/spi_byte.v" "$d/rtl/sd_read_sector.v" "$d/rtl/uart_tx_8n1.v" "$d/rtl/sd03_mbr_parser.v" "$d/rtl/sd03_fat32_bpb.v" "$d/rtl/sd03_volume_scanner.v" "$d/rtl/sd03_mbr_fat32_probe_top.v"
+          echo SD03_HARDWARE_TOP_COMPILE_PASS
