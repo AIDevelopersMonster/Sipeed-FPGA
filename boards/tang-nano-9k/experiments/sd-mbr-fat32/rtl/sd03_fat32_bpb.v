@@ -1,6 +1,7 @@
-// SD-03.2: conservative read-only FAT32 BPB validator; 512-byte sector stream.
-// All offsets are VBR-relative. No CPU, filesystem writes, or FAT traversal.
-// Validates cluster-count derived FAT type (>= 65525) rather than text labels.
+// SD-03.4 v0.2: sequential FAT32 BPB validator with bounded arithmetic.
+// Input: a 512-byte VBR stream. Output: validated FAT/data/root LBAs.
+// No CPU, SD writes, directory access, or combinational 64-bit datapath.
+// Replaces one-cycle 64-bit add/shift/compare chains with serialized steps.
 // Verilog-2005. SPDX-License-Identifier: MIT
 module sd03_fat32_bpb (
     input wire clk, input wire reset_n, input wire start,
@@ -14,9 +15,9 @@ module sd03_fat32_bpb (
     output reg [31:0] root_cluster,
     output reg [7:0] sectors_per_cluster
 );
-    // status: 0 pending, 1 FAT32 accepted, 2 invalid 55AA,
-    // 3 inconsistent FAT32 BPB, 4 address/layout/partition overflow,
-    // 5 cluster count/FAT size invalid, 6 exFAT identified (unsupported).
+    // 0 waiting, 1 FAT32 accepted, 2 missing 55AA,
+    // 3 inconsistent FAT32 BPB, 4 layout/partition/32-bit LBA overflow,
+    // 5 cluster count/FAT capacity invalid, 6 exFAT unsupported.
     reg active, sig55;
     reg [63:0] oem;
     reg [7:0] jump, spc, fat_count;
@@ -41,23 +42,6 @@ module sd03_fat32_bpb (
             default: begin spc_shift=0;spc_valid=0;end
         endcase
     end
-    // Restrict NumFATs to 1 or 2; avoid a generic variable multiplier.
-    wire [63:0] fat_region_sectors =
-        fat_count==8'd1 ? {32'd0,fatsz32} : {31'd0,fatsz32,1'b0};
-    wire [63:0] relative_fat = {48'd0,reserved};
-    wire [63:0] relative_data = relative_fat + fat_region_sectors;
-    wire [63:0] volume_sectors = {32'd0,tot32};
-    wire [63:0] data_sectors = volume_sectors > relative_data ?
-                                volume_sectors-relative_data : 64'd0;
-    wire [63:0] clusters = data_sectors >> spc_shift;
-    wire [63:0] fat_capacity = {25'd0,fatsz32,7'd0}; // bytes/4 per FAT
-    wire [63:0] root_relative = relative_data +
-                     (({32'd0,rootclus}-64'd2) << spc_shift);
-    wire [63:0] abs_fat = {32'd0,base_lba}+relative_fat;
-    wire [63:0] abs_data = {32'd0,base_lba}+relative_data;
-    wire [63:0] abs_root = {32'd0,base_lba}+root_relative;
-    wire [63:0] abs_end = {32'd0,base_lba}+volume_sectors;
-    wire exfat = oem==64'h4558464154202020; // "EXFAT   "
 
     wire bpb_shape =
         (jump==8'heb || jump==8'he9) &&
@@ -68,37 +52,47 @@ module sd03_fat32_bpb (
         rootclus>=2 &&
         (fsinfo==16'hffff || fsinfo<reserved) &&
         (backup==16'hffff || backup<reserved);
-    wire layout_ok =
-        volume_sectors>relative_data &&
-        (bound==0 || tot32<=bound) &&
-        abs_end<=64'h0000000100000000 &&
-        abs_fat<=64'h00000000ffffffff &&
-        abs_data<=64'h00000000ffffffff &&
-        abs_root<=64'h00000000ffffffff &&
-        root_relative<volume_sectors;
-    wire cluster_ok =
-        clusters>=64'd65525 && clusters<=64'h0fffffef &&
-        fat_capacity>=clusters+64'd2 &&
-        {32'd0,rootclus}<clusters+64'd2;
+    wire exfat = oem==64'h4558464154202020; // "EXFAT   "
+
+    // All arithmetic registered across multiple cycles:
+    // fat_region: 34 bits for 2*FATSz32; rel_data includes ReservedSectors.
+    // root_delta/root_relative allow up to 7 repeated one-bit left shifts.
+    reg [33:0] fat_region,rel_data;
+    reg [31:0] data_sectors,working_clusters,calculated_clusters;
+    reg [32:0] entries_needed,absolute_end;
+    reg [25:0] fat_sectors_needed;
+    reg [35:0] root_delta;
+    reg [36:0] root_relative;
+    reg [2:0] shifts_left;
+    reg [3:0] calc_state;
+    localparam [3:0] C_IDLE=0,
+        C_FAT_REGION=1, C_REL_DATA=2, C_LAYOUT=3,
+        C_SHIFT_SETUP=4, C_SHIFT=5, C_CLUSTER_CHECK=6,
+        C_REQ_ENTRIES=7, C_REQ_SECTORS=8, C_FAT_CHECK=9,
+        C_ROOT_SHIFT=10, C_ROOT_REL=11, C_ROOT_CHECK=12,
+        C_END_ADDR=13, C_END_CHECK=14, C_OUT=15;
 
     always @(posedge clk or negedge reset_n) begin
         if(!reset_n) begin
-            active<=0;done<=0;status<=0;sig55<=0;
-            oem<=0;jump<=0;spc<=0;fat_count<=0;bps<=0;reserved<=0;
-            root_entries<=0;tot16<=0;fatsz16<=0;tot32<=0;
-            fatsz32<=0;rootclus<=0;fsver<=0;fsinfo<=0;backup<=0;
-            base_lba<=0;bound<=0;
+            active<=0;done<=0;status<=0;sig55<=0;calc_state<=C_IDLE;
+            oem<=0;jump<=0;spc<=0;fat_count<=0;
+            bps<=0;reserved<=0;root_entries<=0;tot16<=0;fatsz16<=0;
+            tot32<=0;fatsz32<=0;rootclus<=0;fsver<=0;fsinfo<=0;backup<=0;
+            base_lba<=0;bound<=0;fat_region<=0;rel_data<=0;
+            data_sectors<=0;working_clusters<=0;calculated_clusters<=0;
+            entries_needed<=0;absolute_end<=0;fat_sectors_needed<=0;
+            root_delta<=0;root_relative<=0;shifts_left<=0;
             fat_lba<=0;data_lba<=0;root_lba<=0;cluster_count<=0;
             total_sectors<=0;fat_sectors<=0;root_cluster<=0;
             sectors_per_cluster<=0;
         end else begin
             done<=0;
             if(start) begin
-                active<=1;status<=0;sig55<=0;
-                oem<=0;jump<=0;spc<=0;fat_count<=0;bps<=0;reserved<=0;
-                root_entries<=0;tot16<=0;fatsz16<=0;tot32<=0;
-                fatsz32<=0;rootclus<=0;fsver<=0;fsinfo<=16'hffff;
-                backup<=16'hffff;
+                active<=1;status<=0;sig55<=0;calc_state<=C_IDLE;
+                oem<=0;jump<=0;spc<=0;fat_count<=0;
+                bps<=0;reserved<=0;root_entries<=0;tot16<=0;fatsz16<=0;
+                tot32<=0;fatsz32<=0;rootclus<=0;fsver<=0;
+                fsinfo<=16'hffff;backup<=16'hffff;
                 base_lba<=volume_lba;bound<=partition_sectors;
                 fat_lba<=0;data_lba<=0;root_lba<=0;cluster_count<=0;
                 total_sectors<=0;fat_sectors<=0;root_cluster<=0;
@@ -142,24 +136,114 @@ module sd03_fat32_bpb (
                     default:begin end
                 endcase
                 if(byte_index==9'd511) begin
-                    active<=0;done<=1;
-                    if(!sig55 || byte_data!=8'haa)status<=2;
-                    else if(exfat)status<=6;
-                    else if(!bpb_shape)status<=3;
-                    else if(!layout_ok)status<=4;
-                    else if(!cluster_ok)status<=5;
-                    else begin
-                        status<=1;
-                        fat_lba<=abs_fat[31:0];
-                        data_lba<=abs_data[31:0];
-                        root_lba<=abs_root[31:0];
-                        cluster_count<=clusters[31:0];
+                    active<=0;
+                    if(!sig55 || byte_data!=8'haa)begin
+                        status<=2;done<=1;calc_state<=C_IDLE;
+                    end else if(exfat)begin
+                        status<=6;done<=1;calc_state<=C_IDLE;
+                    end else if(!bpb_shape)begin
+                        status<=3;done<=1;calc_state<=C_IDLE;
+                    end else calc_state<=C_FAT_REGION;
+                end
+            end else begin
+                case(calc_state)
+                    C_FAT_REGION:begin
+                        fat_region <= fat_count==8'd1
+                            ? {2'd0,fatsz32} : {1'd0,fatsz32,1'd0};
+                        calc_state<=C_REL_DATA;
+                    end
+                    C_REL_DATA:begin
+                        rel_data<=fat_region+{18'd0,reserved};
+                        calc_state<=C_LAYOUT;
+                    end
+                    C_LAYOUT:begin
+                        if(rel_data[33:32]!=0 || rel_data[31:0]>=tot32 ||
+                           (bound!=0 && tot32>bound))begin
+                            status<=4;done<=1;calc_state<=C_IDLE;
+                        end else begin
+                            data_sectors<=tot32-rel_data[31:0];
+                            calc_state<=C_SHIFT_SETUP;
+                        end
+                    end
+                    C_SHIFT_SETUP:begin
+                        working_clusters<=data_sectors;
+                        shifts_left<=spc_shift;
+                        calc_state<=C_SHIFT;
+                    end
+                    C_SHIFT:begin
+                        if(shifts_left!=0)begin
+                            working_clusters<=working_clusters>>1;
+                            shifts_left<=shifts_left-1'b1;
+                        end else begin
+                            calculated_clusters<=working_clusters;
+                            calc_state<=C_CLUSTER_CHECK;
+                        end
+                    end
+                    C_CLUSTER_CHECK:begin
+                        if(calculated_clusters<32'd65525 ||
+                           calculated_clusters>32'h0fffffef ||
+                           (rootclus-32'd2)>=calculated_clusters)begin
+                            status<=5;done<=1;calc_state<=C_IDLE;
+                        end else calc_state<=C_REQ_ENTRIES;
+                    end
+                    C_REQ_ENTRIES:begin
+                        entries_needed<={1'b0,calculated_clusters}+33'd2;
+                        calc_state<=C_REQ_SECTORS;
+                    end
+                    C_REQ_SECTORS:begin
+                        // ceil((ClusterCount+2)/128) sectors per FAT.
+                        fat_sectors_needed<=entries_needed[32:7] +
+                            {25'd0,(|entries_needed[6:0])};
+                        calc_state<=C_FAT_CHECK;
+                    end
+                    C_FAT_CHECK:begin
+                        if({6'd0,fat_sectors_needed}>fatsz32)begin
+                            status<=5;done<=1;calc_state<=C_IDLE;
+                        end else begin
+                            root_delta<={4'd0,rootclus}-36'd2;
+                            shifts_left<=spc_shift;
+                            calc_state<=C_ROOT_SHIFT;
+                        end
+                    end
+                    C_ROOT_SHIFT:begin
+                        if(shifts_left!=0)begin
+                            root_delta<=root_delta<<1;
+                            shifts_left<=shifts_left-1'b1;
+                        end else calc_state<=C_ROOT_REL;
+                    end
+                    C_ROOT_REL:begin
+                        root_relative<={5'd0,rel_data[31:0]}+{1'd0,root_delta};
+                        calc_state<=C_ROOT_CHECK;
+                    end
+                    C_ROOT_CHECK:begin
+                        if(root_relative[36:32]!=0 ||
+                           root_relative[31:0]>=tot32)begin
+                            status<=4;done<=1;calc_state<=C_IDLE;
+                        end else calc_state<=C_END_ADDR;
+                    end
+                    C_END_ADDR:begin
+                        absolute_end<={1'd0,base_lba}+{1'd0,tot32};
+                        calc_state<=C_END_CHECK;
+                    end
+                    C_END_CHECK:begin
+                        // Exclusive end may be exactly 2^32, but not beyond it.
+                        if(absolute_end[32] && absolute_end[31:0]!=0)begin
+                            status<=4;done<=1;calc_state<=C_IDLE;
+                        end else calc_state<=C_OUT;
+                    end
+                    C_OUT:begin
+                        fat_lba<=base_lba+{16'd0,reserved};
+                        data_lba<=base_lba+rel_data[31:0];
+                        root_lba<=base_lba+root_relative[31:0];
+                        cluster_count<=calculated_clusters;
                         total_sectors<=tot32;
                         fat_sectors<=fatsz32;
                         root_cluster<=rootclus;
                         sectors_per_cluster<=spc;
+                        status<=1;done<=1;calc_state<=C_IDLE;
                     end
-                end
+                    default:calc_state<=C_IDLE;
+                endcase
             end
         end
     end
