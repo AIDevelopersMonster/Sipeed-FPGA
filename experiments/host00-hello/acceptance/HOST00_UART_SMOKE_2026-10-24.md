@@ -1,6 +1,6 @@
 # HOST-00.1 — physical UART smoke test (preliminary acceptance)
 
-**Date:** 2026-10-24. **Status:** hardware `HELLO` response confirmed once; final repeated-run acceptance pending.
+**Date:** 2026-10-24. **Status:** `HOST00_BOARD_PASS` — three consecutive physical `HELLO` replies confirmed by the operator.
 
 ## Test equipment and design
 
@@ -26,10 +26,18 @@ This is a confirmed **single physical serial request/response** for the independ
 
 The transcript does not include the programmer command output, although the successful board response is evidence that a compatible UART responder was running. Do not invent a separate programmer acceptance receipt.
 
-**Final HOST00_BOARD_PASS remains pending** the separately requested repeated test:
+## Final repeated test: physical BOARD_PASS
 
-```powershell
-python .\experiments\host00-hello\tools\host00_hello.py --port COM10 --repeat 3
+The operator supplied this verbatim PowerShell output after the first single-response smoke test:
+
+```text
+PS C:\GitHub\Sipeed-FPGA-LAB05> python .\experiments\host00-hello\tools\host00_hello.py --port COM10 --repeat 3
+HOST00_HELLO_PASS: attempt=1 port=COM10 received=b'HELLO\n'
+HOST00_HELLO_PASS: attempt=2 port=COM10 received=b'HELLO\n'
+HOST00_HELLO_PASS: attempt=3 port=COM10 received=b'HELLO\n'
+PS C:\GitHub\Sipeed-FPGA-LAB05>
 ```
 
-Record those actual lines verbatim and check for three successful responses before upgrading the status. Do not claim three repeats from this one-response capture. Neither this receipt nor a software-side PASS guarantees the serial hardware timing under all error conditions.
+**Acceptance:** `HOST00_BOARD_PASS` for the defined command `H` and exact response `HELLO\n` through Tang Nano 9K onboard USB-UART at 115200 8N1, 3/3 successive requests, combined with the previously reported local RTL SIM PASS and internal STA PASS.
+
+**Evidence boundary:** This verifies only the current host command response. It does **not** qualify sustained traffic, framing-error recovery, large FIFO workloads, SDHC integration, arbitrary sector reads, SD writes, or USB MSC. The run still lacks an independently archived programmer command log; the board response and local acceptance reports are operator-supplied evidence.
