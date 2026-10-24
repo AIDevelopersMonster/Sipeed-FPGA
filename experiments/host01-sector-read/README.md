@@ -1,6 +1,6 @@
 # HOST-01 — PC/Python UART → read-only microSDHC sector via FPGA
 
-**Status: experimental RTL + Python client; hardware build and board acceptance NOT yet passed.** No SD writes or filesystem updates.
+**Status (2026-10-24): local RTL simulation PASS, Python tests 5/5 PASS, Gowin PnR PASS, internal STA PASS (0 Setup / 0 Hold, TNS 0 / 0). Physical sector read BOARD PASS is still pending.** See [operator-supplied STA acceptance](acceptance/HOST01_STA_ACCEPTANCE_2026-10-24.md). No SD writes or filesystem updates.
 
 ## Architecture: small independent modules
 
@@ -46,9 +46,9 @@ git switch --track origin/agent/host01-uart-sdhc-readonly
 & .\experiments\host01-sector-read\build.ps1
 ```
 
-**Do not program** a generated candidate until Gowin PnR, zero Setup/Hold violations, zero TNS and SHA-256 have been verified. Physical SD MISO timing is not fully characterized.
+A specific generated candidate has now passed the local internal STA/SHA gate (see acceptance receipt). For **that exact SHA-256 only**, proceed to the existing SRAM-only Gowin programmer, then test one LBA at a time. If the bitstream is rebuilt or RTL changes, repeat STA/SHA. Physical SD MISO timing is not fully characterized.
 
-## Python read-only access after hardware acceptance
+## Python read-only access: physical verification pending
 
 ```powershell
 python -m pip install pyserial
@@ -57,7 +57,7 @@ python .\experiments\host01-sector-read\tools\host01_sector.py --port COM10 --lb
 python .\experiments\host01-sector-read\tools\host01_sector.py --port COM10 --lba 17472 --output root.bin
 ```
 
-`COM10` is the previously observed port; check current enumeration. The LBA values 64 and 17472 were confirmed for the card from SD-04. These sector contents are **not yet available through HOST-01** until a new bitstream passes hardware acceptance. The script prints the first 64 bytes as HEX and optionally checks a reference image via `--compare-image`; the image is read locally and is **never written**.
+`COM10` is the previously observed port; check current enumeration. The LBA values 64 and 17472 were confirmed for the card from SD-04. These sector contents are **not yet physically verified through HOST-01**; perform the three read tests with the STA-accepted candidate to establish BOARD PASS. The script prints the first 64 bytes as HEX and optionally checks a reference image via `--compare-image`; the image is read locally and is **never written**.
 
 ## Validation limitations
 
