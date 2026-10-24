@@ -5,7 +5,7 @@ import importlib.util
 import pathlib
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
+ROOT = pathlib.Path(__file__).resolve().parents[3]
 CORE = ROOT / "cores/fat32-reader/v1/python/fat32_reader.py"
 HOST01 = ROOT / "experiments/host01-sector-read/tools/host01_sector.py"
 
