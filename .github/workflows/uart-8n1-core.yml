@@ -1,0 +1,25 @@
+name: Standalone UART 8N1 core
+on:
+  push:
+    paths:
+      - 'cores/uart-8n1/v1/**'
+      - '.github/workflows/uart-8n1-core.yml'
+  pull_request:
+    paths:
+      - 'cores/uart-8n1/v1/**'
+      - '.github/workflows/uart-8n1-core.yml'
+jobs:
+  uart-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Standalone Verilog regression
+        run: bash cores/uart-8n1/v1/tests/run.sh
+      - name: Compare extracted RTL to historical source
+        run: |
+          set -euo pipefail
+          cmp cores/uart-8n1/v1/rtl/uart_tx_8n1.v 01-PicoRV32/rtl/uart_tx_8n1.v
+          cmp cores/uart-8n1/v1/rtl/uart_rx_8n1.v 01-PicoRV32/rtl/uart_rx_8n1.v
+          echo UART_CORE_SOURCE_IDENTICAL_PASS
