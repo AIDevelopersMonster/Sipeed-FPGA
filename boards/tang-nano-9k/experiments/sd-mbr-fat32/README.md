@@ -33,3 +33,34 @@ The CI gate now runs MBR and BPB self-checking testbenches. A complete SD-03 phy
 The scanner now has an **integrated behavioral simulation PASS** against a synchronous sector-memory model, including two-sector MBR→BPB selection, superfloppy, GPT and invalid BPB. This is **not a real SDHC SPI card test**: a physical Tang Nano 9K UART top, local Gowin PnR/STA and board acceptance are still required. There is no FAT entry lookup, directory traversal, file opening or writing.
 
 Pass order: MBR RTL PASS, BPB RTL PASS, scanner compile PASS, integrated behavioral test PASS ([CI evidence](https://github.com/AIDevelopersMonster/Sipeed-FPGA/actions/runs/40068297667)); Gowin PnR/STA PENDING, board UART PENDING.
+
+## SD-03.4 — standalone Tang Nano 9K hardware candidate
+
+`rtl/sd03_mbr_fat32_probe_top.v` integrates an independent copy of the physically tested SD-02 SPI/SDHC reader with MBR + FAT32 BPB scanner and UART. A clean **Verilog-2005 compilation** is a necessary but insufficient acceptance gate: full card-model UART regression, local Gowin PnR/STA and actual SDHC board UART evidence must be distinguished.
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git fetch origin
+git switch agent/sd03-mbr-fat32-parser
+git pull --ff-only
+
+& .\boards\tang-nano-9k\experiments\sd-mbr-fat32\test.ps1
+& .\boards\tang-nano-9k\experiments\sd-mbr-fat32\build.ps1
+```
+
+`build.ps1` **never programs** the FPGA or writes the card. It creates a unique `build/run_*/sd03_mbr_fat32_nano9k.fs` and SHA-256 with PnR/STA reports. Check reports for resources, setup/hold, pinout and unconstrained SD I/O timing before an explicit SRAM-only load using the prior validated Gowin programmer script.
+
+UART at **115200 8N1**, press physical S2 to rerun. The output is one line; example formats (hex field values not predetermined):
+
+```text
+SD03 RESULT=MBR_FAT32   VOL=XXXXXXXX FAT=XXXXXXXX DATA=XXXXXXXX ROOT=XXXXXXXX CLUS=XXXXXXXX E=00
+SD03 RESULT=SUPERFLOPPY VOL=XXXXXXXX FAT=XXXXXXXX DATA=XXXXXXXX ROOT=XXXXXXXX CLUS=XXXXXXXX E=00
+SD03 RESULT=GPT_UNSUP   VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CLUS=00000000 E=00
+SD03 RESULT=NO_FAT32    VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CLUS=00000000 E=00
+SD03 RESULT=INVALID_BPB VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CLUS=00000000 E=00
+SD03 RESULT=SD_READ_ERR VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CLUS=00000000 E=XX
+```
+
+Only *one* case is sent per reset. A non-FAT32 classification is a meaningful experiment, not an SDHC transport failure. `E=00` alone does not certify FAT32. No SD writing, GPT/exFAT traversal, FAT directory listing or PicoRV32/HDMI integration exists here.
+
+**Hardware acceptance status: PENDING operator PnR/STA and board UART evidence.**
