@@ -64,3 +64,11 @@ SD03 RESULT=SD_READ_ERR VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CL
 Only *one* case is sent per reset. A non-FAT32 classification is a meaningful experiment, not an SDHC transport failure. `E=00` alone does not certify FAT32. No SD writing, GPT/exFAT traversal, FAT directory listing or PicoRV32/HDMI integration exists here.
 
 **Hardware acceptance status: PENDING operator PnR/STA and board UART evidence.**
+
+## SD-03.4 timing repair candidate (2026-10-24)
+
+The **first** locally built SD-03.4 bitstream `79CCB71D7CC524B31A5B237127B8E02D959102631EEB027B5299ECF9BC955C55` was **rejected** because Gowin STA reported **129 setup violated endpoints** at 27 MHz. Do not program it.
+
+BPB arithmetic is now sequenced across clock cycles in `rtl/sd03_fat32_bpb.v`: FAT region, data start, cluster count using repeated shifts, FAT capacity, root-cluster offset, and volume-end address each have separate FSM steps. `rtl/sd03_volume_scanner.v` now handles both immediate BPB error pulses and delayed successful BPB completion. Behavioral regression of this revised design [passed in CI](https://github.com/AIDevelopersMonster/Sipeed-FPGA/actions/runs/40071443723).
+
+**This is a candidate timing fix, not proof of timing closure.** A new local Gowin `build.ps1` must be run after `git pull --ff-only`. The next `.fs` must have a **different** SHA-256 and must be independently checked for setup violated endpoints = 0, hold violated endpoints = 0, TNS = 0 and resources before any SRAM programming. SD-02 hardware acceptance remains unaffected.
