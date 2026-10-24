@@ -1,0 +1,44 @@
+name: FIFO, LIFO and modular HOST-00
+on:
+  push:
+    paths:
+      - 'cores/fifo-sync/**'
+      - 'cores/lifo-sync/**'
+      - 'experiments/host00-hello/**'
+      - '.github/workflows/host00-modular.yml'
+  pull_request:
+    paths:
+      - 'cores/fifo-sync/**'
+      - 'cores/lifo-sync/**'
+      - 'experiments/host00-hello/**'
+      - '.github/workflows/host00-modular.yml'
+jobs:
+  modular-rtl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Standalone FIFO
+        run: |
+          iverilog -g2005 -s tb_sync_fifo -o /tmp/fifo.vvp cores/fifo-sync/v1/rtl/sync_fifo.v cores/fifo-sync/v1/tests/tb_sync_fifo.v
+          vvp /tmp/fifo.vvp | tee /tmp/fifo.log
+          grep -q FIFO_CORE_TB_PASS /tmp/fifo.log
+      - name: Standalone LIFO
+        run: |
+          iverilog -g2005 -s tb_sync_lifo -o /tmp/lifo.vvp cores/lifo-sync/v1/rtl/sync_lifo.v cores/lifo-sync/v1/tests/tb_sync_lifo.v
+          vvp /tmp/lifo.vvp | tee /tmp/lifo.log
+          grep -q LIFO_CORE_TB_PASS /tmp/lifo.log
+      - name: Composed UART and FIFO HELLO
+        run: bash experiments/host00-hello/tests/run.sh
+      - name: Python CLI contract test (no serial hardware)
+        run: python3 -m unittest discover -s experiments/host00-hello/tests -p 'test_python_client.py' -v
+      - name: Validate complete FPGA top against standalone canonical cores
+        run: |
+          iverilog -g2005 -s host00_uart_hello_top -o /tmp/host00_top.vvp \
+            cores/uart-8n1/v1/rtl/uart_rx_8n1.v \
+            cores/uart-8n1/v1/rtl/uart_tx_8n1.v \
+            cores/fifo-sync/v1/rtl/sync_fifo.v \
+            experiments/host00-hello/rtl/host00_hello.v \
+            experiments/host00-hello/rtl/host00_uart_hello_top.v
+          echo HOST00_FULL_TOP_COMPILE_PASS

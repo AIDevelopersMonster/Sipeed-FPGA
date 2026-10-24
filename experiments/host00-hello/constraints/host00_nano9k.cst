@@ -1,0 +1,10 @@
+// HOST-00 Tang Nano 9K. Pin mapping reused from hardware-verified PicoRV32 LAB-02.
+// Explicitly TX-only and RX-only UART IO, no SD pins or LEDs.
+IO_LOC "clk" 52;
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "reset_n" 3;
+IO_PORT "reset_n" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+IO_LOC "uart_tx" 17;
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "uart_rx" 18;
+IO_PORT "uart_rx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
