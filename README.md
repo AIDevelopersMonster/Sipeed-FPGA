@@ -76,3 +76,11 @@ More: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/TEST_PROTOCOL.md`](
 ## Кратко по-русски
 
 Цель — сравнить четыре способа построения RISC-V-систем на FPGA. Для каждой реализации своя папка, исходники, модель проверки, отчёты по ресурсам и собственная периферия. Общие спецификация, карта регистров и протокол испытаний находятся в `common/` и `docs/`. Первым создаётся минимальный PicoRV32 SoC на Tang Nano 9K с UART, светодиодами и аппаратным счётчиком. Физическая проверка выполнена 19 октября 2026 года: SRAM, UART `PICO` и LED-анимация — PASS.
+
+## Board support / future 20K–25K
+
+[**Tang Nano 9K — board profile**](boards/tang-nano-9k/README.md) · [Architecture decision ADR-005](docs/DECISIONS.md). One SoC source base, board-specific targets; the verified LAB-04/LAB-05 snapshot paths are not moved or overwritten. Other boards are added only after their exact hardware revision and constraints are checked.
+
+## Independent interface labs / Независимые проекты по интерфейсам
+
+[**SPI, microSD, UART, HDMI — отдельные учебные проекты без CPU**](examples/peripherals/README.md) · [Общий RTL IP](ip/README.md) · [Целые системы: PiKoSoL](systems/pikosol/README.md). Проверенные LAB-04/05 пока остаются на прежних путях без копирования/миграции.
