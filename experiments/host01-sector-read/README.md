@@ -1,6 +1,6 @@
 # HOST-01 — PC/Python UART → read-only microSDHC sector via FPGA
 
-**Status (2026-10-24): local RTL simulation PASS, Python tests 5/5 PASS, Gowin PnR PASS, internal STA PASS (0 Setup / 0 Hold, TNS 0 / 0). Physical sector read BOARD PASS is still pending.** See [operator-supplied STA acceptance](acceptance/HOST01_STA_ACCEPTANCE_2026-10-24.md). No SD writes or filesystem updates.
+**Status (2026-10-24): local RTL simulation PASS, Python tests 5/5 PASS, Gowin PnR PASS, internal STA PASS (0 Setup / 0 Hold, TNS 0 / 0). Physical sector read BOARD PASS confirmed for LBA 0, 64, 17472 (all 512 bytes, transport CRC16 PASS).** See [operator-supplied STA acceptance](acceptance/HOST01_STA_ACCEPTANCE_2026-10-24.md). No SD writes or filesystem updates.
 
 ## Architecture: small independent modules
 
@@ -48,7 +48,7 @@ git switch --track origin/agent/host01-uart-sdhc-readonly
 
 A specific generated candidate has now passed the local internal STA/SHA gate (see acceptance receipt). For **that exact SHA-256 only**, proceed to the existing SRAM-only Gowin programmer, then test one LBA at a time. If the bitstream is rebuilt or RTL changes, repeat STA/SHA. Physical SD MISO timing is not fully characterized.
 
-## Python read-only access: physical verification pending
+## Python read-only access: three physical sector reads verified
 
 ```powershell
 python -m pip install pyserial
@@ -57,10 +57,14 @@ python .\experiments\host01-sector-read\tools\host01_sector.py --port COM10 --lb
 python .\experiments\host01-sector-read\tools\host01_sector.py --port COM10 --lba 17472 --output root.bin
 ```
 
-`COM10` is the previously observed port; check current enumeration. The LBA values 64 and 17472 were confirmed for the card from SD-04. These sector contents are **not yet physically verified through HOST-01**; perform the three read tests with the STA-accepted candidate to establish BOARD PASS. The script prints the first 64 bytes as HEX and optionally checks a reference image via `--compare-image`; the image is read locally and is **never written**.
+`COM10` is the previously observed port; check current enumeration. The LBA values 64 and 17472 were confirmed for the card from SD-04. These three sector reads **have been verified through HOST-01** using the STA-accepted candidate; see [hardware acceptance receipt](acceptance/HOST01_HARDWARE_ACCEPTANCE_2026-10-24.md). Full binary-file structural inspection and independent card-reader comparison remain separate acceptance gates. The script prints the first 64 bytes as HEX and optionally checks a reference image via `--compare-image`; the image is read locally and is **never written**.
 
 ## Validation limitations
 
 The first RTL iteration uses the existing 512-byte **synchronously read** sector RAM. The engine inserts two dead cycles after changing `peek_addr` to avoid stale data. UART queues have 8 entries; host requests must be serialized. The link currently does not report UART framing errors or FIFO overflow to Python. This is not filesystem access, FAT32 writing or USB mass storage.
 
 Important: a passing Icarus test does **not** prove new physical build, STA, MISO timing, correct external card contents, or sustained multi-sector traffic. Each additional stage needs its own acceptance.
+
+## Hardware acceptance and published evidence
+
+[HOST-01 hardware acceptance (2026-10-24)](acceptance/HOST01_HARDWARE_ACCEPTANCE_2026-10-24.md): three live physical 512-byte microSD sector responses over FPGA UART, all transport CRC PASS, valid FAT32 BPB data and prior SD03/04 layout consistency. Bitstream SHA-256: `5BE3A5C02C54D69BC8ECCD9896C9571891DBD87A121E21CF4C112564FE7C4DE4`. **No writes to microSD**.
