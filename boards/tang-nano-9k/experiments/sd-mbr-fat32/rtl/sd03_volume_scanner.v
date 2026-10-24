@@ -18,7 +18,7 @@ module sd03_volume_scanner (
  // 6 second-stage invalid BPB.
  localparam [3:0] IDLE=0,READ_WAIT=1,PARSE_START=2,
   RAM_WAIT=3,RAM_SAMPLE=4,DRAIN=5,DECIDE=6,
-  NEXT_READ=7,FINISH=8;
+  NEXT_READ=7,FINISH=8,WAIT_BPB=9;
  reg [3:0] state;
  reg second_sector;
  reg parser_start, parser_valid;
@@ -85,16 +85,11 @@ module sd03_volume_scanner (
     end
     DRAIN:state<=DECIDE; // one cycle for parser to sample last byte
     DECIDE:begin
-      if(second_sector)begin
-        if(bpb_done && bpb_status==1)begin
-          result<=1;volume_lba<=pending_lba;
-          fat_lba<=bpb_fat;data_lba<=bpb_data;root_lba<=bpb_root;
-          cluster_count<=bpb_clusters;
-        end else result<=6;
-        state<=FINISH;
-      end else if(mbr_done && mbr_status==4)begin
+      // MBR selection is available after the last byte. The new BPB arithmetic
+      // is multicycle and MUST be awaited before reading its output/status.
+      if(!second_sector && mbr_done && mbr_status==4)begin
         result<=3;state<=FINISH;
-      end else if(mbr_done && mbr_status==1)begin
+      end else if(!second_sector && mbr_done && mbr_status==1)begin
         pending_lba<=partition_lba;
         pending_sectors<=partition_sectors;
         sd_lba<=partition_lba;
@@ -102,11 +97,21 @@ module sd03_volume_scanner (
         parser_bound<=partition_sectors;
         second_sector<=1;
         state<=NEXT_READ;
-      end else if(bpb_done && bpb_status==1)begin
+      end else state<=WAIT_BPB;
+    end
+    WAIT_BPB:if(bpb_done)begin
+      if(second_sector)begin
+        if(bpb_status==1)begin
+          result<=1;volume_lba<=pending_lba;
+          fat_lba<=bpb_fat;data_lba<=bpb_data;root_lba<=bpb_root;
+          cluster_count<=bpb_clusters;
+        end else result<=6;
+      end else if(bpb_status==1)begin
         result<=2;volume_lba<=0;
         fat_lba<=bpb_fat;data_lba<=bpb_data;root_lba<=bpb_root;
-        cluster_count<=bpb_clusters;state<=FINISH;
-      end else begin result<=4;state<=FINISH;end
+        cluster_count<=bpb_clusters;
+      end else result<=4;
+      state<=FINISH;
     end
     NEXT_READ:begin sd_start<=1;state<=READ_WAIT;end
     FINISH:begin done<=1;state<=IDLE;end
