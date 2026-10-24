@@ -1,0 +1,33 @@
+name: HOST-01 UART SDHC read-only
+on:
+  push:
+    paths:
+      - 'experiments/host01-sector-read/**'
+      - 'cores/crc16-ccitt/**'
+      - 'boards/tang-nano-9k/cores/sdhc-spi-readonly/**'
+      - '.github/workflows/host01-sector-read.yml'
+  pull_request:
+    paths:
+      - 'experiments/host01-sector-read/**'
+      - 'cores/crc16-ccitt/**'
+      - 'boards/tang-nano-9k/cores/sdhc-spi-readonly/**'
+      - '.github/workflows/host01-sector-read.yml'
+jobs:
+  rtl-and-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Verify full HOST-01 top, transport CRC and Python
+        run: bash experiments/host01-sector-read/tests/run.sh
+      - name: Mock SD BSRAM 512-byte response and CRC
+        run: |
+          iverilog -g2005 -s tb_host01_mock -o /tmp/host01_mock.vvp \
+            cores/crc16-ccitt/v1/rtl/crc16_ccitt_byte.v \
+            experiments/host01-sector-read/rtl/host01_sector_engine.v \
+            experiments/host01-sector-read/tests/tb_host01_mock.v
+          vvp /tmp/host01_mock.vvp
+      - name: Check shared SDHC core is byte-identical to SD-02
+        run: |
+          cmp boards/tang-nano-9k/cores/sdhc-spi-readonly/v1/rtl/sd_read_sector.v boards/tang-nano-9k/experiments/sd-multilba/rtl/sd_read_sector.v
