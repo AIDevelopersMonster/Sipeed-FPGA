@@ -46,3 +46,7 @@ One record after reset at 115200 8N1. `MBR_FAT32` and `SUPERFLOPPY` indicate val
 The observed UART came from the experiment operator; no independent PC sector dump or external SPI capture was supplied. It does not establish cluster chains, file contents, GPT/exFAT support, or PiKoSoL integration. Next research gate: verify volume geometry on a PC (read-only), then implement FAT32 directory and FAT-chain readers separately.
 
 Educational manuscripts: [MBR and FAT32 concepts](../../../../docs/education/MBR_FAT32_Concepts_RU_v0.1.md) · [FAT32 on FPGA implementation](../../../../docs/education/FAT32_on_FPGA_RU_v0.1.md). These are research drafts, not released Zenodo editions.
+
+## Interactive HTML teaching atlas
+
+[Open the standalone interactive demo](demo/index.html) or download `demo/index.html` and open it locally in Chrome/Edge (no server, no external libraries). It illustrates the physical CMD17 reads at **LBA 0** (MBR) and **LBA 64** (VBR/BPB), then highlights the **calculated, not yet read**, first FAT LBA **2112** and DATA/ROOT LBA **17472**. The clickable fields use format-standard offsets and only values supported by the 24 October 2026 UART; unknown raw bytes and the original full 512-byte sector dumps are intentionally not fabricated. The LBA inspector does no card I/O. Source: [SD-03 hardware acceptance](acceptance/SD03_HARDWARE_ACCEPTANCE_2026-10-24.md).
