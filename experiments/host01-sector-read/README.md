@@ -70,3 +70,15 @@ Important: a passing Icarus test does **not** prove new physical build, STA, MIS
 [HOST-01 hardware acceptance (2026-10-24)](acceptance/HOST01_HARDWARE_ACCEPTANCE_2026-10-24.md): three live physical 512-byte microSD sector responses over FPGA UART, all transport CRC PASS, valid FAT32 BPB data and prior SD03/04 layout consistency. Bitstream SHA-256: `5BE3A5C02C54D69BC8ECCD9896C9571891DBD87A121E21CF4C112564FE7C4DE4`. **No writes to microSD**.
 
 **Final sector-capture signature check:** `sector0.bin` 512 bytes ending `55 AA`; `vbr.bin` 512 bytes ending `55 AA`; `root.bin` 512 bytes ending `00 00` (normal for a directory sector). These findings are recorded in the [HOST-01 hardware acceptance receipt](acceptance/HOST01_HARDWARE_ACCEPTANCE_2026-10-24.md). The next FAT32 parsing phase is independent and strictly read-only.
+
+## Educational HTML: sector → MBR → FAT32 → file
+
+[**Open the offline interactive sector/FAT32 atlas**](demo/index.html). Six sections: 512-byte LBA and offset, actual partition map (MBR + BPB), `55 AA` hex/decimal signature, FAT32 cluster addressing, 32-byte directory records, and a full 512-byte HEX browser. Three optional inputs load the user's actual `sector0.bin`, `vbr.bin`, and `root.bin` captured by the BOARD_PASS FPGA experiment. Until a full binary file is selected, unknown offsets appear as `??` instead of fabricated bytes. Local browser only, no serial connection or SD writes.
+
+PowerShell (from repository root):
+
+```powershell
+Start-Process .\experiments\host01-sector-read\demo\index.html
+```
+
+Educational examples (fragmented FAT chain) are explicitly distinct from real data. FAT32's 32 indicates a 32-bit FAT entry (28 bits for cluster identification), not 32-byte sectors. In our tested BPB, one cluster = 64 × 512 bytes = 32 KiB. `55 AA` are two hexadecimal bytes (= 85 and 170 decimal), not a cryptographic signature or checksum.
