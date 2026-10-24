@@ -1,6 +1,6 @@
 # SD-03 — MBR / FAT32 structural recognition on FPGA
 
-**Status: initial RTL parsing experiment, simulation pending; not hardware verified.**
+**Status (24 October 2026): MBR, BPB and integrated two-stage scanner SIM PASS; NOT hardware verified.**
 
 This **read-only** educational stage follows the [hardware-verified SD-02](../sd-multilba/). The intent is to identify a usable FAT32 partition and subsequently verify its BPB and layout, not merely search for the sector marker `55 AA`.
 
@@ -30,6 +30,6 @@ The CI gate now runs MBR and BPB self-checking testbenches. A complete SD-03 phy
 
 `sd03_volume_scanner.v` is the first *control-logic connection* to the SD-02 sector-reader interface: `sd_start`, `sd_lba`, `sd_done`, `sd_error`, 512-byte synchronous `peek_addr/peek_data`. It streams LBA0 through the MBR and BPB validators. If a FAT32 MBR candidate is found, the scanner requests its boot-sector LBA via a second CMD17 and validates BPB. If no candidate MBR exists, it accepts a standalone FAT32 BPB in LBA0 as a superfloppy. Protective GPT returns an explicit unsupported status.
 
-The scanner presently is **a compile-checked integration candidate, not a tested SD-03 hardware top**. The full read-back scanner must still receive a behavioral SD card-model acceptance test and a synthesizable Tang Nano 9K UART probe before physical board acceptance. There is no FAT entry lookup, directory traversal, file opening or writing.
+The scanner now has an **integrated behavioral simulation PASS** against a synchronous sector-memory model, including two-sector MBR→BPB selection, superfloppy, GPT and invalid BPB. This is **not a real SDHC SPI card test**: a physical Tang Nano 9K UART top, local Gowin PnR/STA and board acceptance are still required. There is no FAT entry lookup, directory traversal, file opening or writing.
 
-Pass order: MBR RTL test, BPB RTL test, scanner compile, integrated behavioral test (PENDING), Gowin PnR/STA (PENDING), board UART (PENDING).
+Pass order: MBR RTL PASS, BPB RTL PASS, scanner compile PASS, integrated behavioral test PASS ([CI evidence](https://github.com/AIDevelopersMonster/Sipeed-FPGA/actions/runs/40068297667)); Gowin PnR/STA PENDING, board UART PENDING.
