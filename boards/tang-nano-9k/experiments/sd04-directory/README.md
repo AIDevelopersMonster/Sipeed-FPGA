@@ -69,3 +69,11 @@ The testbench uses **synthetic directory entries**. The real card's file names a
 ## Engineering status after hardware acceptance
 
 The SHA-verified bitstream `4757572F373B807862BC02F117EC4B33C4B8CE491DE3218D098F3809E0B1A9BA` passed internal STA (0 setup/hold violations, both TNS=0, worst shown setup slack +15.329 ns). New RTL changes require a new STA gate. No change was made to SD-02, SD-03, PiKoSoL or the frozen shared SDHC core. The next work package is LFN decoding and then read-only cluster traversal.
+
+## Interactive offline HTML atlas — SD-04.2
+
+[**Open / download the FAT32 directory interactive demo**](demo/index.html) ([Raw HTML](https://raw.githubusercontent.com/AIDevelopersMonster/Sipeed-FPGA/agent/sd04-fat32-directory/boards/tang-nano-9k/experiments/sd04-directory/demo/index.html)). Save the HTML file and open locally in Chrome/Edge; no external libraries or internet connectivity after download.
+
+The page explains the hardware path **LBA 0 (MBR) → LBA 64 (BPB/VBR) → LBA 17472 (read-only root directory)**; distinguishes **LBA 2112 (FAT address computed, but not read)**. The physical UART `SYSTEM~1`, `ATTR=16`, `CL=3`, `LFN=2` are clearly marked as the real result. Because SD-04 only transmitted decoded fields, original raw 512-byte bytes are **unknown** in the hardware mode.
+
+The demo has a synthetic, explicitly labelled 512-byte sector with a valid 8.3 directory and LFN fragments, an interactive HEX view and local file upload of either a real 512-byte sector or an entire SD-card image. For an image the browser uses slice reads for LBA0, FAT32 VBR and first root-directory sector. Long-name decoding includes LFN order and SFN checksum validation. **Browser file parsing is not FPGA hardware functionality** and does not write to the user card.
