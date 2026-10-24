@@ -42,3 +42,7 @@ The parser's per-command sector-read safety limit is 256. Continue to regular-fi
 ## Subdirectory hardware acceptance (2026-10-24)
 
 [Read the subdirectory acceptance receipt](acceptance/HOST02_SUBDIRECTORY_ACCEPTANCE_2026-10-24.md). The real card contains `/System Volume Information/IndexerVolumeGuid`, a **76-byte ordinary file** whose first cluster is 4. `HOST02_LIST_PASS ... ENTRIES=1 SECTOR_READS=4` was observed on COM10. Nested-directory traversal is physically confirmed; **file data has not yet been extracted**. The next bounded test reads this file only, using `extract` with `--max-bytes 128` and a new PC-side output file. The accepted FPGA bitstream remains unchanged.
+
+## File payload acceptance — HOST-02 completed for its defined scope
+
+[HOST-02 76-byte file content acceptance (2026-10-24)](acceptance/HOST02_FILE_CONTENT_ACCEPTANCE_2026-10-24.md). After hardware FAT32 INFO, root listing and subdirectory listing passed, the operator supplied the local hex dump of `indexer_volume_guid.bin`: 76 bytes of UTF-16LE encoding a GUID in braces. The file matches the known `/System Volume Information/IndexerVolumeGuid` metadata (cluster 4, size 76). The public receipt intentionally redacts the unique GUID. The raw `HOST02_EXTRACT_PASS` console line was not supplied; this is a **bounded file-content demonstration**, not a claim of general filesystem compatibility or cross-reader binary equivalence. **No writes were made to microSD; HOST-01 SRAM RTL remains unchanged.**
