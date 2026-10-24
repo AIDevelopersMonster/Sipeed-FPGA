@@ -52,3 +52,15 @@ From the repository root, with Python and Icarus Verilog installed:
 ```
 
 This checks Python decoding, a complete RTL dependency compile and a synthetic 512-byte UART transport test. It does not establish physical SD behaviour, PnR timing, or hardware readiness. Run Gowin STA separately before programming SRAM.
+
+## SD-04 Gowin PnR/STA candidate
+
+After `SD04_LOCAL_GATE_PASS`, run **build-only** from PowerShell 7:
+
+```powershell
+& .\boards\tang-nano-9k\experiments\sd04-directory\build.ps1
+```
+
+`build.ps1` reruns the simulation gate, stages frozen SD-03 RTL and constraints together with SD-04 top into a unique ignored `build/run_*/work` tree, writes `input_sha256.csv`, executes `gw_sh.exe`, and reports the resulting `.fs` SHA-256 and paths to PnR/STA files. It **never programs SRAM or Flash**, and never writes an SD card. No new Gowin result is certified merely by generating `.fs`. Confirm numerical setup/hold violations and timing scope before a physical test.
+
+The prior local acceptance from the operator was `SD04_ROOT_DUMP_TB_PASS` and `SD04_LOCAL_GATE_PASS` (simulation only). PnR/STA and hardware acceptance remain unverified.
