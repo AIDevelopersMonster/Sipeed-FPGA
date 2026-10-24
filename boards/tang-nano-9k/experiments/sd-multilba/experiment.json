@@ -1,0 +1,35 @@
+{
+  "schema": "sipeed-fpga-experiment-v1",
+  "id": "tang-nano-9k-sd-multilba",
+  "kind": "independent-research-implementation",
+  "board": "tang-nano-9k",
+  "source_branch": "agent/lab05-sd02-multilba",
+  "inherited_from": "PiKoSoL LAB-05.2 experimental multi-LBA SPI reader",
+  "reference_prior_work": "boards/tang-nano-9k/experiments/sd-sector0",
+  "hardware_test_date": "2026-10-24",
+  "status": "operator_confirmed_hardware_functional_pass_four_lba",
+  "bitstream_filename": "sd02_multilba_nano9k.fs",
+  "bitstream_sha256": "D8B68A37FFFE9A4DE9B3B68C7CD9079BCC191840CF82C1EDBD2F220AD3D9BD66",
+  "lba": [
+    0,
+    1,
+    2048,
+    65541
+  ],
+  "uart_terminal_result": "SD02 PASS",
+  "per_lba_error_codes": [
+    "00",
+    "00",
+    "00",
+    "00"
+  ],
+  "rtlsim_workflow": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/actions/runs/40062167278",
+  "hardware_receipt": "acceptance/SD02_HARDWARE_ACCEPTANCE_2026-10-24.md",
+  "reads_only": true,
+  "writes_sd": false,
+  "autoprograms_fpga": false,
+  "host_bytewise_crosscheck": false,
+  "fat32_implemented": false,
+  "embedded_cpu_used": false,
+  "timing_scope": "internal STA only; SD I/O MISO external delay not characterized"
+}
