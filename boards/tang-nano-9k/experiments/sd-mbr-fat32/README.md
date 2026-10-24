@@ -1,74 +1,48 @@
-# SD-03 — MBR / FAT32 structural recognition on FPGA
+# SD-03 — MBR/FAT32 read-only discovery on Tang Nano 9K
 
-**Status (24 October 2026): MBR, BPB and integrated two-stage scanner SIM PASS; NOT hardware verified.**
+**24 October 2026: HARDWARE FUNCTIONAL PASS — FAT32 volume geometry discovery from a real microSDHC, without CPU.** Not a FAT file reader.
 
-This **read-only** educational stage follows the [hardware-verified SD-02](../sd-multilba/). The intent is to identify a usable FAT32 partition and subsequently verify its BPB and layout, not merely search for the sector marker `55 AA`.
+[Hardware acceptance receipt](acceptance/SD03_HARDWARE_ACCEPTANCE_2026-10-24.md) · [Exact UART](acceptance/SD03_UART_2026-10-24.txt) · [Gowin build + STA history](acceptance/SD03_BUILD_2026-10-24.md) · [SD-02 prior hardware experiment](../sd-multilba/).
 
-## SD-03.1: MBR partition selector
+## Confirmed physical UART
 
-Input: streamed bytes from LBA0, `byte_valid` and `byte_index` (0–511); output: FAT32 partition LBA, declared length, partition type and entry index. Candidate partition types `0B` and `0C`; valid boot flags `00` or `80`; reject empty entries and invalid sector signature. A protective GPT type `EE` in entry 0 has a dedicated unsupported status.
-
-```powershell
-& .\boards\tang-nano-9k\experiments\sd-mbr-fat32\test.ps1
+```text
+SD03 RESULT=MBR_FAT32    VOL=00000040 FAT=00000840 DATA=00004440 ROOT=00004440 CLUS=000EFFDF E=00
 ```
 
-**Important:** This module only selects a partition-table *candidate*. It does not establish FAT32, nor does it have a complete end-to-end SD-02 connection yet. Its port data is a test stream; the SD-02 BSRAM-to-parser reader bridge is the next work package.
+This independently constructed, read-only FPGA probe used LBA0 to locate an MBR FAT32 candidate at **LBA 64**, then checked its VBR/BPB and calculated first FAT LBA **2112**, data and root LBA **17472**, and **983007** clusters. No SDHC errors were reported (`E=00`). FAT32 directory entries, files and FAT cluster chains have **not** been read.
 
-Next: SD-03.2 reads candidate partition boot sector via CMD17 and validates FAT32 BPB: `BytsPerSec=512`, `SecPerClus` power of two, nonzero `RsvdSecCnt`, `NumFATs`, `FATSz32`, `RootClus>=2`, total sectors and cluster-count bounds. Offsets and arithmetic use guarded 64-bit intermediates to avoid 32-bit overflow. Also support superfloppy only after BPB verification. GPT/exFAT require explicit separate handling rather than false classification.
+## Components
 
-[SD and microSD book](https://doi.org/10.5281/zenodo.23608853) · [SPI on FPGA book](https://doi.org/10.5281/zenodo.23608792) · [SD-02 hardware video](https://youtu.be/KdMJc_Ly7fQ).
+- `rtl/spi_byte.v`, `rtl/sd_read_sector.v`, `rtl/uart_tx_8n1.v`: independent SD-02-derived SPI/SDHC and UART RTL snapshot.
+- `rtl/sd03_mbr_parser.v` (SD-03.1): MBR partition entries, FAT32 types 0B/0C, protective GPT EE.
+- `rtl/sd03_fat32_bpb.v` (SD-03.2): FAT32 BPB field checks, sequential geometry arithmetic, 32-bit LBA boundaries and FAT capacity constraints.
+- `rtl/sd03_volume_scanner.v` (SD-03.3): LBA0 parse, optional follow-up CMD17 on selected partition VBR, superfloppy fallback and unsupported-format classifications.
+- `rtl/sd03_mbr_fat32_probe_top.v` (SD-03.4): synthesizable Tang Nano 9K hardware top with UART summary and active-low LED status.
+- `tests/`: behavioral MBR, BPB and synchronous sector-buffer scanner tests.
+- `constraints/`, `build.tcl`, `build.ps1`: independent Gowin build (no automatic hardware programming).
 
-This lab is intentionally independent of PiKoSoL v0.2.0, and never writes SD or configuration Flash.
-
-## SD-03.2 — BPB validator (simulation)
-
-A second independent Verilog module, `rtl/sd03_fat32_bpb.v`, verifies a 512-byte VBR/BPB byte stream, rejects mismatched sector sizes, invalid cluster geometry, oversized volumes, undersized FATs, invalid signatures and exFAT. It computes first FAT/data/root cluster LBAs using wide arithmetic. The testbench includes a superfloppy VBR at LBA0; **this is not yet automatic MBR-vs-superfloppy detection**. Neither module is wired to SD-02 hardware in this revision.
-
-The CI gate now runs MBR and BPB self-checking testbenches. A complete SD-03 physical acceptance requires a BSRAM streaming bridge, a scheduler for the follow-up CMD17 and real-board results. Documented outputs are design candidates, not automatically certified filesystems.
-
-## SD-03.3 — two-stage BSRAM scanner (RTL candidate)
-
-`sd03_volume_scanner.v` is the first *control-logic connection* to the SD-02 sector-reader interface: `sd_start`, `sd_lba`, `sd_done`, `sd_error`, 512-byte synchronous `peek_addr/peek_data`. It streams LBA0 through the MBR and BPB validators. If a FAT32 MBR candidate is found, the scanner requests its boot-sector LBA via a second CMD17 and validates BPB. If no candidate MBR exists, it accepts a standalone FAT32 BPB in LBA0 as a superfloppy. Protective GPT returns an explicit unsupported status.
-
-The scanner now has an **integrated behavioral simulation PASS** against a synchronous sector-memory model, including two-sector MBR→BPB selection, superfloppy, GPT and invalid BPB. This is **not a real SDHC SPI card test**: a physical Tang Nano 9K UART top, local Gowin PnR/STA and board acceptance are still required. There is no FAT entry lookup, directory traversal, file opening or writing.
-
-Pass order: MBR RTL PASS, BPB RTL PASS, scanner compile PASS, integrated behavioral test PASS ([CI evidence](https://github.com/AIDevelopersMonster/Sipeed-FPGA/actions/runs/40068297667)); Gowin PnR/STA PENDING, board UART PENDING.
-
-## SD-03.4 — standalone Tang Nano 9K hardware candidate
-
-`rtl/sd03_mbr_fat32_probe_top.v` integrates an independent copy of the physically tested SD-02 SPI/SDHC reader with MBR + FAT32 BPB scanner and UART. A clean **Verilog-2005 compilation** is a necessary but insufficient acceptance gate: full card-model UART regression, local Gowin PnR/STA and actual SDHC board UART evidence must be distinguished.
+## Reproduce in Windows PowerShell 7
 
 ```powershell
 cd C:\GitHub\Sipeed-FPGA-LAB05
 git fetch origin
 git switch agent/sd03-mbr-fat32-parser
 git pull --ff-only
-
 & .\boards\tang-nano-9k\experiments\sd-mbr-fat32\test.ps1
 & .\boards\tang-nano-9k\experiments\sd-mbr-fat32\build.ps1
 ```
 
-`build.ps1` **never programs** the FPGA or writes the card. It creates a unique `build/run_*/sd03_mbr_fat32_nano9k.fs` and SHA-256 with PnR/STA reports. Check reports for resources, setup/hold, pinout and unconstrained SD I/O timing before an explicit SRAM-only load using the prior validated Gowin programmer script.
+These commands are read-only toward the card and do not program FPGA. The accepted bitstream was `build/run_20261024_095913_693_c293c8/sd03_mbr_fat32_nano9k.fs` with SHA-256 `2F5221EA95F91EE27F4B5BD2E10B4738CAF592F2113EC807A0C68433EFBF51A2`. **Do not substitute** the earlier bitstream that failed 27 MHz STA (129 setup violations). The accepted build shows **0 setup and 0 hold timing violations**, both TNS values 0.000 ns, resources 32% logic / 31% FF / 4% BSRAM; full external SD MISO timing remains uncharacterized.
 
-UART at **115200 8N1**, press physical S2 to rerun. The output is one line; example formats (hex field values not predetermined):
+An explicit *SRAM-only* programmer, if needed on another physical test, is `01-PicoRV32/lab04/tools/program_lab04_sram.ps1` with `-Program`, `-Bitstream` and `-CableIndex 1` after checking the hash and local STA. Flash and SD writes are outside this experiment.
 
-```text
-SD03 RESULT=MBR_FAT32   VOL=XXXXXXXX FAT=XXXXXXXX DATA=XXXXXXXX ROOT=XXXXXXXX CLUS=XXXXXXXX E=00
-SD03 RESULT=SUPERFLOPPY VOL=XXXXXXXX FAT=XXXXXXXX DATA=XXXXXXXX ROOT=XXXXXXXX CLUS=XXXXXXXX E=00
-SD03 RESULT=GPT_UNSUP   VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CLUS=00000000 E=00
-SD03 RESULT=NO_FAT32    VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CLUS=00000000 E=00
-SD03 RESULT=INVALID_BPB VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CLUS=00000000 E=00
-SD03 RESULT=SD_READ_ERR VOL=00000000 FAT=00000000 DATA=00000000 ROOT=00000000 CLUS=00000000 E=XX
-```
+## UART classification
 
-Only *one* case is sent per reset. A non-FAT32 classification is a meaningful experiment, not an SDHC transport failure. `E=00` alone does not certify FAT32. No SD writing, GPT/exFAT traversal, FAT directory listing or PicoRV32/HDMI integration exists here.
+One record after reset at 115200 8N1. `MBR_FAT32` and `SUPERFLOPPY` indicate validated FAT32 BPB geometry; `GPT_UNSUP`, `NO_FAT32`, `INVALID_BPB`, `SD_READ_ERR` describe distinct outcomes. The observed result is `MBR_FAT32`. Unsupported format is **not** an SD transport failure.
 
-**Hardware acceptance status: PENDING operator PnR/STA and board UART evidence.**
+## Limits and next phase
 
-## SD-03.4 timing repair candidate (2026-10-24)
+The observed UART came from the experiment operator; no independent PC sector dump or external SPI capture was supplied. It does not establish cluster chains, file contents, GPT/exFAT support, or PiKoSoL integration. Next research gate: verify volume geometry on a PC (read-only), then implement FAT32 directory and FAT-chain readers separately.
 
-The **first** locally built SD-03.4 bitstream `79CCB71D7CC524B31A5B237127B8E02D959102631EEB027B5299ECF9BC955C55` was **rejected** because Gowin STA reported **129 setup violated endpoints** at 27 MHz. Do not program it.
-
-BPB arithmetic is now sequenced across clock cycles in `rtl/sd03_fat32_bpb.v`: FAT region, data start, cluster count using repeated shifts, FAT capacity, root-cluster offset, and volume-end address each have separate FSM steps. `rtl/sd03_volume_scanner.v` now handles both immediate BPB error pulses and delayed successful BPB completion. Behavioral regression of this revised design [passed in CI](https://github.com/AIDevelopersMonster/Sipeed-FPGA/actions/runs/40071443723).
-
-**This is a candidate timing fix, not proof of timing closure.** A new local Gowin `build.ps1` must be run after `git pull --ff-only`. The next `.fs` must have a **different** SHA-256 and must be independently checked for setup violated endpoints = 0, hold violated endpoints = 0, TNS = 0 and resources before any SRAM programming. SD-02 hardware acceptance remains unaffected.
+Educational manuscripts: [MBR and FAT32 concepts](../../../../docs/education/MBR_FAT32_Concepts_RU_v0.2.md) · [FAT32 on FPGA implementation](../../../../docs/education/FAT32_on_FPGA_RU_v0.2.md). These are research drafts, not released Zenodo editions.
