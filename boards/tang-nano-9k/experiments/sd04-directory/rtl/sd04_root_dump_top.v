@@ -89,7 +89,7 @@ module sd04_root_dump_top #(
    SEND_LO:if(!tx_busy)begin tx_data<=hex(byte_hold[3:0]);tx_start<=1;state<=WAIT_LO;end
    WAIT_LO:if(tx_busy)state<=IDLE_LO;
    IDLE_LO:if(!tx_busy)begin
-    if(pos==1023)begin pos<=0;state<=TAIL;end
+    if(pos==1022)begin pos<=0;state<=TAIL;end
     else begin pos<=pos+2;state<=PREP;end
    end
    TAIL:if(!tx_busy)begin
@@ -101,7 +101,7 @@ module sd04_root_dump_top #(
     endcase
     tx_start<=1;state<=WAIT_TAIL;
    end
-   WAIT_TAIL:if(tx_busy)state<=15; // completed below using HALT? needs transition
+   WAIT_TAIL:if(tx_busy)state<=HALT;
    HALT:if(!tx_busy)begin
     if(valid_root ? pos==1 : pos==6)state<=HALT;
     else begin pos<=pos+1'b1;state<=TAIL;end
