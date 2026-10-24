@@ -23,3 +23,6 @@ jobs:
           grep -q SD04_DIRECTORY_TB_PASS /tmp/sd04.log
           iverilog -g2005 -s sd04_directory_probe_top -o /tmp/sd04_top.vvp "$d/../../cores/sdhc-spi-readonly/v1/rtl/spi_byte.v" "$d/../../cores/sdhc-spi-readonly/v1/rtl/sd_read_sector.v" "$d/rtl/sd03_mbr_parser.v" "$d/rtl/sd03_fat32_bpb.v" "$d/rtl/sd03_volume_scanner.v" "$d/rtl/sd04_directory_parser.v" "$d/rtl/uart_tx_8n1.v" "$d/rtl/sd04_uart_report.v" "$d/rtl/sd04_directory_probe_top.v"
           echo SD04_TOP_COMPILE_PASS
+          iverilog -g2005 -s tb_sd04_top_mock -o /tmp/sd04_full_mock.vvp "$d/rtl/sd04_directory_parser.v" "$d/rtl/sd04_uart_report.v" "$d/rtl/sd04_directory_probe_top.v" "$d/tests/tb_sd04_top_mock.v"
+          vvp /tmp/sd04_full_mock.vvp | tee /tmp/sd04_full_mock.log
+          grep -q SD04_TOP_MOCK_PASS /tmp/sd04_full_mock.log
