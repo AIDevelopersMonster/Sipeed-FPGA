@@ -97,6 +97,21 @@ module sd03_volume_scanner (
         parser_bound<=partition_sectors;
         second_sector<=1;
         state<=NEXT_READ;
+      end else if(bpb_done)begin
+        // Immediate BPB rejection can complete on the final sector byte.
+        // Consume that one-cycle done pulse here instead of losing it.
+        if(second_sector)begin
+          if(bpb_status==1)begin
+            result<=1;volume_lba<=pending_lba;
+            fat_lba<=bpb_fat;data_lba<=bpb_data;root_lba<=bpb_root;
+            cluster_count<=bpb_clusters;
+          end else result<=6;
+        end else if(bpb_status==1)begin
+          result<=2;volume_lba<=0;
+          fat_lba<=bpb_fat;data_lba<=bpb_data;root_lba<=bpb_root;
+          cluster_count<=bpb_clusters;
+        end else result<=4;
+        state<=FINISH;
       end else state<=WAIT_BPB;
     end
     WAIT_BPB:if(bpb_done)begin
