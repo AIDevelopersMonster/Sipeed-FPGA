@@ -42,3 +42,13 @@ before general-purpose use.
 
 Note: `build.tcl` is the Gowin project recipe; no automated build/program
 script or hardware receipt is supplied yet.
+
+## Reproducible local verification
+
+From the repository root, with Python and Icarus Verilog installed:
+
+```powershell
+& .\boards\tang-nano-9k\experiments\sd04-directory\test.ps1
+```
+
+This checks Python decoding, a complete RTL dependency compile and a synthetic 512-byte UART transport test. It does not establish physical SD behaviour, PnR timing, or hardware readiness. Run Gowin STA separately before programming SRAM.
