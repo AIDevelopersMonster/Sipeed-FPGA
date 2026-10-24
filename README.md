@@ -80,3 +80,7 @@ More: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/TEST_PROTOCOL.md`](
 ## Board support / future 20K–25K
 
 [**Tang Nano 9K — board profile**](boards/tang-nano-9k/README.md) · [Architecture decision ADR-005](docs/DECISIONS.md). One SoC source base, board-specific targets; the verified LAB-04/LAB-05 snapshot paths are not moved or overwritten. Other boards are added only after their exact hardware revision and constraints are checked.
+
+## Independent interface labs / Независимые проекты по интерфейсам
+
+[**SPI, microSD, UART, HDMI — отдельные учебные проекты без CPU**](examples/peripherals/README.md) · [Общий RTL IP](ip/README.md) · [Целые системы: PiKoSoL](systems/pikosol/README.md). Проверенные LAB-04/05 пока остаются на прежних путях без копирования/миграции.
