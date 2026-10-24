@@ -27,3 +27,6 @@ jobs:
           grep -q SD03_FAT32_BPB_TB_PASS /tmp/sd03_bpb.log
           iverilog -g2005 -s sd03_volume_scanner -o /tmp/sd03_scan.vvp "$d/rtl/sd03_mbr_parser.v" "$d/rtl/sd03_fat32_bpb.v" "$d/rtl/sd03_volume_scanner.v"
           echo SD03_SCAN_RTL_COMPILE_PASS
+          iverilog -g2005 -s tb_sd03_volume_scanner -o /tmp/sd03_scan_tb.vvp "$d/rtl/sd03_mbr_parser.v" "$d/rtl/sd03_fat32_bpb.v" "$d/rtl/sd03_volume_scanner.v" "$d/tests/tb_sd03_volume_scanner.v"
+          vvp /tmp/sd03_scan_tb.vvp | tee /tmp/sd03_scan_tb.log
+          grep -q SD03_SCANNER_TB_PASS /tmp/sd03_scan_tb.log
