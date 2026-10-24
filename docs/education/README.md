@@ -22,4 +22,8 @@ The DOIs were supplied by the publication author on 24 October 2026. The reposit
 
 
 
+## Follow-up hardware demonstration: SD-02.1
+
+The read-only multi-LBA FPGA experiment is archived separately from the SD-01 teaching reference: [SD-02.1 code and hardware acceptance](../../boards/tang-nano-9k/experiments/sd-multilba/) · [author-supplied video](https://youtu.be/KdMJc_Ly7fQ). The operator-reported hardware run read four LBAs (0, 1, 2048 and 65541) and printed `SD02 PASS`; FAT32 access is not part of that test.
+
 PDF is the publication/viewing artifact; Markdown is the maintained source. Editable Markdown references figures under `assets/`; the PDFs contain the fully rendered diagrams. The complete authoring package with image assets and PDF-build scripts can also be downloaded from the accompanying publication bundle.
