@@ -59,14 +59,27 @@ The first 64 bytes of the VBR above directly encode:
 
 These agree with previously operator-tested SD-03/SD-04 positions. First 64 bytes of MBR being zero is **not an error by itself**: the MBR partition table is at offsets 446–509 and the 55 AA signature at offsets 510–511.
 
-The displayed root bytes include two FAT32 LFN entries consistent with the name `System Volume Information`; the prior SD-04 read reported short alias `SYSTEM~1`, attr `0x16`, first cluster 3. **Full LFN checksum and MBR signature are pending inspection of the actual full binary captures** via the separate read-only verification script.
+The displayed root bytes include two FAT32 LFN entries consistent with the name `System Volume Information`; the prior SD-04 read reported short alias `SYSTEM~1`, attr `0x16`, first cluster 3. **MBR/VBR signatures were later verified** from the local 512-byte captures; full LFN checksum and partition record decoding remain outside HOST-01 acceptance.
 
 ## Acceptance scope and next gate
 
 **PASS, strictly:** Physical FPGA SDHC CMD17 sector reads for LBAs 0, 64, 17472, transmitted as full 512-byte UART sector responses, validated by Python's transport-frame CRC16, with plausible VBR/root metadata and SHA/STA-qualified bitstream.
 
-**Not certified:** independent byte-for-byte PC card-reader comparison, full MBR signature/partition records, all raw 512 bytes from binary file review, full LFN checksum, multi-sector stress, sustained throughput, error recovery, file writing, FAT32 updates or USB Mass Storage.
+**Not certified:** independent byte-for-byte PC card-reader comparison, MBR partition record fields, all raw 512 bytes from binary file review, full LFN checksum, multi-sector stress, sustained throughput, error recovery, file writing, FAT32 updates or USB Mass Storage.
 
-Next optional **read-only** evidence: `python experiments/host01-sector-read/tools/verify_captures.py --mbr sector0.bin --vbr vbr.bin --root root.bin`. Keep the originals unchanged. A separate user action must supply its console result to certify full MBR/BPB/LFN consistency.
+For the next **read-only FAT32** stage, parse MBR partition records, validate the BPB layout and read directory entries from already captured sectors, without modifying any originals. No extra tool is required to close the defined HOST-01 read-only sector-transfer objective.
 
 **Do not replace or alter the accepted RTL or SRAM image in order to extend this evidence.** Any later write-capable SDHC module must be separate and explicitly tested on spare media.
+
+## Subsequent signature verification — operator-provided log
+
+After the three hardware reads, the operator inspected offsets 510–511 in all three local 512-byte files, without altering them:
+
+```text
+PS C:\GitHub\Sipeed-FPGA-LAB05> python -c "from pathlib import Path; [(lambda b: print(p, 'bytes=',len(b), 'signature=',b[510:512].hex(' ')))(Path(p).read_bytes()) for p in ['sector0.bin','vbr.bin','root.bin']]"
+sector0.bin bytes= 512 signature= 55 aa
+vbr.bin bytes= 512 signature= 55 aa
+root.bin bytes= 512 signature= 00 00
+```
+
+**Signature check: PASS.** `0x55AA` is present in MBR and FAT32 VBR at offsets 510–511. `root.bin` is a directory sector, not a boot sector, and is **not** required to end in `55 AA`. This completes HOST-01's defined educational acceptance: read-only, physical, checksum-checked 512-byte sector transport, 3/3 sampled LBAs, plus correct boot-sector signatures. The signature check is operator-reported; the full binary files have not been uploaded or independently audited.

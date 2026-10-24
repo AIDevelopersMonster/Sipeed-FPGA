@@ -1,6 +1,6 @@
 # HOST-01 — PC/Python UART → read-only microSDHC sector via FPGA
 
-**Status (2026-10-24): local RTL simulation PASS, Python tests 5/5 PASS, Gowin PnR PASS, internal STA PASS (0 Setup / 0 Hold, TNS 0 / 0). Physical sector read BOARD PASS confirmed for LBA 0, 64, 17472 (all 512 bytes, transport CRC16 PASS).** See [operator-supplied STA acceptance](acceptance/HOST01_STA_ACCEPTANCE_2026-10-24.md). No SD writes or filesystem updates.
+**Status (2026-10-24): HOST01_BOARD_PASS for LBA 0, 64 and 17472 (3/3 512-byte physical sectors; UART transport CRC16 PASS; MBR and VBR 55 AA signatures verified by operator). RTL simulation PASS, Python 5/5, Gowin PnR PASS, internal STA 0/0 and TNS 0.** See [operator-supplied STA acceptance](acceptance/HOST01_STA_ACCEPTANCE_2026-10-24.md). No SD writes or filesystem updates.
 
 ## Architecture: small independent modules
 
@@ -68,3 +68,5 @@ Important: a passing Icarus test does **not** prove new physical build, STA, MIS
 ## Hardware acceptance and published evidence
 
 [HOST-01 hardware acceptance (2026-10-24)](acceptance/HOST01_HARDWARE_ACCEPTANCE_2026-10-24.md): three live physical 512-byte microSD sector responses over FPGA UART, all transport CRC PASS, valid FAT32 BPB data and prior SD03/04 layout consistency. Bitstream SHA-256: `5BE3A5C02C54D69BC8ECCD9896C9571891DBD87A121E21CF4C112564FE7C4DE4`. **No writes to microSD**.
+
+**Final sector-capture signature check:** `sector0.bin` 512 bytes ending `55 AA`; `vbr.bin` 512 bytes ending `55 AA`; `root.bin` 512 bytes ending `00 00` (normal for a directory sector). These findings are recorded in the [HOST-01 hardware acceptance receipt](acceptance/HOST01_HARDWARE_ACCEPTANCE_2026-10-24.md). The next FAT32 parsing phase is independent and strictly read-only.
