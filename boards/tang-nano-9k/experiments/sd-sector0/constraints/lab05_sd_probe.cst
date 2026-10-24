@@ -1,0 +1,28 @@
+// LAB-05.1 stand-alone Tang Nano 9K SPI SD probe, schematic Tang_Nano_9K_3672.
+// All four SD nets belong to the 3.3 V bank. Do not change LAB-04 constraints.
+IO_LOC "clk" 52;
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "reset_n" 3;
+IO_PORT "reset_n" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+IO_LOC "uart_tx" 17;
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "sd_sck" 36;
+IO_PORT "sd_sck" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+IO_LOC "sd_mosi" 37;
+IO_PORT "sd_mosi" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;
+IO_LOC "sd_cs_n" 38;
+IO_PORT "sd_cs_n" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;
+IO_LOC "sd_miso" 39;
+IO_PORT "sd_miso" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "led_n[0]" 10;
+IO_LOC "led_n[1]" 11;
+IO_LOC "led_n[2]" 13;
+IO_LOC "led_n[3]" 14;
+IO_LOC "led_n[4]" 15;
+IO_LOC "led_n[5]" 16;
+IO_PORT "led_n[0]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[1]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[2]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[3]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[4]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n[5]" IO_TYPE=LVCMOS18;
