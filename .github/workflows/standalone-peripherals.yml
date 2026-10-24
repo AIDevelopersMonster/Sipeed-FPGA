@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - "examples/peripherals/**"
+      - "boards/tang-nano-9k/experiments/**"
       - ".github/workflows/standalone-peripherals.yml"
   pull_request:
     paths:
@@ -32,3 +33,10 @@ jobs:
           iverilog -g2012 -s tb_uart_rx -o /tmp/peripherals/rx.vvp 01-PicoRV32/rtl/uart_rx_8n1.v 01-PicoRV32/tests/tb_uart_rx.v
           vvp /tmp/peripherals/rx.vvp | tee /tmp/peripherals/rx.log
           grep -q "LAB02_RX_RTL_PASS" /tmp/peripherals/rx.log
+          iverilog -g2012 -s tb_lab05_spi_byte -o /tmp/peripherals/snapshot_spi.vvp boards/tang-nano-9k/experiments/sd-sector0/rtl/lab05_spi_byte.v boards/tang-nano-9k/experiments/sd-sector0/tests/tb_lab05_spi_byte.v
+          vvp /tmp/peripherals/snapshot_spi.vvp | tee /tmp/peripherals/snapshot_spi.log
+          grep -q "LAB05_SPI_BYTE_TB_PASS" /tmp/peripherals/snapshot_spi.log
+          iverilog -g2012 -s tb_lab05_sd_init_read0 -o /tmp/peripherals/snapshot_sd.vvp boards/tang-nano-9k/experiments/sd-sector0/rtl/lab05_spi_byte.v boards/tang-nano-9k/experiments/sd-sector0/rtl/lab05_sd_init_read0.v boards/tang-nano-9k/experiments/sd-sector0/tests/tb_lab05_sd_init_read0.v
+          vvp /tmp/peripherals/snapshot_sd.vvp | tee /tmp/peripherals/snapshot_sd.log
+          grep -q "LAB05_SDHC_READ0_TB_PASS" /tmp/peripherals/snapshot_sd.log
+          iverilog -g2012 -s lab05_sd_probe_top -o /tmp/peripherals/snapshot_top.vvp boards/tang-nano-9k/experiments/sd-sector0/rtl/lab05_spi_byte.v boards/tang-nano-9k/experiments/sd-sector0/rtl/lab05_sd_init_read0.v boards/tang-nano-9k/experiments/sd-sector0/rtl/lab05_sd_probe_top.v boards/tang-nano-9k/experiments/sd-sector0/rtl/uart_tx_8n1.v
