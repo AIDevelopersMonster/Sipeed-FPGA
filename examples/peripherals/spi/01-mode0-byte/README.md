@@ -14,4 +14,4 @@ SPI: **SCK** — такт; **MOSI** — выход мастера; **MISO** — 
 
 При тестировании MISO замкнут на MOSI, передаются `00`, `FF`, `A5`, `3C`. Проверяются байты, число SCK, `busy/done` и состояние SCK в покое. Это **RTL PASS**, а не hardware PASS отдельного SPI-стенда.
 
-[SD-01 — частная реализация SPI для настоящей SD-карты](../../../..//boards/tang-nano-9k/experiments/sd-sector0/README.md). Последовательность на SD-01: SPI mode 0 → CMD0/8/55/41/58/17 → сектор 512 байт → CRC16.
+[SD-01 — частная реализация SPI для настоящей SD-карты](../../../../boards/tang-nano-9k/experiments/sd-sector0/README.md). Последовательность на SD-01: SPI mode 0 → CMD0/8/55/41/58/17 → сектор 512 байт → CRC16.
