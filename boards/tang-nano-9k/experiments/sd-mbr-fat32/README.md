@@ -19,3 +19,9 @@ Next: SD-03.2 reads candidate partition boot sector via CMD17 and validates FAT3
 [SD and microSD book](https://doi.org/10.5281/zenodo.23608853) · [SPI on FPGA book](https://doi.org/10.5281/zenodo.23608792) · [SD-02 hardware video](https://youtu.be/KdMJc_Ly7fQ).
 
 This lab is intentionally independent of PiKoSoL v0.2.0, and never writes SD or configuration Flash.
+
+## SD-03.2 — BPB validator (simulation)
+
+A second independent Verilog module, `rtl/sd03_fat32_bpb.v`, verifies a 512-byte VBR/BPB byte stream, rejects mismatched sector sizes, invalid cluster geometry, oversized volumes, undersized FATs, invalid signatures and exFAT. It computes first FAT/data/root cluster LBAs using wide arithmetic. The testbench includes a superfloppy VBR at LBA0; **this is not yet automatic MBR-vs-superfloppy detection**. Neither module is wired to SD-02 hardware in this revision.
+
+The CI gate now runs MBR and BPB self-checking testbenches. A complete SD-03 physical acceptance requires a BSRAM streaming bridge, a scheduler for the follow-up CMD17 and real-board results. Documented outputs are design candidates, not automatically certified filesystems.

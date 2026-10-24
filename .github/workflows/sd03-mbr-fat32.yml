@@ -22,3 +22,6 @@ jobs:
           iverilog -g2005 -s tb_sd03_mbr -o /tmp/sd03.vvp "$d/rtl/sd03_mbr_parser.v" "$d/tests/tb_sd03_mbr.v"
           vvp /tmp/sd03.vvp | tee /tmp/sd03.log
           grep -q SD03_MBR_TB_PASS /tmp/sd03.log
+          iverilog -g2005 -s tb_sd03_fat32_bpb -o /tmp/sd03_bpb.vvp "$d/rtl/sd03_fat32_bpb.v" "$d/tests/tb_sd03_fat32_bpb.v"
+          vvp /tmp/sd03_bpb.vvp | tee /tmp/sd03_bpb.log
+          grep -q SD03_FAT32_BPB_TB_PASS /tmp/sd03_bpb.log
