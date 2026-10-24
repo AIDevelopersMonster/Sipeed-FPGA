@@ -1,0 +1,17 @@
+{
+  "schema": "sipeed-fpga-experiment-v1",
+  "id": "tang-nano-9k-sd-sector0",
+  "kind": "independent-research-implementation",
+  "board": "tang-nano-9k",
+  "origin_revision": "9a4f4b1eb57c73d24a750f3c999d1a683994de28",
+  "origin_paths": [
+    "01-PicoRV32/lab05/rtl",
+    "01-PicoRV32/lab05/tests",
+    "01-PicoRV32/lab05/constraints",
+    "01-PicoRV32/rtl/uart_tx_8n1.v"
+  ],
+  "historical_evidence": "LAB-05.1 SD PASS SIG=55AA twice, operator-confirmed 2026-10-24",
+  "snapshot_status": "not yet independently retested",
+  "writes_sd": false,
+  "autoprograms_fpga": false
+}

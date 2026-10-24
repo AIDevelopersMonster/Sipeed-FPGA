@@ -1,0 +1,35 @@
+name: SD-01 and SPI-01 independent RTL checks
+on:
+  push:
+    paths:
+      - "boards/tang-nano-9k/experiments/sd-sector0/**"
+      - "examples/peripherals/spi/**"
+      - ".github/workflows/sd01-education.yml"
+  pull_request:
+    paths:
+      - "boards/tang-nano-9k/experiments/sd-sector0/**"
+      - "examples/peripherals/spi/**"
+      - ".github/workflows/sd01-education.yml"
+jobs:
+  iverilog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Verify standalone SPI and SD model
+        shell: bash
+        run: |
+          set -euo pipefail
+          p=boards/tang-nano-9k/experiments/sd-sector0
+          s=examples/peripherals/spi/01-mode0-byte
+          iverilog -g2012 -s tb_lab05_spi_byte -o /tmp/spi01.vvp "$s/rtl/spi_byte.v" "$s/tests/tb_spi_byte.v"
+          vvp /tmp/spi01.vvp | tee /tmp/spi01.log
+          grep -q "LAB05_SPI_BYTE_TB_PASS" /tmp/spi01.log
+          iverilog -g2012 -s tb_lab05_spi_byte -o /tmp/sdspi.vvp "$p/rtl/lab05_spi_byte.v" "$p/tests/tb_lab05_spi_byte.v"
+          vvp /tmp/sdspi.vvp | tee /tmp/sdspi.log
+          grep -q "LAB05_SPI_BYTE_TB_PASS" /tmp/sdspi.log
+          iverilog -g2012 -s tb_lab05_sd_init_read0 -o /tmp/sd.vvp "$p/rtl/lab05_spi_byte.v" "$p/rtl/lab05_sd_init_read0.v" "$p/tests/tb_lab05_sd_init_read0.v"
+          vvp /tmp/sd.vvp | tee /tmp/sd.log
+          grep -q "LAB05_SDHC_READ0_TB_PASS" /tmp/sd.log
+          iverilog -g2012 -s lab05_sd_probe_top -o /tmp/sdtop.vvp "$p/rtl/lab05_spi_byte.v" "$p/rtl/lab05_sd_init_read0.v" "$p/rtl/lab05_sd_probe_top.v" "$p/rtl/uart_tx_8n1.v"
