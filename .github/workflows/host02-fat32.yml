@@ -1,0 +1,26 @@
+name: HOST-02 FAT32 read-only Python tests
+on:
+  push:
+    paths:
+      - 'cores/fat32-reader/**'
+      - 'experiments/host02-fat32/**'
+      - '.github/workflows/host02-fat32.yml'
+  pull_request:
+    paths:
+      - 'cores/fat32-reader/**'
+      - 'experiments/host02-fat32/**'
+      - '.github/workflows/host02-fat32.yml'
+jobs:
+  fat32-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run synthetic MBR FAT32 and LFN regression
+        run: python -m unittest discover -s cores/fat32-reader/v1/tests -v
+      - name: Validate HOST-02 CLI syntax
+        run: |
+          python -m py_compile experiments/host02-fat32/tools/host02_fat32.py cores/fat32-reader/v1/python/fat32_reader.py
+          python experiments/host02-fat32/tools/host02_fat32.py --help
