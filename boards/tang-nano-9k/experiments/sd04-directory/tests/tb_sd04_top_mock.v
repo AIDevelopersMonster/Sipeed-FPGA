@@ -26,6 +26,23 @@ initial begin
          dut.u_reader.last_lba,dut.u_reader.requests);
  if(dut.u_report.u_tx.frames<150)
   $fatal(1,"UART too short frames=%0d",dut.u_report.u_tx.frames);
+ if(dut.u_report.u_tx.trace[0]!=="S" ||
+    dut.u_report.u_tx.trace[1]!=="D" ||
+    dut.u_report.u_tx.trace[2]!=="0" ||
+    dut.u_report.u_tx.trace[3]!=="4")
+   $fatal(1,"UART prefix mismatch");
+ // First record is geometry, next record starts exactly after 51 bytes.
+ if(dut.u_report.u_tx.trace[51]!=="S" ||
+    dut.u_report.u_tx.trace[52]!=="D" ||
+    dut.u_report.u_tx.trace[53]!=="0" ||
+    dut.u_report.u_tx.trace[54]!=="4" ||
+    dut.u_report.u_tx.trace[55]!==" ")
+   $fatal(1,"UART entry boundary mismatch");
+ // Check first entry's type and name, not only the number of characters.
+ if(dut.u_report.u_tx.trace[65]!=="F" ||
+    dut.u_report.u_tx.trace[72]!=="R" ||
+    dut.u_report.u_tx.trace[73]!=="E")
+   $fatal(1,"UART entry payload mismatch");
  $display("SD04_TOP_MOCK_PASS: discovery -> CMD17 LBA17472 -> directory -> UART, no writes");
  $finish;
 end
@@ -101,11 +118,12 @@ module uart_tx_8n1 #(
   output wire tx,output reg busy);
 assign tx=1;
 integer frames=0;
+reg [7:0] trace[0:1023];
 reg pending;
 always @(posedge clk or negedge reset_n)begin
  if(!reset_n)begin busy<=0;pending<=0;frames<=0;end
  else begin
- if(start&&!busy)begin busy<=1;pending<=1;frames<=frames+1;end
+ if(start&&!busy)begin busy<=1;pending<=1;trace[frames]<=data;frames<=frames+1;end
  else if(pending)begin pending<=0;end
  else if(busy)busy<=0;
  end
