@@ -4,7 +4,10 @@
 // SPDX-License-Identifier: MIT
 module sync_fifo #(
  parameter integer WIDTH=8,
- parameter integer DEPTH=8
+ parameter integer DEPTH=8,
+ // The port list must know this width during Verilog-2005 elaboration.
+ // Derived parameter; normally leave unchanged when overriding DEPTH.
+ parameter integer COUNT_W=(DEPTH>1)?$clog2(DEPTH+1):1
 )(
  input wire clk,input wire reset_n,
  input wire push_valid,output wire push_ready,input wire [WIDTH-1:0] push_data,
@@ -21,7 +24,6 @@ module sync_fifo #(
  end
  endfunction
  localparam integer PW=(DEPTH>2)?log2ceil(DEPTH):1;
- localparam integer COUNT_W=log2ceil(DEPTH+1);
  reg [PW-1:0] write_ptr,read_ptr;
  reg [COUNT_W-1:0] count_reg;
  reg [WIDTH-1:0] memory[0:DEPTH-1];

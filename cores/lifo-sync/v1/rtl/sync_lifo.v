@@ -5,7 +5,10 @@
 // SPDX-License-Identifier: MIT
 module sync_lifo #(
  parameter integer WIDTH=8,
- parameter integer DEPTH=8
+ parameter integer DEPTH=8,
+ // The port list must know this width during Verilog-2005 elaboration.
+ // Derived parameter; normally leave unchanged when overriding DEPTH.
+ parameter integer COUNT_W=(DEPTH>1)?$clog2(DEPTH+1):1
 )(
  input wire clk,input wire reset_n,
  input wire push_valid,output wire push_ready,input wire [WIDTH-1:0] push_data,
@@ -13,15 +16,6 @@ module sync_lifo #(
  output wire full,output wire empty,output wire [COUNT_W-1:0] count,
  output reg overflow,output reg underflow
 );
- function integer log2ceil;
- input integer x;
- integer v;
- begin
-  v=x-1;
-  for(log2ceil=0;v>0;log2ceil=log2ceil+1)v=v>>1;
- end
- endfunction
- localparam integer COUNT_W=log2ceil(DEPTH+1);
  reg [COUNT_W-1:0] count_reg;
  reg [WIDTH-1:0] memory[0:DEPTH-1];
  assign count=count_reg;
