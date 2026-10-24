@@ -8,7 +8,7 @@ Insert a known-good **SDHC** microSD card (4–32 GB is a convenient first choic
 
 - Success: **SD PASS SIG=55AA** for a commonly formatted card with a normal MBR or boot-sector signature (the actual four hex digits come from offsets 510/511).
 - Failure: **SD ERR=E1** etc. Error-code descriptions are in lab05_sd_init_read0.v. In error mode all six active-low LEDs turn on; on success LED1 turns on.
-- S1 button (FPGA pin 3, active low) restarts the test.
+- S2 button (physical marking on the board, FPGA pin 3, active low) restarts the test. The schematic signal naming may call this line BUTTON_S1; use the physical board marking S2 for operator instructions.
 
 A blank or special raw card may produce a different signature even if the sector CRC passes; signature bytes are **observations**, not part of the PASS criterion.
 
