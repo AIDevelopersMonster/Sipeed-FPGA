@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="HOST-02: интерактивная демонстрация чтения файла FAT32 через Python, UART, FIFO и FPGA Tang Nano 9K.">
+<title>HOST-02 — От сектора до файла | Tang Nano 9K · FAT32 Reader</title>
+<style>
+:root{color-scheme:dark;--bg:#081320;--card:#112638;--card2:#173348;--ink:#eff8ff;--mut:#abc1d2;--edge:#31536b;--cyan:#75d9fa;--green:#80ecc4;--gold:#ffd18e;--purple:#cbb2ff;--rose:#ffb4a6}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 90% -10%,#184966 0,transparent 38%),radial-gradient(ellipse at 8% 0,#193252 0,transparent 32%),var(--bg);color:var(--ink);font:15px/1.52 "Segoe UI",Arial,sans-serif}
+button,input{font:inherit}button{cursor:pointer}a{color:var(--cyan)}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+main{max-width:1210px;margin:auto;padding:23px 24px 70px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--edge);padding-bottom:20px}.brand{color:var(--green);font-size:12px;font-weight:900;letter-spacing:.16em}nav{display:flex;gap:8px;flex-wrap:wrap}nav a{color:var(--mut);text-decoration:none;padding:7px 11px;border:1px solid var(--edge);border-radius:9px;font-size:12px}nav a:hover{border-color:var(--cyan);color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(310px,.82fr);gap:27px;align-items:center;padding:43px 0 25px}.kicker{color:var(--green);font-size:12px;letter-spacing:.17em;font-weight:850;text-transform:uppercase}h1{margin:12px 0 16px;font-size:clamp(43px,5.4vw,71px);letter-spacing:-.06em;line-height:1.06}h1 span{color:var(--cyan)}h2{font-size:25px;margin:0 0 12px;letter-spacing:-.03em;line-height:1.25}h3{font-size:17px;margin:0 0 11px}.lead{color:var(--mut);font-size:17px;max-width:650px}.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.tag{padding:6px 11px;border:1px solid var(--edge);border-radius:30px;color:var(--mut);font-size:11px}.tag.ok{color:var(--green);border-color:#467f6f}
+.panel{padding:22px;background:linear-gradient(152deg,var(--card2),#0d1c2b);border:1px solid var(--edge);border-radius:16px}.panel.soft{background:#102336}.panel.nopad{padding:0;overflow:hidden}
+.story-diagram{display:grid;grid-template-columns:1fr;gap:8px}.story-diagram .box{border:1px solid #416b83;background:#15354a;border-radius:9px;padding:11px 13px;text-align:center;font:800 13px Consolas,monospace}.story-diagram .accent{border-color:#438979;background:#193e39;color:var(--green)}.story-diagram .arrow{text-align:center;color:var(--gold);font-size:18px;line-height:1}.muted{color:var(--mut)}.small{font-size:12px}.mono{font-family:"Cascadia Code",Consolas,monospace}.intro{background:#122e3e;border:1px solid #3c6480;border-radius:10px;padding:13px 15px;font-size:13px}.notice{background:#142f41;border:1px solid #42728e;border-radius:10px;padding:13px 15px;font-size:13px}.notice.ok{background:#15392f;border-color:#4e907a}.notice.warn{background:#3b3023;border-color:#927349}.metric-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:4px 0 30px}.metric{background:#142a3e;border:1px solid var(--edge);border-radius:12px;padding:15px}.metric b{display:block;color:var(--cyan);font:850 24px Consolas,monospace;white-space:nowrap}.metric small{display:block;color:var(--mut);font-size:12px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin:27px 0 13px}.grid2{display:grid;grid-template-columns:minmax(0,1.23fr) minmax(295px,.77fr);gap:15px}.grid2-even{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.stepper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:13px 0}.stage{padding:14px 7px;border-radius:11px;border:1px solid #3b5c74;background:#142b3c;min-height:103px;color:var(--ink);text-align:center}.stage:hover{border-color:var(--cyan)}.stage[aria-current=step]{border-color:var(--gold);background:#354135;box-shadow:inset 0 0 0 1px var(--gold)}.stage b{display:block;font:900 22px Consolas,monospace;color:var(--cyan)}.stage[aria-current=step] b{color:var(--gold)}.stage span{display:block;font-weight:850;font-size:12px}.stage small{display:block;margin-top:4px;font-size:11px;color:var(--mut)}.btn-row{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:15px}.btn{background:#165474;color:white;border:1px solid #438aa9;font-weight:800;border-radius:9px;padding:10px 15px}.btn:hover{background:#236d8e}.btn.secondary{background:#1a3449;border-color:#426984}.btn:disabled{opacity:.4;cursor:not-allowed}.stepcount{font:700 12px Consolas,monospace;color:var(--mut);margin-left:auto}
+.detail{min-height:194px}.step-label{color:var(--green);font-weight:900;letter-spacing:.08em;font-size:12px}.stage-title{font-size:25px;line-height:1.2;letter-spacing:-.02em;margin:5px 0 10px}.step-explain{color:#cbdde9;margin:0}.chips{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}.chip{font:750 11px Consolas,monospace;color:var(--gold);border:1px solid #896e4c;background:#3e382e;border-radius:7px;padding:6px 9px}.math{background:#091d2b;border:1px solid #31536a;border-radius:9px;color:var(--green);padding:13px;font:13px/1.8 Consolas,monospace;overflow:auto;white-space:pre-wrap}.proof{background:#081a2a;border-radius:10px;border:1px solid var(--edge);padding:14px;margin-top:14px;color:#b8f3d7;font:12px/1.7 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;min-height:128px}.proof-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}.source{color:var(--mut);font-size:11px}.proof-head strong{font-size:12px;color:var(--cyan)}.badge{display:inline-block;font:800 11px Consolas,monospace;color:var(--green);border:1px solid #3d806c;border-radius:99px;padding:4px 9px}.badge.estimate{color:var(--gold);border-color:#907449}
+.browser{border:1px solid #37576e;border-radius:13px;background:#0a1d2b;overflow:hidden}.browserbar{padding:13px 15px;border-bottom:1px solid #305169;background:#173046;color:var(--mut);font:700 12px Consolas,monospace;display:flex;gap:9px;align-items:center}.windowdots{letter-spacing:2px;color:var(--gold)}.files{padding:12px}.file-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;color:var(--ink);border:1px solid transparent;border-radius:8px;padding:11px 9px}.file-btn:hover{background:#193448;border-color:#35698b}.file-btn.selected{border-color:#7aafbb;background:#1c4052}.file-btn:disabled{opacity:.7}.ficon{font-size:19px;color:var(--gold)}.fileinfo{flex:1;min-width:0}.fileinfo b{display:block;font-size:13px;overflow-wrap:anywhere}.fileinfo small{color:var(--mut);display:block;font-size:11px}.arrowpath{margin-left:21px;border-left:1px dashed #426980;padding-left:11px}.filedetail{border-top:1px solid var(--edge);background:#112739;padding:16px;font-size:13px}.filedetail strong{color:var(--cyan)}
+.geom{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:17px}.geom div{border-radius:9px;border:1px solid #335875;background:#102a3e;padding:10px}.geom small{display:block;color:var(--mut);font-size:11px}.geom b{display:block;font:850 16px Consolas,monospace;color:var(--cyan)}
+.cluster-controls{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}.cluster{border:1px solid #4c6980;background:#1a3548;color:var(--ink);padding:11px 19px;border-radius:10px;font-weight:800}.cluster.active{border-color:var(--gold);background:#3b3b31;color:var(--gold)}.cluster:hover{border-color:var(--cyan)}
+.input-file{width:100%;max-width:100%;color:var(--ink);border:1px dashed #5c8198;border-radius:10px;padding:15px;background:#112b3d}.input-file::file-selector-button{background:#175b75;border:1px solid #4691ad;color:white;padding:8px 12px;border-radius:8px;margin-right:12px;cursor:pointer}.viewer{padding:13px;background:#091a2b;border:1px solid #36556c;border-radius:9px;overflow:auto}.hexgrid{display:grid;grid-template-columns:52px minmax(0,1fr) 80px;gap:10px;font:12px/1.8 Consolas,monospace;white-space:pre;min-width:500px}.hexgrid .off{color:#84a6b7}.hexgrid .val{color:var(--cyan)}.hexgrid .ascii{color:var(--mut)}.private{background:#253c49;border:1px solid #6b7482;color:var(--mut);border-radius:9px;padding:12px;font-size:13px}.switch{display:flex;gap:9px;align-items:center;font-size:13px;color:var(--mut);margin:13px 0}.switch input{width:17px;height:17px;accent-color:var(--green)}.result{font:12px/1.6 Consolas,monospace;padding:12px;border:1px solid #42647a;background:#10273a;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere}.result.pass{border-color:#4f907a;background:#12372f}.result.fail{border-color:#a57364;background:#3b292b}.twofacts{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fact{border:1px solid var(--edge);padding:13px;border-radius:9px;background:#10283a}.fact b{color:var(--cyan);display:block;margin-bottom:5px}.fact p{font-size:13px;color:var(--mut);margin:0}.code{font:12px/1.65 Consolas,monospace;border:1px solid #2c5069;padding:15px;border-radius:10px;background:#081b2a;white-space:pre-wrap;overflow-wrap:anywhere}.table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(--edge);text-align:left;padding:10px}th{color:var(--cyan);font-weight:800}.status-ok{color:var(--green);font-weight:800}.status-bound{color:var(--gold);font-weight:800}footer{border-top:1px solid var(--edge);padding-top:22px;margin-top:35px;color:var(--mut);font-size:12px}
+@media(max-width:925px){.hero,.grid2,.grid2-even{grid-template-columns:1fr}.metric-row{grid-template-columns:repeat(2,1fr)}.stepper{grid-template-columns:repeat(3,1fr)}}@media(max-width:560px){main{padding:15px 12px 55px}.panel{padding:15px}h1{font-size:46px}.metric-row,.twofacts,.geom{grid-template-columns:repeat(2,1fr)}.stepper{grid-template-columns:repeat(2,1fr)}.stage{min-height:91px}.stepcount{margin:0;width:100%}}
+</style>
+</head>
+<body><main>
+<header>
+<div class="brand">SIPEED FPGA · HOST-02 · FAT32 READER</div>
+<nav aria-label="Ссылки проекта">
+<a href="../../host01-sector-read/demo/index.html">HOST-01: сектор, MBR и FAT32</a>
+<a href="../README.md">Документация HOST-02</a>
+<a href="../acceptance/HOST02_FILE_CONTENT_ACCEPTANCE_2026-10-24.md">Акт испытаний</a>
+</nav></header>
+<section class="hero">
+<div><div class="kicker">Интерактивная лаборатория · проверено на Tang Nano 9K</div>
+<h1>ОТ СЕКТОРА<br><span>ДО ФАЙЛА</span></h1>
+<p class="lead">Мы уже умеем читать 512 байт через FPGA. Теперь покажем, как Python превращает номера секторов в каталоги, длинные имена файлов и настоящие 76 байт содержимого.</p>
+<div class="tags"><span class="tag ok">HOST-02: FILE CONTENT PASS</span><span class="tag">microSD · FAT32</span><span class="tag">UART + FIFO + SDHC</span><span class="tag">Без перепрошивки FPGA</span></div>
+</div>
+<div class="panel">
+<h3>Что делает каждый уровень</h3>
+<div class="story-diagram">
+<div class="box">Python: путь /каталог/файл</div><div class="arrow">↓</div>
+<div class="box">FAT32: кластер и список секторов</div><div class="arrow">↓</div>
+<div class="box">HOST-01: UART ↔ FPGA ↔ microSD</div><div class="arrow">↓</div>
+<div class="box accent">512 байт → Python → файл</div>
+</div>
+<p class="small muted" style="margin:14px 0 0">На FPGA остался тот же аппаратно подтверждённый битстрим HOST-01. Файловая система реализована отдельным программным модулем.</p>
+</div>
+</section>
+<div class="metric-row">
+<div class="metric"><small>Логический сектор</small><b>512 Б</b></div>
+<div class="metric"><small>Кластер FAT32</small><b>32 КиБ</b></div>
+<div class="metric"><small>Найденный файл</small><b>76 Б</b></div>
+<div class="metric"><small>Тесты Python FAT32</small><b>10/10</b></div>
+</div>
+<div class="intro"><b>Это воспроизведение подтверждённых шагов, а не работающая онлайн-консоль.</b> Данные пути, LBA, размеры и результаты взяты из аппаратных журналов HOST-01/HOST-02. Настоящие 76 байт можно загрузить с вашего компьютера в браузер; содержимое не передаётся ни на сервер, ни на FPGA. Для теории MBR и устройства сектора есть отдельная <a href="../../host01-sector-read/demo/index.html">HTML-лаборатория HOST-01</a>.</div>
+
+<div class="section-head"><h2>01. Как Python нашёл файл</h2><span class="small muted">Нажимайте шаги или «Далее»</span></div>
+<div class="panel">
+<div class="stepper" id="stageButtons" aria-label="Этапы чтения FAT32"></div>
+<div class="grid2">
+<section class="detail" aria-live="polite">
+<div id="stageLabel" class="step-label"></div>
+<div id="stageTitle" class="stage-title"></div>
+<p id="stageExplanation" class="step-explain"></p>
+<div id="stageChips" class="chips"></div>
+<pre id="stageMath" class="math"></pre>
+<div class="btn-row">
+<button class="btn secondary" id="prevStage">← Назад</button>
+<button class="btn" id="nextStage">Далее →</button>
+<button class="btn secondary" id="resetStages">Сначала</button>
+<span class="stepcount" id="stageCount"></span>
+</div>
+</section>
+<aside>
+<div class="proof-head"><strong>Журнал испытаний</strong><span id="stageEvidence" class="badge">РЕАЛЬНЫЙ ЛОГ</span></div>
+<pre id="stageLog" class="proof" aria-label="Подтверждённый результат испытания"></pre>
+<p class="small muted" id="stageLimit">Подтверждены лишь перечисленные операции.</p>
+</aside>
+</div>
+</div>
+
+<div class="section-head"><h2>02. Каталоги как дерево</h2><span class="small muted">Выберите узел, чтобы посмотреть кластер</span></div>
+<div class="grid2">
+<div class="browser">
+<div class="browserbar"><span class="windowdots">● ● ●</span> <span>microSD://FAT32/</span></div>
+<div class="files">
+<button class="file-btn" data-path-stage="2" id="nodeRoot"><span class="ficon">▣</span><span class="fileinfo"><b>Корень /</b><small>cluster 2 · LBA 17472</small></span></button>
+<div class="arrowpath">
+<button class="file-btn" data-path-stage="3" id="nodeFolder"><span class="ficon">▸</span><span class="fileinfo"><b>System Volume Information</b><small>directory · cluster 3 · LBA 17536</small></span></button>
+<div class="arrowpath">
+<button class="file-btn" data-path-stage="4" id="nodeFile"><span class="ficon">▤</span><span class="fileinfo"><b>IndexerVolumeGuid</b><small>file · cluster 4 · 76 байт</small></span></button>
+</div></div></div>
+<div class="filedetail" id="fileSelection">Выберите каталог или файл.</div>
+</div>
+<div class="panel">
+<h3>Как вычисляется LBA кластера</h3>
+<p class="muted small">Из BPB карты: начало области данных = <b>17472</b>, в кластере <b>64 сектора</b>. Кластеры №0 и №1 зарезервированы.</p>
+<div class="cluster-controls">
+<button class="cluster active" data-cluster="2">Cluster 2</button>
+<button class="cluster" data-cluster="3">Cluster 3</button>
+<button class="cluster" data-cluster="4">Cluster 4</button>
+</div>
+<pre class="math" id="clusterFormula">LBA(2) = 17472 + (2 - 2) × 64 = 17472</pre>
+<div class="geom">
+<div><small>Номер кластера</small><b id="geometryCluster">2</b></div>
+<div><small>Первый сектор LBA</small><b id="geometryLba">17472</b></div>
+<div><small>Объём кластера</small><b>32768 Б</b></div>
+</div>
+<p id="clusterDescription" class="notice" style="margin-top:15px">Корневой каталог.</p>
+</div>
+</div>
+
+<div class="section-head"><h2>03. Инспектор настоящего файла</h2><span class="small muted">Опционально · работает полностью офлайн</span></div>
+<div class="grid2">
+<div class="panel">
+<h3>Открыть <code>indexer_volume_guid.bin</code></h3>
+<p>HOST-02 сохранил на компьютере файл размером 76 байт. На видео можно загрузить его сюда и показать точную структуру без повторного обращения к FPGA.</p>
+<input class="input-file" type="file" id="fileUpload" accept=".bin,application/octet-stream" aria-label="Выберите локальный BIN-файл">
+<div id="fileStatus" class="notice" role="status" aria-live="polite" style="margin-top:13px">Файл пока не выбран. Подтверждённая по журналу структура: 76 байт UTF-16LE, строка GUID в фигурных скобках.</div>
+<label class="switch"><input type="checkbox" id="revealGuid"> Показывать полные байты и GUID на экране</label>
+<div class="viewer"><div id="hexViewer" class="mono" aria-label="HEX-дамп выбранного файла">7B 00 ····· [данные скрыты] ····· 7D 00</div></div>
+<p class="small muted" style="margin:12px 0 0">По умолчанию идентификатор скрыт, чтобы не публиковать уникальное значение тома в видео или скриншоте. Снятие флажка снова скрывает его.</p>
+</div>
+<div class="panel">
+<h3>Почему ровно 76 байт?</h3>
+<div class="math">GUID с фигурными скобками: 38 символов
+UTF-16LE для ASCII-символов: 2 байта на символ
+
+38 × 2 = 76 байт</div>
+<div class="twofacts" style="margin-top:13px">
+<div class="fact"><b>7B 00 = «{»</b><p>Первый символ UTF-16LE.</p></div>
+<div class="fact"><b>7D 00 = «}»</b><p>Последний символ UTF-16LE.</p></div>
+</div>
+<p class="muted small" style="margin-top:15px">В файловой записи указано <b>76 байт</b>, хотя выделенный кластер содержит <b>32768 байт</b>. Python берёт только первые 76 байт. Оставшаяся часть кластера не входит в содержимое файла.</p>
+<div id="decodeResult" class="result" role="status" aria-live="polite">Проверка локального файла станет доступна после его выбора. Без файла мы не выводим вымышленный GUID.</div>
+</div>
+</div>
+
+<div class="section-head"><h2>04. Что действительно подтверждено</h2></div>
+<div class="panel">
+<table class="table"><thead><tr><th>Испытание</th><th>Результат</th><th>Граница проверки</th></tr></thead>
+<tbody>
+<tr><td>HOST-01: чтение LBA 0, 64, 17472</td><td class="status-ok">PASS</td><td>512 байт, CRC16 передачи, 3/3</td></tr>
+<tr><td>HOST-02: FAT32 INFO</td><td class="status-ok">PASS</td><td>MBR + BPB, 2 секторных чтения</td></tr>
+<tr><td>HOST-02: корневой каталог</td><td class="status-ok">PASS</td><td>System Volume Information, 3 чтения</td></tr>
+<tr><td>HOST-02: подкаталог</td><td class="status-ok">PASS</td><td>IndexerVolumeGuid, 76 байт, 4 чтения</td></tr>
+<tr><td>HOST-02: локальное содержимое файла</td><td class="status-ok">PASS</td><td>HEX-дамп 76 байт, UTF-16LE GUID</td></tr>
+<tr><td>Большие файлы, запись, exFAT, стресс-тест</td><td class="status-bound">Не проверялось</td><td>Не входило в цель лаборатории</td></tr>
+</tbody></table>
+<div class="notice warn" style="margin-top:14px">Для извлечения файла в присланном журнале нет отдельной строки <code>HOST02_EXTRACT_PASS</code>: есть локальный HEX-дамп с подтверждёнными 76 байтами. Поэтому здесь не показывается вымышленный журнал этой команды, и не заявляется независимая сверка с картридером.</div>
+</div>
+<div class="section-head"><h2>05. Повторить на своей плате</h2></div>
+<div class="grid2-even">
+<div class="panel"><h3>Команды PowerShell</h3><pre class="code">python .\experiments\host02-fat32\tools\host02_fat32.py --port COM10 info
+
+python .\experiments\host02-fat32\tools\host02_fat32.py --port COM10 ls /
+
+python .\experiments\host02-fat32\tools\host02_fat32.py --port COM10 ls '/System Volume Information'
+
+python .\experiments\host02-fat32\tools\host02_fat32.py --port COM10 extract '/System Volume Information/IndexerVolumeGuid' --output 'indexer_volume_guid.bin' --max-bytes 128</pre></div>
+<div class="panel"><h3>Почему архитектура удачна</h3>
+<p>Плата передаёт сектора через <b>UART → FIFO → SDHC SPI</b> без знания о FAT32. Python получает ровно 512 байт, разбирает MBR, VBR, FAT и записи каталогов, вычисляет кластер и извлекает нужную длину файла.</p>
+<p class="muted">Можно совершенствовать парсер FAT32, не изменяя и не перепрошивая уже проверенную аппаратную часть. А замена UART на другой транспорт не должна менять правила FAT32.</p>
+<div class="notice ok"><b>HOST-02 завершена как учебный read-only эксперимент.</b> Следующий этап должен иметь отдельные критерии и не менять работающий HOST-01.</div>
+</div>
+</div>
+<footer>
+<p><b>Источник фактов:</b> протоколы и результаты аппаратных испытаний HOST-01/HOST-02 от 24.10.2026; см. <a href="../acceptance/HOST02_INFO_ROOT_ACCEPTANCE_2026-10-24.md">INFO/ROOT</a>, <a href="../acceptance/HOST02_SUBDIRECTORY_ACCEPTANCE_2026-10-24.md">подкаталог</a> и <a href="../acceptance/HOST02_FILE_CONTENT_ACCEPTANCE_2026-10-24.md">файл</a>. Фактические LBA файла вычислены из подтверждённой геометрии. Секторные счётчики из разных отдельных команд не суммируются в единое непрерывное измерение.</p>
+<p>Учебная интерактивная модель, не аппаратный эмулятор: браузер не использует COM-порт, не обращается к SD-карте и не передаёт содержимое загруженного BIN. HTML, CSS и JavaScript работают автономно, без внешних библиотек или сетевых запросов.</p>
+</footer>
+</main>
+<script>
+"use strict";
+(function(){
+ const stages=[
+  {code:"01 / MBR",title:"Где начинается раздел?",short:"MBR",subtitle:"LBA 0",explain:"Python запрашивает первый логический сектор microSD. По таблице разделов MBR он находит первый раздел типа 0x0B — FAT32. Раздел начинается не в нуле, а с LBA 64.",chips:["LBA 0","раздел 1","тип 0x0B","начало 64"],formula:"MBR: LBA 0 → PART=1, TYPE=0x0B\nPartitionStart = 64",log:"HOST02_FAT32_INFO_PASS PART=1 TYPE=0x0B START=64\nCLUSTERS=983007 SECTOR_READS=2",limit:"Вывод INFO включал два чтения: MBR и VBR. Это не журнал отдельного односекторного обращения к MBR.",evidence:"РЕАЛЬНЫЙ ЛОГ"},
+  {code:"02 / BPB",title:"Как устроен том FAT32?",short:"VBR",subtitle:"LBA 64",explain:"В загрузочном секторе FAT32 Python читает BPB: размер сектора, число секторов на кластер, FAT и корневой кластер. Теперь он способен вычислять адреса будущих чтений.",chips:["512 байт/сектор","64 сектора/кластер","FAT: LBA 2112","DATA: 17472"],formula:"DataStart = 64 + 2048 + 2 × 7680 = 17472\nClusterBytes = 512 × 64 = 32768",log:"SECTOR=512 CLUSTER_SECTORS=64 CLUSTER_BYTES=32768\nFAT0_LBA=2112 DATA_LBA=17472 ROOT_CLUSTER=2 ROOT_LBA=17472",limit:"Это подтверждённые поля BPB с нашей microSD. Поддержка произвольных FAT32-томов требует отдельных испытаний.",evidence:"РЕАЛЬНЫЙ ЛОГ"},
+  {code:"03 / ROOT",title:"Находим папку по длинному имени",short:"ROOT",subtitle:"cluster 2",explain:"Корневой каталог лежит в кластере 2. Из 32-байтовых каталожных записей, включая VFAT LFN, Python восстанавливает имя «System Volume Information» и узнаёт, что эта папка начинается с кластера 3.",chips:["кластер 2","LBA 17472","LFN → имя","папка → кластер 3"],formula:"LBA(root) = 17472 + (2−2) × 64 = 17472",log:"DIR  CL=00000003 SIZE=         0 NAME=System Volume Information\nHOST02_LIST_PASS PATH=/ ENTRIES=1 SECTOR_READS=3",limit:"Счётчик 3 относится к отдельной команде ls /. Имя подтверждено выводом программы, а не выдуманной моделью.",evidence:"РЕАЛЬНЫЙ ЛОГ"},
+  {code:"04 / DIR",title:"Заходим в подкаталог",short:"DIR",subtitle:"cluster 3",explain:"Python вычисляет начало следующего каталога и читает его. Находит обычный файл IndexerVolumeGuid: размер 76 байт и первый кластер 4.",chips:["кластер 3","LBA 17536","IndexerVolumeGuid","76 байт / cluster 4"],formula:"LBA(dir) = 17472 + (3−2) × 64 = 17536",log:"FILE CL=00000004 SIZE=        76 NAME=IndexerVolumeGuid\nHOST02_LIST_PASS PATH=/System Volume Information ENTRIES=1 SECTOR_READS=4",limit:"Четыре секторных чтения подтверждены для отдельной команды ls подкаталога. Данные файла ещё не входили в этот счётчик.",evidence:"РЕАЛЬНЫЙ ЛОГ"},
+  {code:"05 / FILE",title:"Читаем содержимое файла",short:"FILE",subtitle:"cluster 4",explain:"Для первого кластера файла Python вычисляет LBA 17600. Поскольку размер всего 76 байт, достаточно первых 76 байт соответствующего 512-байтового сектора. По локальному HEX-дампу они образуют UTF-16LE строку GUID.",chips:["кластер 4","LBA 17600","76 из 512 байт","UTF-16LE GUID"],formula:"LBA(file) = 17472 + (4−2) × 64 = 17600\nПервые 76 байт файла = 38 символов UTF-16LE",log:"Format-Hex -Path .\\indexer_volume_guid.bin\nOffset 00: 7B 00 ... [GUID скрыт]\nOffset 40: ... 7D 00\n76 байт = 38 × 2 (UTF-16LE)",limit:"Это краткое обезличенное изложение локального HEX-дампа, НЕ дословный вывод команды extract. Строка HOST02_EXTRACT_PASS не была предоставлена.",evidence:"HEX-ФАЙЛ НА ПК"}
+ ];
+ const $=id=>document.getElementById(id);
+ let index=0;
+ let bytes=null,decoded=null,isValid=false;
+ const CLUSTER_START=17472,CLUSTER_SIZE=64;
+ function lba(cluster){
+  if(!Number.isInteger(cluster)||cluster<2)throw new RangeError("Cluster must be >=2");
+  return CLUSTER_START+(cluster-2)*CLUSTER_SIZE;
+ }
+ const guidPattern=/^\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\}$/;
+ function validGuidString(text){return guidPattern.test(text);}
+ function parseFile(buffer){
+  let arr=new Uint8Array(buffer);
+  if(arr.length!==76)throw new Error("Нужен BIN длиной ровно 76 байт, полученный из IndexerVolumeGuid.");
+  let text=new TextDecoder("utf-16le",{fatal:true}).decode(arr);
+  if(!validGuidString(text))throw new Error("76 байт получены, но строка не соответствует ожидаемому UTF-16LE GUID.");
+  return{text,bytes:arr};
+ }
+ function setIndex(n){
+  index=Math.max(0,Math.min(stages.length-1,n));
+  const s=stages[index];
+  document.querySelectorAll(".stage").forEach((b,i)=>b.setAttribute("aria-current",i===index?"step":"false"));
+  $("stageLabel").textContent=s.code;$("stageTitle").textContent=s.title;
+  $("stageExplanation").textContent=s.explain;
+  $("stageChips").replaceChildren(...s.chips.map(v=>{let x=document.createElement("span");x.className="chip";x.textContent=v;return x;}));
+  $("stageMath").textContent=s.formula;
+  $("stageLog").textContent=s.log;
+  $("stageEvidence").textContent=s.evidence;
+  $("stageEvidence").className="badge"+(index===4?" estimate":"");
+  $("stageLimit").textContent=s.limit;
+  $("stageCount").textContent=(index+1)+" / "+stages.length;
+  $("prevStage").disabled=index===0;$("nextStage").disabled=index===stages.length-1;
+  document.querySelectorAll("[data-path-stage]").forEach(b=>b.classList.toggle("selected",Number(b.dataset.pathStage)===index));
+  if(index>=2)selectCluster(index);
+ }
+ function setupStages(){
+  $("stageButtons").replaceChildren(...stages.map((s,i)=>{
+   let b=document.createElement("button");
+   b.className="stage";b.type="button";
+   b.innerHTML="<b>"+String(i+1).padStart(2,"0")+"</b><span>"+s.short+"</span><small>"+s.subtitle+"</small>";
+   b.addEventListener("click",()=>setIndex(i));
+   return b;
+  }));
+  $("prevStage").addEventListener("click",()=>setIndex(index-1));
+  $("nextStage").addEventListener("click",()=>setIndex(index+1));
+  $("resetStages").addEventListener("click",()=>setIndex(0));
+  document.querySelectorAll("[data-path-stage]").forEach(b=>b.addEventListener("click",()=>setIndex(Number(b.dataset.pathStage))));
+  setIndex(0);
+ }
+ function selectCluster(n){
+  if(n<2||n>4)throw new RangeError("Demo cluster must be 2, 3 or 4");
+  document.querySelectorAll("[data-cluster]").forEach(b=>b.classList.toggle("active",Number(b.dataset.cluster)===n));
+  $("geometryCluster").textContent=String(n);
+  $("geometryLba").textContent=String(lba(n));
+  $("clusterFormula").textContent="LBA("+n+") = "+CLUSTER_START+" + ("+n+" − 2) × "+CLUSTER_SIZE+" = "+lba(n);
+  $("clusterDescription").textContent=({
+   2:"Корневой каталог. В его первом секторе найдено длинное имя System Volume Information.",
+   3:"Сектор подкаталога. В нём найдена запись IndexerVolumeGuid: кластер 4, длина 76 байт.",
+   4:"Первый кластер найденного файла. Для 76 байт достаточно одного сектора LBA 17600."
+  })[n];
+  $("fileSelection").textContent=({
+   2:"Выбран корень / → cluster 2 → первый LBA 17472.",
+   3:"Выбран /System Volume Information → cluster 3 → первый LBA 17536.",
+   4:"Выбран /System Volume Information/IndexerVolumeGuid → cluster 4 → первый LBA 17600 → длина файла 76 байт."
+  })[n];
+ }
+ function fileView(){
+  const reveal=$("revealGuid").checked;
+  if(!bytes){$("hexViewer").textContent="7B 00 ····· [GUID не встроен в страницу] ····· 7D 00";$("decodeResult").textContent="Проверка локального файла станет доступна после его выбора. Демонстрация сама не содержит ваш идентификатор.";return;}
+  if(!reveal){
+   $("hexViewer").textContent="7B 00 ····· [скрыто "+(bytes.length-4)+" байта] ····· 7D 00";
+   $("decodeResult").textContent="Файл проверен: длина 76 байт, UTF-16LE, 38 символов, формат GUID корректен. Полное содержимое скрыто.";
+   return;
+  }
+  let lines=[];
+  for(let i=0;i<bytes.length;i+=16){
+   let segment=bytes.slice(i,i+16);
+   let hex=Array.from(segment,v=>v.toString(16).toUpperCase().padStart(2,"0")).join(" ");
+   let chars=Array.from(segment).filter((_,k)=>k%2===0).map(v=>(v>=32&&v<=126)?String.fromCharCode(v):".").join("");
+   lines.push(i.toString(16).toUpperCase().padStart(4,"0")+"  "+hex.padEnd(47)+"  "+chars);
+  }
+  $("hexViewer").textContent=lines.join("\n");
+  $("decodeResult").textContent="UTF-16LE: "+decoded+"\nДлина: 76 байт, формат GUID подтверждён. Эта информация отображается только локально.";
+ }
+ async function handleUpload(event){
+  const file=event.target.files&&event.target.files[0];
+  if(!file)return;
+  bytes=null;decoded=null;isValid=false;
+  $("revealGuid").checked=false;
+  if(file.size!==76){
+   $("fileStatus").className="notice warn";
+   $("fileStatus").textContent="Файл "+file.name+": "+file.size+" байт. Ожидалось 76. Данные не приняты.";
+   fileView();return;
+  }
+  try{
+   let parsed=parseFile(await file.arrayBuffer());
+   bytes=parsed.bytes;decoded=parsed.text;isValid=true;
+   $("fileStatus").className="notice ok";
+   $("fileStatus").textContent="Локальный файл принят: "+bytes.length+" байт · UTF-16LE GUID PASS. Его байты не передаются в интернет.";
+  }catch(e){
+   $("fileStatus").className="notice warn";
+   $("fileStatus").textContent="Локальная проверка не прошла: "+e.message;
+  }
+  fileView();
+ }
+ document.querySelectorAll("[data-cluster]").forEach(b=>b.addEventListener("click",()=>selectCluster(Number(b.dataset.cluster))));
+ $("fileUpload").addEventListener("change",handleUpload);
+ $("revealGuid").addEventListener("change",fileView);
+ setupStages();selectCluster(2);fileView();
+ window.HOST02Demo={getStep:()=>index,getStepCount:()=>stages.length,goTo:setIndex,clusterToLBA:lba,validGuidString,parseFile,hasAcceptedLocalFile:()=>isValid};
+})();
+</script>
+</body>
+</html>
