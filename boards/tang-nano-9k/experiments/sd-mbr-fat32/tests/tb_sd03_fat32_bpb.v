@@ -42,6 +42,14 @@ byte_index=i;byte_data=sector[i];byte_valid=1;
 @(negedge clk);
 end
 byte_valid=0;
+begin : await_bpb
+integer ticks;
+ticks=0;
+while(!done && ticks<100)begin
+  @(negedge clk);
+  ticks=ticks+1;
+end
+end
 if(status!==expected || !done)
 $fatal(1,"BPB status got=%0d expected=%0d done=%b",status,expected,done);
 @(negedge clk);

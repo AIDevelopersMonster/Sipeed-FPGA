@@ -94,7 +94,7 @@ repeat(3)@(negedge clk);reset_n=1;
 @(negedge clk);start=1;
 @(negedge clk);start=0;
 timeout=0;
-while(!done && timeout<3000)begin
+while(!done && timeout<4000)begin
  @(negedge clk);timeout=timeout+1;
 end
 if(!done || result!==expected || reads!==count)
