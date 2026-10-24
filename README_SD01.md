@@ -14,3 +14,7 @@ SD-01 не требует процессора RISC-V/PicoRV32. FPGA выпол�
 - [SD and microSD on FPGA — DOI: 10.5281/zenodo.23608853](https://doi.org/10.5281/zenodo.23608853)
 
 Original PDF/English Markdown editions: [docs/education](docs/education/README.md). Source code remains independent of the publication metadata.
+
+## SD-02.1: аппаратное чтение четырёх секторов
+
+Следующая независимая лаборатория получила аппаратный функциональный PASS на Tang Nano 9K (LBA 0, 1, 2048, 65541; CRC16; без CPU, FAT32 и записи на карту). [Исходники и протокол SD-02](boards/tang-nano-9k/experiments/sd-multilba/README.md) · [Видео аппаратного испытания](https://youtu.be/KdMJc_Ly7fQ). SD-01 сохраняется неизменным.

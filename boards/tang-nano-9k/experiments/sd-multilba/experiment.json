@@ -31,5 +31,9 @@
   "host_bytewise_crosscheck": false,
   "fat32_implemented": false,
   "embedded_cpu_used": false,
-  "timing_scope": "internal STA only; SD I/O MISO external delay not characterized"
+  "timing_scope": "internal STA only; SD I/O MISO external delay not characterized",
+  "video_url": "https://youtu.be/KdMJc_Ly7fQ",
+  "video_provenance": "author_provided_link",
+  "video_independently_verified": false,
+  "latest_ci_verified_run": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/actions/runs/40063637062"
 }

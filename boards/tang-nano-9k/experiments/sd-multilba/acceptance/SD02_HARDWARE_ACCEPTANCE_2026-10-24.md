@@ -16,6 +16,11 @@ Source: operator-supplied Gowin reports, SRAM programmer output, and UART termin
 - Hardware UART: 115200 baud, 8N1, after FPGA reset.
 - Local Gowin source manifest and full PnR reports were retained by the operator and not uploaded as part of this text-only receipt.
 
+## Author's video record
+
+- **Video supplied by the experiment author:** [SD-02.1 — FPGA microSD multi-LBA hardware demonstration](https://youtu.be/KdMJc_Ly7fQ).
+- Recorded as a complementary demonstration link; the URL itself has not been independently reviewed against the local bitstream and terminal output. The verbatim UART capture below remains the primary record of the operator-reported run.
+
 ## Physical UART capture — verbatim
 
 ```text

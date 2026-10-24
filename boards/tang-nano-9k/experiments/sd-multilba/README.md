@@ -13,6 +13,8 @@ From the repository root:
 **Status (24 October 2026): HARDWARE FUNCTIONAL PASS for the defined four-LBA read-only experiment.** Icarus simulation, Gowin build, internal STA, SRAM programming, and operator-reported UART all passed. See [hardware acceptance receipt](acceptance/SD02_HARDWARE_ACCEPTANCE_2026-10-24.md) and [verbatim UART log](acceptance/SD02_UART_2026-10-24.txt). No FAT32 or PiKoSoL integration is claimed. Preserve the previously published SD-01 unchanged.
 
 
+**Видео аппаратного испытания SD-02.1 (ссылка автора):** [YouTube — Tang Nano 9K, четыре LBA, CRC16, UART HARDWARE PASS](https://youtu.be/KdMJc_Ly7fQ).
+
 ## FPGA hardware probe candidate (SD-02.1)
 
 The independent `sd02_multilba_probe_top` is now included. It runs **without PicoRV32** and makes four read-only CMD17 requests: LBA 0, 1, 2048 and 65541. For each successful sector, it independently recomputes **CRC16/CCITT over all 512 bytes read back from BSRAM** and sends:
