@@ -49,3 +49,7 @@ Expected final marker: `UART_CORE_SIM_PASS: TX, RX and independent loopback`.
 **Boundaries:** This core is serial-byte transport only. FIFO buffering, packet framing, CRC, HELLO/Python host protocol and SDHC commands belong to other independent modules. We do not add them here. Before introducing it into a new hardware top, independently review Gowin PnR/STA and board IO.
 
 [LAB-02 physical bidirectional UART precedent](../../../docs/LAB02_UART_RX_RU.md).
+
+## Интерактивная учебная страница
+
+[**UART 8N1: интерактивный кадр, биты START/D0…D7/STOP и диаграмма TXD**](demo/index.html). Страница работает офлайн; показывает LSB-first, расчетный baud divider при 27 MHz и 115200 бод, а также прием / framing error. Реальный факт HOST-00.1 — три физических ответа `HELLO` через COM10 — отделён от браузерной симуляции.
