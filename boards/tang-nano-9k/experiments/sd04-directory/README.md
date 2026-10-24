@@ -1,6 +1,6 @@
 # SD-04.2 — Read-only FAT32 first root directory sector on Tang Nano 9K
 
-**Status (2026-10-24): RTL SIM PASS and full FPGA top compilation PASS; Gowin PnR/STA and actual microSD hardware tests PENDING.**
+**Status (2026-10-24): operator-confirmed HARDWARE FUNCTIONAL PASS for read-only FAT32 first root-sector decoding, following RTL SIM PASS, Gowin PnR and internal STA PASS.**
 
 ## Architecture: additive, not a controller rewrite
 
@@ -10,7 +10,7 @@ Reuse the immutable, byte-for-byte SD-02 core source from `../../cores/sdhc-spi-
 - `sd04_uart_report.v`: print fixed-width hexadecimal UART status and entries. Raw 8.3 name is shown as 8+dot+3 characters; spaces are not trimmed, and any non-printable raw byte is shown as a question mark.
 - `sd04_directory_probe_top.v`: MBR→VBR scan, then read the **computed** root LBA via an additional CMD17 (no hardcoded production LBA), stream the 512-byte synchronous BSRAM buffer through the entry parser, and emit records via UART.
 
-There is **no embedded CPU, no FAT updates, no SD writes, no configuration-Flash operations**. The card from SD-03 indicated **root LBA 17472**, but SD-04 has **not physically read it yet**.
+There is **no embedded CPU, no FAT updates, no SD writes, no configuration-Flash operations**. The card from SD-03 indicated **root LBA 17472**, and SD-04 has now **physically read and decoded its first root directory sector**.
 
 The first root directory sector holds up to **16 directory entries of 32 bytes**. This implementation stops at the first unused entry `0x00` or after all sixteen entries. It does not yet follow directory cluster chains, open files or reconstruct long file names; LFN fragments are counted and skipped. It is deliberately limited to one root directory sector.
 
@@ -37,7 +37,19 @@ The script snapshots all Verilog sources, core sources, constraints and the buil
 
 The physical interface is unchanged from SD-03: Tang Nano 9K, clock 27 MHz, SD SPI approximately 211 kHz, SD SCK pin 36, MOSI 37, CS 38, MISO 39, UART TX pin 17, reset S2 pin 3; UART **115200 8N1**.
 
-## Expected UART record types (examples, not observed hardware)
+## Actual SD-04.2 UART hardware receipt
+
+[Complete physical hardware acceptance](acceptance/SD04_HARDWARE_ACCEPTANCE_2026-10-24.md) · [verbatim terminal output](acceptance/SD04_UART_2026-10-24.txt)
+
+```text
+SD04 ROOT=00004440 VOL=00000040 FAT=00000840 E=00
+SD04 IDX=02 K=D NAME=SYSTEM~1.    A=16 CL=00000003 SZ=00000000
+SD04 END FILE=00 DIR=01 LFN=02 SKIP=00 STOP=01
+```
+
+The actual card's first root-directory sector contains two LFN fragments and one hidden/system directory (`SYSTEM~1`, cluster 3), then an end marker. The complete Unicode long name is *not* reconstructed, and no file data or subdirectory clusters were read. `E=00` indicates no SD-controller-reported read error. The first line of the operator's combined log is a prior SD-03 report, not SD-04 output.
+
+## Synthetic UART record types (examples from testbench, not physical capture)
 
 ```text
 SD04 ROOT=00004440 VOL=00000040 FAT=00000840 E=00
@@ -53,3 +65,7 @@ The testbench uses **synthetic directory entries**. The real card's file names a
 **First gate:** run local regression, then Gowin PnR/STA and hash verification. **Second gate:** explicitly program only *volatile SRAM* using the independently verified prior LAB-04 Gowin programmer helper, not configuration Flash. **Third gate:** capture the complete UART line(s) from the actual microSD. Preserve the log verbatim for hardware acceptance.
 
 [SD-03 UART hardware receipt](../sd-mbr-fat32/acceptance/SD03_HARDWARE_ACCEPTANCE_2026-10-24.md) · [SD-03 video](https://youtu.be/BhSR5UGi3A8) · [shared SDHC core](../../cores/sdhc-spi-readonly/v1/README.md).
+
+## Engineering status after hardware acceptance
+
+The SHA-verified bitstream `4757572F373B807862BC02F117EC4B33C4B8CE491DE3218D098F3809E0B1A9BA` passed internal STA (0 setup/hold violations, both TNS=0, worst shown setup slack +15.329 ns). New RTL changes require a new STA gate. No change was made to SD-02, SD-03, PiKoSoL or the frozen shared SDHC core. The next work package is LFN decoding and then read-only cluster traversal.
