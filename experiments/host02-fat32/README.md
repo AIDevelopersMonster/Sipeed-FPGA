@@ -38,3 +38,7 @@ python .\experiments\host02-fat32\tools\host02_fat32.py --port COM10 ls '/System
 ```
 
 The parser's per-command sector-read safety limit is 256. Continue to regular-file content only if a small real file is found; do not invent file names or modify the card.
+
+## Subdirectory hardware acceptance (2026-10-24)
+
+[Read the subdirectory acceptance receipt](acceptance/HOST02_SUBDIRECTORY_ACCEPTANCE_2026-10-24.md). The real card contains `/System Volume Information/IndexerVolumeGuid`, a **76-byte ordinary file** whose first cluster is 4. `HOST02_LIST_PASS ... ENTRIES=1 SECTOR_READS=4` was observed on COM10. Nested-directory traversal is physically confirmed; **file data has not yet been extracted**. The next bounded test reads this file only, using `extract` with `--max-bytes 128` and a new PC-side output file. The accepted FPGA bitstream remains unchanged.
