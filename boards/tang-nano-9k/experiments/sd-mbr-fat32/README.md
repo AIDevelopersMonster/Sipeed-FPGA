@@ -25,3 +25,11 @@ This lab is intentionally independent of PiKoSoL v0.2.0, and never writes SD or 
 A second independent Verilog module, `rtl/sd03_fat32_bpb.v`, verifies a 512-byte VBR/BPB byte stream, rejects mismatched sector sizes, invalid cluster geometry, oversized volumes, undersized FATs, invalid signatures and exFAT. It computes first FAT/data/root cluster LBAs using wide arithmetic. The testbench includes a superfloppy VBR at LBA0; **this is not yet automatic MBR-vs-superfloppy detection**. Neither module is wired to SD-02 hardware in this revision.
 
 The CI gate now runs MBR and BPB self-checking testbenches. A complete SD-03 physical acceptance requires a BSRAM streaming bridge, a scheduler for the follow-up CMD17 and real-board results. Documented outputs are design candidates, not automatically certified filesystems.
+
+## SD-03.3 — two-stage BSRAM scanner (RTL candidate)
+
+`sd03_volume_scanner.v` is the first *control-logic connection* to the SD-02 sector-reader interface: `sd_start`, `sd_lba`, `sd_done`, `sd_error`, 512-byte synchronous `peek_addr/peek_data`. It streams LBA0 through the MBR and BPB validators. If a FAT32 MBR candidate is found, the scanner requests its boot-sector LBA via a second CMD17 and validates BPB. If no candidate MBR exists, it accepts a standalone FAT32 BPB in LBA0 as a superfloppy. Protective GPT returns an explicit unsupported status.
+
+The scanner presently is **a compile-checked integration candidate, not a tested SD-03 hardware top**. The full read-back scanner must still receive a behavioral SD card-model acceptance test and a synthesizable Tang Nano 9K UART probe before physical board acceptance. There is no FAT entry lookup, directory traversal, file opening or writing.
+
+Pass order: MBR RTL test, BPB RTL test, scanner compile, integrated behavioral test (PENDING), Gowin PnR/STA (PENDING), board UART (PENDING).
