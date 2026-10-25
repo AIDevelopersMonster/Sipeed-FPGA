@@ -35,3 +35,14 @@ jobs:
             "$d/rtl/sd06_cmd24_engine.v" "$d/tests/tb_sd06_cmd24.v"
           vvp /tmp/sd06_cmd24_tb.vvp | tee /tmp/sd06_cmd24.log
           grep -q SD06_CMD24_BYTE_MODEL_ALL_PASS /tmp/sd06_cmd24.log
+      - name: Full UART and SDHC read/write mock regression
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments
+          iverilog -g2005 -s tb_sd06_rw_uart -o /tmp/sd06_rw_uart_tb.vvp \
+            "$d/sd06-cmd24/rtl/sd06_rw_bridge_top.v" \
+            "$d/sd-mbr-fat32/rtl/uart_tx_8n1.v" \
+            "$d/sd05-lba-bridge/rtl/uart_rx_8n1.v" \
+            "$d/sd06-cmd24/tests/tb_sd06_rw_uart.v"
+          vvp /tmp/sd06_rw_uart_tb.vvp | tee /tmp/sd06_rw_uart.log
+          grep -q SD06_RW_UART_INTEGRATION_PASS /tmp/sd06_rw_uart.log
