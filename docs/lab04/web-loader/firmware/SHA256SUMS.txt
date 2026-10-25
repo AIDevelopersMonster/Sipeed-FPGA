@@ -1,1 +1,2 @@
 6862c034715dbf557c93c8f8af8d8aa856ca8f4e62997660cea9740f3efda356  picorv32_lab04_hdmi_nano9k.fs
+37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b  sd08_pikosol_fat32_readonly.fs
