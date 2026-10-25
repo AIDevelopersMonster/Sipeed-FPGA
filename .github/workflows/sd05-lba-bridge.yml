@@ -1,0 +1,40 @@
+name: SD-05 LBA bridge simulation
+on:
+  push:
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd05-lba-bridge/**'
+      - '.github/workflows/sd05-lba-bridge.yml'
+  pull_request:
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd05-lba-bridge/**'
+      - '.github/workflows/sd05-lba-bridge.yml'
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Python protocol regression
+        run: python -m unittest discover -s boards/tang-nano-9k/experiments/sd05-lba-bridge/tests -p 'test_*.py' -v
+      - name: Production top compile with real SDHC module
+        run: |
+          set -euo pipefail
+          exp=boards/tang-nano-9k/experiments
+          iverilog -g2005 -s sd05_lba_bridge_top -o /tmp/sd05_prod.vvp \
+            "$exp/sd-mbr-fat32/rtl/spi_byte.v" \
+            "$exp/sd-mbr-fat32/rtl/sd_read_sector.v" \
+            "$exp/sd-mbr-fat32/rtl/uart_tx_8n1.v" \
+            "$exp/sd05-lba-bridge/rtl/uart_rx_8n1.v" \
+            "$exp/sd05-lba-bridge/rtl/sd05_lba_bridge_top.v"
+      - name: UART end-to-end test with mock SDHC module
+        run: |
+          set -euo pipefail
+          exp=boards/tang-nano-9k/experiments
+          iverilog -g2005 -s tb_sd05_uart_bridge -o /tmp/sd05_tb.vvp \
+            "$exp/sd-mbr-fat32/rtl/uart_tx_8n1.v" \
+            "$exp/sd05-lba-bridge/rtl/uart_rx_8n1.v" \
+            "$exp/sd05-lba-bridge/rtl/sd05_lba_bridge_top.v" \
+            "$exp/sd05-lba-bridge/tests/tb_sd05_uart_bridge.v"
+          vvp /tmp/sd05_tb.vvp | tee /tmp/sd05_tb.log
+          grep -q SD05_UART_BRIDGE_TB_PASS /tmp/sd05_tb.log
