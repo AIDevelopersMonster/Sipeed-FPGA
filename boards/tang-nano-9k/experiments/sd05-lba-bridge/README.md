@@ -1,8 +1,7 @@
 # SD-05 — Python-controlled arbitrary LBA reader (host protocol seed)
 
-**STATUS: Python protocol reference and offline unit tests only.**
-No UART RX RTL, pin changes, Gowin build, SRAM programming or SD writes
-have been implemented or validated for SD-05.
+**STATUS: exploratory RTL + Python reference, neither integrated UART transaction simulation nor Gowin STA nor physical qualification completed.**
+UART RX and FPGA CMD17 bridge sources, independent CST, Python serial client and Gowin build scripts are present but have **not** passed hardware acceptance. Do NOT program the resulting bitstream without further qualification. No SD writes.
 
 The frozen SD-04 bitstream still reads its first FAT32 root sector
 autonomously. It cannot receive the SD-05 commands.
@@ -25,3 +24,33 @@ Architecture: [SD-05 protocol, pin and test gates](../sd04-directory/SD05_BLOCK_
 **Next gate:** verify the physical UART RX electrical route from the Tang Nano 9K
 schematic and the exact pin/bank before adding any Verilog RX module. Preserve
 the established SD-04 SRAM candidate and its sector SHA-256.
+
+## Experimental bridge build (NOT a board programming authorization)
+
+The current SD-05 prototype accepts one read-only 9-byte request and sends
+523-byte success or 10-byte error replies with CRC16. Its UART receive pin
+is FPGA **pin 18**, LVCMOS33, paired with UART TX on pin 17, consistent with
+the Tang Nano 9K schematic. The SD-03 pins 36/37/38/39 stay unchanged.
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git pull --ff-only
+.\boards\tang-nano-9k\experiments\sd05-lba-bridge\test.ps1
+.\boards\tang-nano-9k\experiments\sd05-lba-bridge\build.ps1
+```
+
+`test.ps1` currently checks the Python protocol and **RTL compilation only**;
+it does NOT yet simulate a UART request through the real RX into the SD
+controller and back to UART TX. A compiled design is not proof of correct
+serial protocol or response sequencing. A full directed mock-SD UART
+simulation and STA report gate must be added/passed before **any** SRAM-only
+experiment. The built `.fs` is **not qualified** for programming at this stage.
+
+After those gates and explicit SRAM programming, a read-only PC example will be:
+
+```powershell
+python .\boards\tang-nano-9k\experiments\sd05-lba-bridge\tools\sdtool.py --port COM10 --lba 17472 --out root_sd05.bin
+```
+
+This command is not suitable for the **SD-04** bitstream, which emits a
+one-shot HEX frame and cannot understand the SD-05 binary requests.
