@@ -84,3 +84,13 @@ python $fat --port COM10 get '/EXAMPLE.TXT' '.\sd05_example_copy.txt'
 no hardware listing or file-copy PASS is claimed before operator logs. This
 does not certify arbitrary FAT32 variants, damaged media recovery, file
 allocation/write operations, or memory-mapped FPGA filesystem hardware.
+
+## SD-05.2: synthetic multicluster verification (not hardware acceptance)
+
+The new tests/test_fat32_multicluster.py models 64-sector (32-KiB) clusters, a fragmented 3-to-7 FAT chain, a 32-KiB+1025-byte file, directory sector boundaries, FAT loops, truncation and safety limits. Run the full Python test suite from the repository root:
+
+    python -m unittest discover -s .\boards\tang-nano-9k\experiments\sd05-lba-bridge\tests -p test_*.py -v
+
+This uses no serial port or card. A physical multicluster PASS still requires a separate pre-prepared test card containing a suitable known file and independent hash; the currently accepted microSD only exposed a 76-byte file. The existing accepted SD-05 FPGA bitstream is unchanged.
+
+See the separate SD-06 CMD24 design gates at ../sd06-cmd24/README.md. No write-capable RTL has been enabled.
