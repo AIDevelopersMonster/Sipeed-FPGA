@@ -1,6 +1,6 @@
 # SD-05.2 hardware multi-cluster read — operator evidence, 25 October 2026
 
-**VERDICT: physical multi-cluster read PASS on second FAT32 SDHC card, through unchanged SD-05 FPGA bitstream and Python file reader. Fragmentation unknown until FAT chain audit.**
+**VERDICT: physical multi-cluster read PASS on second FAT32 SDHC card using five CONTIGUOUS clusters 6,7,8,9,10; zero FAT discontinuities. Fragmented physical chain remains untested.**
 
 Operator reloaded volatile SRAM with the SD-05 bitstream; Gowin Programmer reported 100% and exit 0.
 
@@ -30,3 +30,8 @@ SHA-256 exactly matches the previously prepared reference binary. The file cross
 To distinguish contiguous from fragmented, run read-only `tools/fat_chain_audit.py --port COM10 --path /SD052.BIN` and record cluster numbers and discontinuities. Do not modify the original SD-05 card, FPGA Flash or the bitstream.
 
 **Disposition:** SD-05.2 multi-cluster hardware read accepted; FAT fragmentation determination pending.
+
+
+### Follow-up — superseded by canonical detailed receipt
+
+The operator's read-only FAT audit confirmed `SD052_CLUSTER_SEQUENCE: 6,7,8,9,10`, `DISCONTINUITIES=0`, and `SD052_CHAIN_PASS`. The file was contiguous. See canonical `SD052_HARDWARE_MULTICLUSTER_2026-10-25.md` for the authoritative final status. This shorter preliminary receipt is retained for traceability, not a separate lab result.
