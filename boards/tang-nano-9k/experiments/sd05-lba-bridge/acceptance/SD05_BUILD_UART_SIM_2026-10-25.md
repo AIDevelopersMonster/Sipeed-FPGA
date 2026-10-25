@@ -1,6 +1,6 @@
 # SD-05 — build + integrated UART simulation checkpoint (25 October 2026)
 
-**VERDICT: Python protocol PASS, production RTL compilation PASS, end-to-end UART behavioural simulation PASS, and Gowin BUILD PASS. Numerical STA and physical operation remain unverified. DO NOT program yet.**
+**CURRENT VERDICT (25 October 2026): operator-confirmed SD-05 HARDWARE FUNCTIONAL PASS for read-only CMD17 arbitrary LBA requests (0, 64, 17472), valid 512-byte CRC-framed UART responses, and exact SHA-256 agreement with SD-04 ROOT. Internal 27 MHz STA PASS. PC independent sector comparison, full FAT32 metadata validation, and multi-card testing are still pending.**
 
 ## Build identity (operator terminal report)
 
@@ -39,7 +39,7 @@ SD05_OFFLINE_GATE_PASS: Python + RTL + UART end-to-end simulation
    - Recovery and another full sector response with no extra bytes.
 4. The initial duplicate-module compilation failure was corrected by compiling the real SD core in a **separate** production RTL gate and using the mock only for the UART behaviour test.
 
-## Remaining gates (strict)
+## Historical pre-programming gates (subsequently completed where documented below)
 
 - **STA:** inspect the exact `*_tr_content.html` from this build for 27 MHz setup/hold violation counts, slack, TNS, unconstrained paths and clock definitions; check logic/FF/BSRAM against the `*.rpt.txt`. External UART RX and SD MISO IO timing still need explicit assessment.
 - **Provenance:** compare the .fs SHA-256 on disk with the value recorded above. The existing candidate was built before the test-only build-list correction; no production RTL changes were made as part of that fix.
@@ -51,7 +51,7 @@ SD05_OFFLINE_GATE_PASS: Python + RTL + UART end-to-end simulation
 
 ## Internal STA acceptance from operator-supplied original Gowin HTML
 
-**STATUS: INTERNAL STA PASS at 27.000 MHz for the exact run above; hardware NOT YET TESTED.**
+**STATUS AT STA REVIEW: INTERNAL STA PASS at 27.000 MHz for the exact run above. Subsequent operator-supplied physical results appear below.**
 
 - Primary evidence: uploaded `sd05_lba_bridge_nano9k_tr_content.html` from local
   `run_20261025_060319_470_56880c/work/impl/pnr`, created 2026-10-25
@@ -94,3 +94,62 @@ SD card contents.
 
 No FPGA programming, resource report verification, or physical SD05
 read test is represented as completed by this document change.
+
+
+## Operator-confirmed physical SD-05 readback — 25 October 2026
+
+**Acceptance: HARDWARE READ-ONLY MULTI-LBA PASS on one Tang Nano 9K and one SD card.**
+
+Three invocations of `tools/sdtool.py` on **COM10 at 115200 8N1**
+successfully returned 512-byte sectors. The host validates length,
+frame magic, echoed sequence and LBA, success status and CRC16-CCITT-FALSE
+before reporting `SD05_READ_PASS` and saving the binary. The outputs were:
+
+| Requested absolute LBA | Local capture | Host sector SHA-256 | Protocol |
+|---:|---|---|---|
+| 0 | `sd05_mbr.bin` | `6CAC3744FFD5A7FA579AED8667A763E11C186FDF666F8536FEC69EFFAEA9F586` | PASS / 512 B |
+| 64 | `sd05_vbr.bin` | `2205E5F07ED9FBCEA8FAED3363CF35B22D198139072285C6834C282A854D05FC` | PASS / 512 B |
+| 17472 | `sd05_root.bin` | `A545DFF293AE619D471BB8E97311DF4004D2FF01AF0DFA2EA2205469E45BEF7F` | PASS / 512 B |
+
+Operator also ran `Get-FileHash .\sd05_root.bin -Algorithm SHA256`
+and obtained the identical root SHA-256. The root hash exactly
+matches the **independently written SD-04 one-shot root-sector reader**
+on the previously captured card:
+`A545DFF293AE619D471BB8E97311DF4004D2FF01AF0DFA2EA2205469E45BEF7F`.
+The hash agreement is strong evidence of consistent physical SD
+reads through two different FPGA designs, **not** an independent PC
+block-device capture.
+
+### Exact terminal receipts
+
+```text
+SD05_READ_PASS: LBA=0 BYTES=512
+SD05_SECTOR_SHA256: 6CAC3744FFD5A7FA579AED8667A763E11C186FDF666F8536FEC69EFFAEA9F586
+SD05_READ_PASS: LBA=64 BYTES=512
+SD05_SECTOR_SHA256: 2205E5F07ED9FBCEA8FAED3363CF35B22D198139072285C6834C282A854D05FC
+SD05_READ_PASS: LBA=17472 BYTES=512
+SD05_SECTOR_SHA256: A545DFF293AE619D471BB8E97311DF4004D2FF01AF0DFA2EA2205469E45BEF7F
+```
+
+### Evidence limits and preservation
+
+- The SHA-256 of the candidate FPGA bitstream is preserved above, but the
+  actual **pre-programming hash-check terminal output** and programmer's
+  exit status were **not** supplied for this run; do not manufacture either.
+  The successfully communicating board is operator-confirmed SD-05.
+- The three local binary files were **not** uploaded to this repository or
+  this audit. Their actual MBR `55AA`, partition entries, BPB fields,
+  root directory and byte-by-byte host-device equality are not separately
+  inspected yet. The command names/expected LBA roles are not proof
+  of those bytes until parsed.
+- No writes to microSD, CMD24 operation, configuration Flash changes,
+  FAT cluster-chain traversal, file opening or PiKoSoL integration are
+  claimed.
+- The SD-04 bitstream and all earlier SD-01/02/03 evidence remain frozen.
+
+**Recommended next minimal gate:** parse these exact 512-byte captures
+offline with a strict host FAT32 geometry checker, validate MBR/VBR/ROOT
+consistency and compare to SD-03 reported LBA layout. Only then add
+host-side FAT chain and file reading over the **existing SD-05** block
+bridge. Do not redesign the verified FPGA merely to perform filesystem
+metadata parsing.
