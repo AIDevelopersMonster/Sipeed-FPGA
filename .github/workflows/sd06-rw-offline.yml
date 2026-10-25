@@ -1,0 +1,37 @@
+name: SD-06 standalone SDHC RW offline
+on:
+  push:
+    branches:
+      - feature/sd06-cmd24-offline
+    paths:
+      - 'boards/tang-nano-9k/experiments/sd06-cmd24/**'
+      - '.github/workflows/sd06-rw-offline.yml'
+  workflow_dispatch:
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Python guard and UART protocol tests
+        run: python -m unittest discover -s boards/tang-nano-9k/experiments/sd06-cmd24/tests -p 'test_*.py' -v
+      - name: SD-06 merged UART-CMD17-CMD24 RTL compile
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments
+          iverilog -Wall -g2005 -s sd06_rw_bridge_top -o /tmp/sd06_rw_top.vvp \
+            "$d/sd-mbr-fat32/rtl/spi_byte.v" \
+            "$d/sd06-cmd24/rtl/sd06_cmd24_engine.v" \
+            "$d/sd06-cmd24/rtl/sd06_rw_bridge_top.v" \
+            "$d/sd-mbr-fat32/rtl/sd_read_sector.v" \
+            "$d/sd-mbr-fat32/rtl/uart_tx_8n1.v" \
+            "$d/sd05-lba-bridge/rtl/uart_rx_8n1.v"
+      - name: CMD24 standalone byte-SPI negative tests
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments/sd06-cmd24
+          iverilog -g2005 -s tb -o /tmp/sd06_cmd24_tb.vvp \
+            "$d/rtl/sd06_cmd24_engine.v" "$d/tests/tb_sd06_cmd24.v"
+          vvp /tmp/sd06_cmd24_tb.vvp | tee /tmp/sd06_cmd24.log
+          grep -q SD06_CMD24_BYTE_MODEL_ALL_PASS /tmp/sd06_cmd24.log
