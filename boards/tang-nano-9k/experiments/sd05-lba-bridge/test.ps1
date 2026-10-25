@@ -17,7 +17,15 @@ try {
     )
     & iverilog -g2005 -s sd05_lba_bridge_top -o (Join-Path $work 'top.vvp') @deps
     if ($LASTEXITCODE -ne 0) {throw 'SD05 RTL compile FAIL'}
-        & iverilog -g2005 -s tb_sd05_uart_bridge -o (Join-Path $work 'uart_tb.vvp') @deps (Join-Path $here 'tests/tb_sd05_uart_bridge.v')
+    # The TB defines a MOCK lab05_sd_read_sector; do not include the real
+    # sd_read_sector.v here. The real production core is compiled above.
+    $simDeps = @(
+      (Join-Path $sd03 'rtl/uart_tx_8n1.v'),
+      (Join-Path $here 'rtl/uart_rx_8n1.v'),
+      (Join-Path $here 'rtl/sd05_lba_bridge_top.v'),
+      (Join-Path $here 'tests/tb_sd05_uart_bridge.v')
+    )
+    & iverilog -g2005 -s tb_sd05_uart_bridge -o (Join-Path $work 'uart_tb.vvp') @simDeps
     if ($LASTEXITCODE -ne 0) {throw 'SD05 UART bridge testbench compile FAIL'}
     $sim = & vvp (Join-Path $work 'uart_tb.vvp') 2>&1
     $simrc = $LASTEXITCODE
