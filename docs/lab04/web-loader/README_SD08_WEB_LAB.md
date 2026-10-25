@@ -1,34 +1,36 @@
-# PiKoSoL SD-08 Web Lab — publication and hardware gates
+# PiKoSoL SD-08 — conservative extension of existing LAB-04.4
 
-Status: web integration is a review candidate; physical WebUSB/Web Serial acceptance on this new HTML page has NOT yet been performed.
+Status: DRAFT PR #23, hardware acceptance of the modified browser UI pending. The original WebUSB loader and Web Serial Control Center passed board tests on 2026-10-23. The operator also confirmed that part of the existing browser workflow works with the SD-08 firmware on 2026-10-25; this is partial evidence, not full browser regression acceptance.
 
-## Firmware
+## Scope
 
-- v0.2.0: SHA-256 6862c034715dbf557c93c8f8af8d8aa856ca8f4e62997660cea9740f3efda356; UART/HDMI/GFX hardware pass.
-- SD-08: SHA-256 37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b; 25.10.2026 hardware pass for INFO, FS, DIR, TYPE PIKO.TXT.
-- Official Sipeed PicoTiny example: SHA-256 5a9558e4b0ad2dad2812ad90757bfe6a27f6367992bf536a3304bc948a41659e, source https://github.com/sipeed/TangNano-9K-example/blob/main/picotiny/picotiny.fs
-- Official Sipeed HDMI example: SHA-256 830bd2affecee53ce344fdb518ddfea70ca22655d0cb0595af1de921098d339f, source https://github.com/sipeed/TangNano-9K-example/blob/main/hdmi/picotiny.fs
+- Preserve original `docs/index.html` and all existing WebUSB / Web Serial routes.
+- Add a two-option firmware selector to existing `web-loader/index.html`: the default verified PiKoSoL v0.2.0, and hardware-tested SD-08.
+- The original JTAG SRAM programming function, pinned YoWASP WASM, same-origin files, service worker and FT2232 device selection are unchanged.
+- Add FAT32 `SD 0`, `FS`, `DIR` buttons and short 8.3 `TYPE` entry to the existing Control Center. Use its existing real UART send queue.
+- No second website, no duplicate WebUSB engine, no extra UART connection, no SD writes, and absolutely no embedded Flash writes.
 
-Neither Sipeed example is proven to be the exact original factory firmware installed on this physical board. These files are linked from upstream, NOT redistributed as our factory recovery release.
+## Bitstream identity
 
-## Site
+- Default v0.2.0: `picorv32_lab04_hdmi_nano9k.fs`, SHA-256 `6862c034715dbf557c93c8f8af8d8aa856ca8f4e62997660cea9740f3efda356`.
+- SD-08: `sd08_pikosol_fat32_readonly.fs`, SHA-256 `37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b`.
+- SD-08 operator board evidence: `INFO`, `FS`, `DIR`, `TYPE PIKO.TXT` yielded `PiKoSoL SD08 FAT32 TYPE PASS` on 2026-10-25. Browser UI buttons themselves not yet independently accepted.
+- SD-08 currently has a known command alias defect: `SD INFO` is incorrectly routed; use `FS` instead.
 
-Unified test page: docs/lab04/web-loader/release.html. It reuses the already-hosted WebUSB COI service worker and pinned openFPGALoader WebAssembly runtime.
-All FPGA programming on this page is temporary SRAM only, using the already hardware-tested ft2232/tangnano9k profile.
-Web Serial (COM interface B) is real 115200 8N1 UART. Commands are INFO, SD 0, FS, DIR, LED ? and TYPE filename (strict 8.3). The browser does not emulate a file system.
-SD INFO has a known dispatcher bug in this SD-08 firmware: use FS. Long names, nested directories, writes, large and fragmented file reads are not board accepted.
+## SD-08 GitHub Pages image publication
 
-## Publishing SD-08
+The build artifact resides on the operator PC:
+`C:\GitHub\Sipeed-FPGA-LAB05\boards\tang-nano-9k\experiments\sd07-pikosol-mmio\build\board_fat32_20261025_123935_295\sd08_pikosol_fat32_readonly.fs`
 
-1. Review the PR and merge it to main; new page link then becomes visible.
-2. Locate the original accepted local file on the operator computer: C:\GitHub\Sipeed-FPGA-LAB05\boards\tang-nano-9k\experiments\sd07-pikosol-mmio\build\board_fat32_20261025_123935_295\sd08_pikosol_fat32_readonly.fs
-3. Check Get-FileHash -Algorithm SHA256 against 37DDB2FB7D20F7E4AD610DAD4160DC98ED38E5197221B62644642D32C8C09F4B. Never substitute a new build without repeating hardware acceptance.
-4. On the operator PC, use GitHub CLI (gh release create pikosol-sd08-fat32-ro <absolute-fs-path> -R AIDevelopersMonster/Sipeed-FPGA --target main --title 'PiKoSoL SD-08 FAT32 read-only' --notes 'Read-only FAT32: FS, DIR and TYPE verified on Tang Nano 9K, 25 October 2026.').
-5. Workflow publish-pikosol-sd08-pages.yml runs on publication of that exact release tag or manually, verifies the file SHA-256 and copies it to docs/lab04/web-loader/firmware/.
-6. Hardware-test the new public page in Chromium: SHA-256, WebUSB SRAM, INFO, FS, DIR, TYPE PIKO.TXT. Verify independent HDMI display and retest v0.2.0 regression.
+Before public SD-08 download can work, verify the above file on the operator PC and publish it as a release asset named `sd08_pikosol_fat32_readonly.fs` under tag `pikosol-sd08-fat32-ro`. The included GitHub Actions workflow downloads only this asset, validates the pinned SHA-256 and stages it in the original Pages firmware folder. Until the release is published, the original WebUSB page can load the verified SD-08 from a local .fs file.
 
-## Nonvolatile embedded Flash — blocked until recovery is verified
+## Required acceptance after PR review
 
-Official Gowin SUG502E section 4.8 documents index 6 (embFlash Erase,Program,Verify), as distinct from SRAM operation 2. Source: https://cdn.gowinsemi.com.cn/SUG502E.pdf
-Do NOT run it before obtaining and testing a trustworthy recovery image, confirming JTAG recovery after power-cycle, and verifying compatibility on this actual board. The browser Flash button is not present.
-Never confuse FPGA embedded configuration Flash with an external SPI firmware chip or the FAT32 SD card.
+1. Validate the unchanged original v0.2.0 browser scenario: SHA-256, SRAM WebUSB upload, Web Serial INFO/LED, TERM/GFX/KEYS, HDMI.
+2. Validate SD-08: select its profile, load the exact local .fs in SRAM via browser; Web Serial `INFO`, `FS`, `DIR`, `TYPE PIKO.TXT` and physical HDMI.
+3. Validate both automatic same-origin download buttons after the new SD-08 release asset has been staged.
+4. Keep the PR draft and keep `main` unchanged until tests are accepted.
+
+## Separate follow-up, not part of SD-08
+
+User clarified the vendor/seller firmware name as `PicoSoc`. Its exact image and any recovery procedure are not yet identified. Do not assume Sipeed PicoTiny or any arbitrary example is that image. Do not attempt Flash programming in this PR.
