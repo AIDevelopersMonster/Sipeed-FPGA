@@ -5,7 +5,11 @@ $repo = (Resolve-Path (Join-Path $here '..\..\..\..')).Path
 $spi = Join-Path $repo 'boards\tang-nano-9k\experiments\sd-mbr-fat32\rtl\spi_byte.v'
 $core = Join-Path $here 'rtl\sd06_cmd24_engine.v'
 $tb = Join-Path $here 'tests\tb_sd06_cmd24.v'
-foreach ($path in @($spi, $core, $tb)) {
+$merged = Join-Path $here 'rtl\sd06_rw_bridge_top.v'
+$reader = Join-Path $repo 'boards\tang-nano-9k\experiments\sd-mbr-fat32\rtl\sd_read_sector.v'
+$tx = Join-Path $repo 'boards\tang-nano-9k\experiments\sd-mbr-fat32\rtl\uart_tx_8n1.v'
+$rx = Join-Path $repo 'boards\tang-nano-9k\experiments\sd05-lba-bridge\rtl\uart_rx_8n1.v'
+foreach ($path in @($spi, $core, $tb, $merged, $reader, $tx, $rx)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "SD06_REQUIRED_SOURCE_MISSING: $path; run git pull --ff-only on feature/sd06-cmd24-offline"
     }
@@ -22,6 +26,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'SD06 Python offline tests FAIL' }
     & iverilog -g2005 -s sd06_cmd24_engine -o (Join-Path $dir 'real_spi.vvp') $spi $core
     if ($LASTEXITCODE -ne 0) { throw 'SD06 production SPI interface compile FAIL' }
+    & iverilog -g2005 -s sd06_rw_bridge_top -o (Join-Path $dir 'sd06_rw_integrated.vvp') $spi $core $merged $reader $tx $rx
+    if ($LASTEXITCODE -ne 0) { throw 'SD06 merged UART reader/writer top compile FAIL' }
+    Write-Host 'SD06_RW_TOP_COMPILE_PASS: compile only, NOT integrated simulation'
     # Testbench deliberately supplies a byte-SPI mock with the same module name.
     # Never include the production SPI module in this second compilation.
     & iverilog -g2005 -s tb -o (Join-Path $dir 'mock.vvp') $core $tb
