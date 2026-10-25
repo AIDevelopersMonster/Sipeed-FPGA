@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="./style.css">
   <!-- GitHub Pages cannot add COOP/COEP HTTP headers; this service worker supplies them. -->
   <script src="./coi-serviceworker.js"></script>
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./app.js?v=local-fs-20261025-2"></script>
 </head>
 <body>
   <div class="shell">
@@ -52,7 +52,7 @@
         <section class="card step">
           <div class="kicker">ШАГ 01 · BITSTREAM</div>
           <h2>Выберите прошивку</h2>
-          <p>Выберите проверенный аппаратно образ v0.2.0 или SD-08. SHA-256 привязан к версии.</p>
+          <p>С GitHub — выберите v0.2.0 или SD-08. Для стороннего PicoTiny или любого другого .fs используйте кнопку загрузки с компьютера; хеш другого профиля не применяется.</p>
           <label for="firmware-profile" class="profile-label">Профиль PiKoSoL</label>
           <select id="firmware-profile" class="profile-select">
             <option value="v020">PiKoSoL v0.2.0 — HDMI / UART / GFX</option>
@@ -61,14 +61,14 @@
           <p id="profile-notes" class="small">Выберите версию прошивки.</p>
           <div class="row-buttons">
             <button id="load-github" class="button primary" type="button">↓ Получить .fs с GitHub Pages</button>
-            <label for="input-file" class="button secondary file-label" role="button" tabindex="0">Выбрать .fs на компьютере</label>
+            <button id="choose-local" class="button secondary" type="button" onclick="document.getElementById('input-file').click()">↑ Загрузить свой .fs с компьютера</button>
             <input id="input-file" type="file" accept=".fs" hidden>
           </div>
           <p class="small">Если выбранная прошивка ещё не опубликована на GitHub Pages, <a id="release-download" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-v0.2.0/picorv32_lab04_hdmi_nano9k.fs">скачайте файл из GitHub Releases</a> и выберите его второй кнопкой.</p>
           <div class="selected-file"><div><small>ВЫБРАННЫЙ ФАЙЛ</small><strong id="firmware-name">Нет файла</strong></div><span id="firmware-size">—</span></div>
           <div class="hash"><small>SHA-256</small><code id="actual-sha">Файл ещё не выбран</code></div>
           <div id="hash-result" class="notice neutral" role="status">Контрольная сумма не проверена.</div>
-          <label class="check"><input id="custom-confirm" type="checkbox" disabled> Разрешить пользовательский .fs с отличающимся SHA-256 (непроверенная прошивка)</label>
+          <label class="check" style="display:none"><input id="custom-confirm" type="checkbox" disabled> Для локального .fs без эталона SHA-256 вычисляется без проверки подлинности; можно загрузить в SRAM</label>
         </section>
 
         <section class="card step">
