@@ -177,9 +177,8 @@ try {
         $client, '--port', $Port, 'read', '--lba', "$expectedLba", '--out', $restored
     )
     Assert-Sector -Path $restored -Expected $expectedSectorSha -Label 'CMD17 RESTORED'
-    if (-not [Linq.Enumerable]::SequenceEqual(
-        [byte[]][IO.File]::ReadAllBytes($before),
-        [byte[]][IO.File]::ReadAllBytes($restored))) {
+    if ([Convert]::ToBase64String([IO.File]::ReadAllBytes($before)) -cne
+        [Convert]::ToBase64String([IO.File]::ReadAllBytes($restored))) {
         throw 'Restored sector differs byte-for-byte from original'
     }
     Invoke-Python -Action 'Final unchanged FAT32/sector verification' -Arguments @(
