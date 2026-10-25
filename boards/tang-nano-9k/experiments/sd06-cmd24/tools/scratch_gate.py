@@ -138,7 +138,7 @@ def load_manifest(manifest, backup):
     print(f"SD_RW_SCRATCH_MANIFEST_PASS: LBA={lba} SHA256={sha(old)}")
     return doc, old, new_image(old)
 
-def validate_card(transport, doc, old):
+def validate_card(transport, doc, old, *, allow_written=False):
     disk, entry, lba, actual, mbr, vbr = find_scratch(transport.read)
     checks = {
         "scratch_lba": lba,
@@ -155,7 +155,7 @@ def validate_card(transport, doc, old):
     for key, value in checks.items():
         if doc[key] != value:
             raise ValueError(f"CARD CHANGED: {key}: expected {doc[key]}, actual {value}")
-    if actual != old:
+    if actual != (new_image(old) if allow_written else old):
         raise ValueError("SCRATCH SECTOR CHANGED; physical WRITE blocked")
     return lba
 
@@ -170,12 +170,12 @@ def run():
     validate = commands.add_parser("validate", help="validate manifest/backup without COM")
     validate.add_argument("--manifest", type=Path, required=True)
     validate.add_argument("--backup", type=Path, required=True)
-    for name in ("preflight", "write"):
+    for name in ("preflight", "write", "restore"):
         cmd = commands.add_parser(name)
         cmd.add_argument("--port", default="COM10")
         cmd.add_argument("--manifest", type=Path, required=True)
         cmd.add_argument("--backup", type=Path, required=True)
-        if name == "write":
+        if name in ("write", "restore"):
             cmd.add_argument("--confirm", required=True)
     args = p.parse_args()
     if args.command == "make":
@@ -187,27 +187,29 @@ def run():
         return 0
     t = Transport(args.port, timeout=15)
     try:
-        lba = validate_card(t, doc, old)
+        restoring = args.command == "restore"
+        lba = validate_card(t, doc, old, allow_written=restoring)
         print(f"SD_RW_SCRATCH_PREFLIGHT_PASS: LBA={lba} ORIGINAL_SHA256={sha(old)}")
         if args.command == "preflight":
             print("NO SD WRITES PERFORMED")
             return 0
         if args.confirm != CONFIRM:
             raise ValueError("WRITE confirmation string mismatch")
-        if t.read(lba) != old:
+        source, destination = (new, old) if restoring else (old, new)
+        if t.read(lba) != source:
             raise ValueError("preimage changed after preflight; refuse CMD24")
         # Never retry CMD24 automatically if acknowledgement is lost.
         print(f"SD_RW_CMD24_ATTEMPT: approved LBA={lba}", flush=True)
         try:
-            t.write(lba, old, new)
+            t.write(lba, source, destination)
         except Exception:
             print("CMD24 outcome uncertain; do NOT retry without new independent readback",
                   file=sys.stderr)
             raise
         readback = t.read(lba)
-        if readback != new:
+        if readback != destination:
             raise ValueError("SD_RW_HW_WRITE_VERIFY_FAIL: CMD17 does not match")
-        print(f"SD_RW_HW_WRITE_VERIFY_PASS: LBA={lba} BYTES=512 SHA256={sha(readback)}")
+        print(f"SD_RW_HW_{'RESTORE' if restoring else 'WRITE'}_VERIFY_PASS: LBA={lba} BYTES=512 SHA256={sha(readback)}")
         print("No FAT32 metadata written. Original sector is preserved in preimage.bin.")
         return 0
     finally:
