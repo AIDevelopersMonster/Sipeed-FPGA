@@ -40,7 +40,7 @@ module sd06_cmd24_engine #(
                      P_RESP=8, P_BUSY=9, P_RELEASE=10;
     reg [2:0] state;
     reg [3:0] phase;
-    reg [7:0] payload [0:511] /* synthesis syn_ramstyle = "block_ram" */;
+    reg [7:0] payload [0:511];
     reg [9:0] load_count;
     reg [31:0] lba_hold;
     reg [2:0] cmd_pos;
