@@ -26,7 +26,7 @@ function selectFirmwareProfile(){
   activeProfile=PROFILES[$("firmware-profile").value]||PROFILES.v020;
   firmware=null;loadedSha="";isVerified=false;
   $("input-file").value="";$("firmware-name").textContent="Нет файла";
-  $("firmware-size").textContent="—";$("actual-sha").textContent="Файл ещё не выбран";
+  $("firmware-size").textContent="—";$("actual-sha").textContent="Файл ещё не выбран";$("expected-sha").textContent=activeProfile.sha.toUpperCase();$("hash-comparison").textContent="Сравнивается выбранный локальный файл с профилем «"+activeProfile.name+"». Если вы выбрали сторонний .fs, хеш закономерно отличается; можно подтвердить загрузку только в SRAM.";
   $("profile-name").textContent=activeProfile.name;$("profile-notes").textContent=activeProfile.notes;
   $("release-download").href=activeProfile.release;
   $("custom-confirm").checked=false;$("custom-confirm").disabled=true;
@@ -41,10 +41,10 @@ async function acceptFile(bytes,name){
   const digest=hex(await crypto.subtle.digest("SHA-256",buffer));
   firmware=buffer;loadedSha=digest;isVerified=digest.toLowerCase()===activeProfile.sha;
   $("firmware-name").textContent=name;$("firmware-size").textContent=(buffer.length/1024/1024).toFixed(2)+" MiB";
-  $("actual-sha").textContent=digest.toUpperCase();
+  $("actual-sha").textContent=digest.toUpperCase();$("expected-sha").textContent=activeProfile.sha.toUpperCase();$("hash-comparison").textContent="Файл: "+name+" · профиль для сравнения: "+activeProfile.name+". SHA-256 сравнивается с прошивкой профиля, НЕ с произвольным заводским/сторонним файлом.";
   $("custom-confirm").checked=false;$("custom-confirm").disabled=isVerified;
   if(isVerified){hashResult("✓ SHA-256 совпадает с аппаратно проверенной "+activeProfile.name,"ok");status("Прошивка прошла SHA-256 проверку. Выберите JTAG Debugger.","neutral");log("Файл "+name+": SHA-256 PASS ("+buffer.length+" B) · "+activeProfile.name)}
-  else{hashResult("⚠ SHA-256 отличается от выбранного профиля "+activeProfile.name+". Пользовательский bitstream требует отдельного подтверждения.","error");status("Непроверенная прошивка; подтвердите использование чужого .fs отдельно.","error");log("Файл "+name+": SHA-256 mismatch "+digest)}
+  else{hashResult("SHA-256 НЕ СОВПАЛ с профилем «"+activeProfile.name+"». Это ожидаемо для другого .fs и не доказывает порчу файла. Для загрузки в SRAM отметьте разрешение на пользовательский .fs.","neutral");status("Локальный .fs принят; отличается от эталона выбранного профиля. Для SRAM подтвердите сторонний файл флажком.","neutral");log("Файл "+name+": PROFILE_MISMATCH; expected="+activeProfile.sha+"; actual="+digest+"; custom SRAM allowed after explicit confirmation")}
   ready()
 }
 $("input-file").addEventListener("change",async e=>{
