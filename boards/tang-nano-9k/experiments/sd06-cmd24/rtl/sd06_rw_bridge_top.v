@@ -213,14 +213,14 @@ module sd06_rw_bridge_top #(
                       end
                     end else state<=ST_IDLE;
                   end else if(rx_pos>=7 && rx_pos<=518)begin
-                    old_waddr<=rx_pos-11'd7;
+                    old_waddr<=rx_pos[8:0]-9'd7;
                     old_wbyte<=rx_byte;old_we<=1;
                     req_crc<=crc_next(req_crc,rx_byte);
                     rx_pos<=rx_pos+1'b1;
                   end else if(rx_pos>=519 && rx_pos<=1030)begin
-                    new_waddr<=rx_pos-11'd519;
+                    new_waddr<=rx_pos[8:0]-9'd7;
                     new_wbyte<=rx_byte;new_we<=1;
-                    wr_load_addr<=rx_pos-11'd519;
+                    wr_load_addr<=rx_pos[8:0]-9'd7;
                     wr_load_byte<=rx_byte;wr_load_valid<=1;
                     req_crc<=crc_next(req_crc,rx_byte);
                     rx_pos<=rx_pos+1'b1;
@@ -316,7 +316,7 @@ module sd06_rw_bridge_top #(
           ST_REPLY_PREP:begin
             if(response_read_data && response_pos>=10'd9
                 && response_pos<=10'd520)begin
-              rd_peek_addr<=response_pos-10'd9;
+              rd_peek_addr<=response_pos[8:0]-9'd9;
               state<=ST_REPLY_RAM1;
             end else begin
               tx_byte<=response_byte(response_pos,response_write,
