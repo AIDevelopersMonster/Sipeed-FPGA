@@ -55,3 +55,21 @@ The bitstream with fixed LBA 10718 must not be treated as general-purpose or sha
 ## Acceptance decision
 
 **SD-06 standalone hardware read/write functional acceptance: PASS (qualified one-sector case).** Freeze this evidence. Next independent design decision is whether to integrate a minimal 512 B CMD17/CMD24 MMIO block into the existing PiKoSoL CPU+HDMI build and measure combined PnR/STA.
+
+## Camera-ready live demo — 2026-10-25, 09:46 operator run
+
+Operator supplied full terminal log for `demo_video.ps1 -Program -EnableWrite -Port COM10`. The script loaded the already-qualified single-sector bitstream by Gowin volatile SRAM operation (100%, user code 0x00009A9B), validated the scratch file, performed independent CMD17 reads, wrote modified bytes by CMD24, read them back, and restored the original by CMD24 with independent final CMD17 verification.
+
+| Demo checkpoint | Observation |
+|---|---|
+| 1/6 IDENTITY / BACKUP | PASS; firmware SHA-256 694D9526525B8AEF99126AF5EF73D7A85216658E707482342521AD035E34F109 |
+| 2/6 MBR/FAT32/PREIMAGE | PASS for LBA 10718 |
+| 3/6 CMD17 read | PASS; source SHA-256 D4EE72A0614088909BD2B34C5100DE2E7A7370382F2C1E434A0EB2B7460B50F3 |
+| 4/6 CMD24 physical write | PASS; edited SHA-256 C934134A8F462557E29357920CFF96314FEBC5E363AF26A8F37ACD33E4B155A2 |
+| 5/6 independent CMD17 | PASS; exactly 448 of 512 bytes changed; first 64 identity bytes unchanged |
+| 6/6 CMD24 restore and independent CMD17 | PASS; all original 512 bytes restored, original SHA-256 matched, final scratch preflight PASS |
+
+Local evidence folder reported by operator (not automatically uploaded to GitHub):
+`C:\GitHub\Sipeed-FPGA-LAB05\_reports\sd_rw_video_20261025_094641_32932`.
+
+This confirms a **second complete operator-run of the single-sector hardware demonstration**, not a statistical endurance or independent whole-volume filesystem integrity test. The final FAT32 preflight validated the metadata and designated file sector; it did not run filesystem checker software. Hardware qualification remains scoped to the backed-up disposable SDHC test card and fixed LBA 10718.
