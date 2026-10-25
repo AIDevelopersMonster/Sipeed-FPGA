@@ -66,9 +66,11 @@
           </div>
           <p class="small">Если выбранная прошивка ещё не опубликована на GitHub Pages, <a id="release-download" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-v0.2.0/picorv32_lab04_hdmi_nano9k.fs">скачайте файл из GitHub Releases</a> и выберите его второй кнопкой.</p>
           <div class="selected-file"><div><small>ВЫБРАННЫЙ ФАЙЛ</small><strong id="firmware-name">Нет файла</strong></div><span id="firmware-size">—</span></div>
-          <div class="hash"><small>SHA-256</small><code id="actual-sha">Файл ещё не выбран</code></div>
+          <div class="hash"><small>SHA-256 выбранного файла (фактический)</small><code id="actual-sha">Файл ещё не выбран</code></div>
+          <div class="hash"><small>SHA-256 прошивки выбранного профиля (ожидаемый)</small><code id="expected-sha">—</code></div>
+          <p class="small" id="hash-comparison">Локальный .fs сравнивается только с выбранным профилем, а не с собственным эталоном сторонней прошивки.</p>
           <div id="hash-result" class="notice neutral" role="status">Контрольная сумма не проверена.</div>
-          <label class="check"><input id="custom-confirm" type="checkbox" disabled> Разрешить пользовательский .fs с отличающимся SHA-256 (непроверенная прошивка)</label>
+          <label class="check"><input id="custom-confirm" type="checkbox" disabled> Я намеренно выбрал другой .fs; разрешить загрузку этого файла только в SRAM</label>
         </section>
 
         <section class="card step">
