@@ -7,7 +7,7 @@ root directory LBA, output exactly 1024 uppercase ASCII hex characters plus
 CRLF at 115200 8N1. Python decodes FAT32 directory records (16 entries per sector).
 On scanner/reader failure returns ERROR CRLF, never a fabricated directory.
 
-**Status:** unverified RTL candidate, NOT hardware PASS. No SD writes, no CMD24.
+**Status (25 Oct 2026):** internal STA PASS and operator-observed read-only ROOT directory UART data after SRAM programming. Exact 1026-byte UART frame capture and independent PC-sector comparison remain pending. No SD writes, no CMD24.
 
 Source dependencies are referenced from the frozen SD-03 snapshot rather than
 copied. Run Gowin PnR and inspect setup/hold and external SD MISO timing before
@@ -64,3 +64,43 @@ After `SD04_LOCAL_GATE_PASS`, run **build-only** from PowerShell 7:
 `build.ps1` reruns the simulation gate, stages frozen SD-03 RTL and constraints together with SD-04 top into a unique ignored `build/run_*/work` tree, writes `input_sha256.csv`, executes `gw_sh.exe`, and reports the resulting `.fs` SHA-256 and paths to PnR/STA files. It **never programs SRAM or Flash**, and never writes an SD card. No new Gowin result is certified merely by generating `.fs`. Confirm numerical setup/hold violations and timing scope before a physical test.
 
 The prior local acceptance from the operator was `SD04_ROOT_DUMP_TB_PASS` and `SD04_LOCAL_GATE_PASS` (simulation only). PnR/STA and hardware acceptance remain unverified.
+
+## Hardware readback observed on 25 Oct 2026
+
+Operator programmed SRAM (programmer exit 0) and after pressing reset observed FAT32
+directory data beginning with the LFN sequence `42 20 00 49 ...` followed by
+`01 53 00 79 ...` and short entry `SYSTEM~1`, attributes `0x16`,
+first cluster `3` (System Volume Information). This is credible physical
+directory read evidence, but a pasted HEX transcript does not certify a complete
+512-byte frame or byte-by-byte comparison with the PC.
+
+For rigorous UART capture **open COM before pressing the board reset**:
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git pull --ff-only
+python -m pip install pyserial
+python .\boards\tang-nano-9k\experiments\sd04-directory\tools\sd04_capture.py --list-ports
+python .\boards\tang-nano-9k\experiments\sd04-directory\tools\sd04_capture.py --port COM5
+```
+
+Substitute the actual UART COM number shown by `--list-ports`.
+Once `SD04_PORT_OPEN` appears, press the physical reset button S2. The program
+will validate **exactly 1024 uppercase HEX characters plus CRLF** and save
+`root.hex`, `root.bin`, SHA-256 and decoded 8.3 records under `build/capture_*`.
+Do not run another UART terminal concurrently. Failure prints an explicit error
+and does not create a false PASS. Capturing via this script cannot alter any card sector.
+
+A valid frame confirms serial completeness, **not** an independent PC-sector
+comparison. For comparison, acquire the same card's absolute ROOT LBA
+`17472` via a read-only physical-device method, taking care not to write to
+the partition or card. Host geometry may vary with different media.
+
+## Next architecture gate (no redesign of SD-04)
+
+To request arbitrary LBAs, the *next experiment* must add FPGA UART RX with
+explicit pin constraints and a host protocol. Python supplies the desired
+32-bit LBA; the FPGA performs SDHC CMD17 and returns 512 bytes. Do not
+misrepresent this as implemented: SD-04 remains the fixed single-ROOT-sector
+read-only prototype. CMD24 sector write comes only after arbitrary-LBA read
+and readback verification.
