@@ -1,4 +1,4 @@
-// PiKoSoL PONG RGB - original lightweight game logic and 24-bit color renderer.
+// PiKoSoL PONG RGB v1.2 candidate - steerable paddle bounce and selectable AI.
 // Hardware domain: same 25.2 MHz pixel clock for UART receiver and game.
 // Serial protocol: w/s/i/k=press; W/S/I/K=release; x=release all;
 //                  a=toggle right AI; r=restart; 1..4=palette; 5..7=AI difficulty.
@@ -64,32 +64,62 @@ module pong_rgb_core (
 
     reg [9:0] p1_y, p2_y, ball_x, ball_y;
     reg vx_left, vy_up;
+    reg [2:0] vy_pixels;  // Vertical speed (1..5 pixels/frame).
+    reg [7:0] entropy;    // Small deterministic LFSR, sampled at rally events.
     reg [3:0] score1, score2;
     reg game_over, winner_right;
     reg [5:0] blink_phase;
     wire win_flash = !blink_phase[4];
+    // AI deliberately differs in both movement speed and reaction distance.
+    // Hard mode is responsive but does not know future paddle-hit angles.
     wire [9:0] ai_step = (ai_level==2'd0) ? 10'd1 :
-                         (ai_level==2'd1) ? 10'd2 : 10'd3;
-    // AI returns to centre while the ball travels left. It reacts to an
-    // incoming ball only in the right half, preventing perfect tracking.
-    wire [9:0] ai_target_y = (!vx_left && ball_x>=10'd400) ?
+                         (ai_level==2'd1) ? 10'd2 : 10'd4;
+    wire [9:0] ai_reaction_x = (ai_level==2'd0) ? 10'd505 :
+                               (ai_level==2'd1) ? 10'd415 : 10'd350;
+    wire [9:0] ai_target_y = (!vx_left && ball_x>=ai_reaction_x) ?
                               (ball_y+10'd4) : 10'd240;
+
+    // 4-bit bounce descriptor: [3]=up, [2:0]=speed.
+    // Impact near paddle tips is steep; near centre is shallow. The centre
+    // uses a PRNG bit to prevent a long sequence of identical rallies.
+    function [3:0] reflected_dy;
+        input [9:0] centre;
+        input [9:0] paddle_top;
+        input [7:0] salt;
+        begin
+            if      (centre < paddle_top + 10'd10) reflected_dy = {1'b1, 3'd5};
+            else if (centre < paddle_top + 10'd22) reflected_dy = {1'b1, 3'd4};
+            else if (centre < paddle_top + 10'd30) reflected_dy = {1'b1, 3'd3};
+            else if (centre < paddle_top + 10'd34) reflected_dy = {1'b1, 3'd2};
+            else if (centre < paddle_top + 10'd38)
+                reflected_dy = {salt[0], (salt[1] ? 3'd2 : 3'd1)};
+            else if (centre < paddle_top + 10'd42) reflected_dy = {1'b0, 3'd2};
+            else if (centre < paddle_top + 10'd50) reflected_dy = {1'b0, 3'd3};
+            else if (centre < paddle_top + 10'd62) reflected_dy = {1'b0, 3'd4};
+            else reflected_dy = {1'b0, 3'd5};
+        end
+    endfunction
+    wire [3:0] bounce1 = reflected_dy(ball_y+10'd4, p1_y, entropy);
+    wire [3:0] bounce2 = reflected_dy(ball_y+10'd4, p2_y, entropy);
+
     wire hit_p1 = ((ball_y + 10'd8) >= p1_y) && (ball_y < (p1_y + 10'd72));
     wire hit_p2 = ((ball_y + 10'd8) >= p2_y) && (ball_y < (p2_y + 10'd72));
     always @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
             p1_y<=10'd204; p2_y<=10'd204;
             ball_x<=10'd316; ball_y<=10'd236;
-            vx_left<=1; vy_up<=0;
+            vx_left<=1; vy_up<=0; vy_pixels<=3'd3; entropy<=8'hA5;
             score1<=0; score2<=0;
             game_over<=0; winner_right<=0; blink_phase<=0;
         end else if (restart_pulse) begin
             p1_y<=10'd204; p2_y<=10'd204;
             ball_x<=10'd316; ball_y<=10'd236;
-            vx_left<=1; vy_up<=0;
+            vx_left<=1; vy_up<=0; vy_pixels<=3'd3;
             score1<=0; score2<=0;
             game_over<=0; winner_right<=0; blink_phase<=0;
         end else if (frame_tick) begin
+            entropy <= {entropy[6:0],
+                        entropy[7] ^ entropy[5] ^ entropy[4] ^ entropy[3]};
             if (game_over) blink_phase <= blink_phase + 6'd1;
             if (!game_over) begin
             // One game step per video frame: independent of UART byte rate.
@@ -106,41 +136,49 @@ module pong_rgb_core (
             else if(down2 && !up2 && p2_y<=10'd403)
                 p2_y<=p2_y+10'd5;
 
-            // Left/right paddle intersections precede missed-goal handling.
+            // Paddle contact changes both direction and vertical speed.
+            // Move vertically on ordinary travel frames only: this keeps
+            // the scored reset and collision response atomic.
             if (vx_left && ball_x<=10'd30 && ball_x>=10'd8 && hit_p1) begin
                 vx_left<=0;
                 ball_x<=10'd30;
+                vy_up<=bounce1[3];
+                vy_pixels<=bounce1[2:0];
             end else if (!vx_left && ball_x>=10'd600 &&
                          ball_x<=10'd618 && hit_p2) begin
                 vx_left<=1;
                 ball_x<=10'd600;
+                vy_up<=bounce2[3];
+                vy_pixels<=bounce2[2:0];
             end else if (vx_left && ball_x<=10'd7) begin
                 if (score2==4'd8) begin
                     score2<=4'd9; game_over<=1; winner_right<=1;
                 end else score2<=score2+4'd1;
                 ball_x<=10'd316; ball_y<=10'd236;
                 vx_left<=0;
+                vy_up<=entropy[0];
+                vy_pixels<=3'd2 + {1'b0, entropy[2:1]};
             end else if (!vx_left && ball_x>=10'd625) begin
                 if (score1==4'd8) begin
                     score1<=4'd9; game_over<=1; winner_right<=0;
                 end else score1<=score1+4'd1;
                 ball_x<=10'd316; ball_y<=10'd236;
                 vx_left<=1;
+                vy_up<=entropy[0];
+                vy_pixels<=3'd2 + {1'b0, entropy[2:1]};
             end else begin
                 ball_x <= vx_left ? ball_x-10'd4 : ball_x+10'd4;
-            end
-
-            if ((vx_left && ball_x<=10'd7) ||
-                (!vx_left && ball_x>=10'd625)) begin
-                vy_up<=~vy_up;
-            end else if (vy_up && ball_y<=10'd6) begin
-                vy_up<=0;
-                ball_y<=10'd6;
-            end else if (!vy_up && ball_y>=10'd466) begin
-                vy_up<=1;
-                ball_y<=10'd466;
-            end else begin
-                ball_y<=vy_up ? ball_y-10'd3 : ball_y+10'd3;
+                if (vy_up && ball_y <= (10'd6 + {7'd0,vy_pixels})) begin
+                    vy_up<=0;
+                    ball_y<=10'd6;
+                end else if (!vy_up &&
+                             ball_y >= (10'd466 - {7'd0,vy_pixels})) begin
+                    vy_up<=1;
+                    ball_y<=10'd466;
+                end else begin
+                    ball_y <= vy_up ? ball_y-{7'd0,vy_pixels} :
+                                      ball_y+{7'd0,vy_pixels};
+                end
             end
             end // !game_over
         end
@@ -208,11 +246,11 @@ module pong_rgb_core (
     wire draw_center = (px>=10'd319 && px<10'd322) && (py[4:0]<5'd15);
     wire draw_border = py<10'd4 || py>=10'd476;
     wire draw_stars = (px[6:0]==7'd38 && py[6:0]==7'd59);
-    // One/two/three top-right ticks make the selected AI level observable.
-    wire draw_ai_level = ai_on && py>=10'd12 && py<10'd20 &&
-        ((px>=10'd576 && px<10'd586) ||
-         (ai_level>=2'd1 && px>=10'd590 && px<10'd600) ||
-         (ai_level==2'd2 && px>=10'd604 && px<10'd614));
+    // Large, observable right-side digit: AI 1=Easy, 2=Normal, 3=Hard.
+    wire [3:0] ai_digit = {2'd0,ai_level} + 4'd1;
+    wire draw_ai_level = ai_on && (px>=10'd560 && px<10'd600) &&
+                         (py>=10'd35 && py<10'd93) &&
+                         digit_pixel(ai_digit,px-10'd560,py-10'd35);
 
     // Palette values are BGR888 as expected by the SVO HDMI encoder.
     reg [23:0] bg_color, p1_color, p2_color, ball_color, line_color, score_color;
