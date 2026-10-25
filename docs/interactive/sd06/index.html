@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="PiKoSoL SD-06: интерактивный справочник SD-команд, схемы FPGA Tang Nano 9K, реальный Verilog RTL, SPI CMD17/CMD24 и результаты аппаратного испытания.">
+<title>PiKoSoL SD-06 | Команды SD, FPGA Verilog и интерактивный SPI</title>
+<style>:root{color-scheme:dark;--bg:#07111e;--ink:#e9f3ff;--muted:#a4bed1;--cyan:#5adce9;--teal:#46deb0;--gold:#ffcc7c;--red:#ff8b96;--blue:#86a6f1;--panel:#0f2235;--panel2:#162e45;--stroke:#2a4862;--r:16px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,'Segoe UI',Arial,sans-serif;background:radial-gradient(ellipse at 20% 0,#193c50 0,transparent 32%),radial-gradient(ellipse at 85% 7%,#172a48 0,transparent 34%),var(--bg);color:var(--ink);font-size:15px;line-height:1.56}body:before{content:"";background-image:linear-gradient(#fff1 1px,transparent 1px),linear-gradient(90deg,#fff1 1px,transparent 1px);background-size:36px 36px;position:fixed;inset:0;pointer-events:none;opacity:.08;z-index:-1}a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}button,input,select{font:inherit}button,select{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}button:disabled{opacity:.35;cursor:default}
+.wrap{max-width:1450px;margin:auto;padding:0 28px}.topbar{background:#081624e5;backdrop-filter:blur(14px);border-bottom:1px solid #34546b80;position:sticky;top:0;z-index:50}.head{display:flex;align-items:center;justify-content:space-between;min-height:66px;gap:18px}.brand{font-weight:850;letter-spacing:.035em;font-size:17px;white-space:nowrap}.brand span{color:var(--cyan)}nav{display:flex;align-items:center;gap:20px;flex-wrap:wrap}nav a{color:#adbdcf;font-size:12px;letter-spacing:.065em;font-weight:750;text-transform:uppercase}nav a:hover{color:#fff}.btn{color:var(--ink);border:1px solid #51758c;border-radius:11px;padding:10px 16px;background:#15334b;font-weight:740;line-height:1.2}.btn:hover:not(:disabled){background:#24516a}.btn.primary{border-color:var(--cyan);color:#061924;background:var(--cyan)}.btn.primary:hover:not(:disabled){background:#9bf2fa}.btn.warn{border-color:#986a29;background:#59411e;color:#ffe0ad}.btn.small{padding:7px 11px;font-size:12px}.btn.ghost{background:transparent}
+.hero{padding:58px 0 32px}.eyebrow{font:800 12px Consolas,monospace;letter-spacing:.12em;color:var(--cyan);text-transform:uppercase;display:flex;align-items:center;gap:12px}.dot{width:8px;height:8px;background:var(--teal);border-radius:50%;box-shadow:0 0 0 5px #46deb028}h1{font-size:clamp(35px,5.7vw,73px);letter-spacing:-.055em;line-height:1.055;font-weight:850;margin:17px 0 17px;max-width:1160px}h1 em{color:var(--cyan);font-style:normal}.lead{font-size:clamp(16px,1.55vw,19px);max-width:920px;color:#c5d8e9;margin:0 0 23px}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #3a5970;background:#12273a;border-radius:999px;padding:7px 11px;font:700 11px Consolas,monospace;color:#cee1ee;white-space:nowrap}.chip.green{color:var(--teal);border-color:#316e5f;background:#10352c}.chip.gold{color:var(--gold);border-color:#85612f;background:#372918}.section{padding:28px 0 50px;scroll-margin-top:85px}.sectionhead{display:flex;justify-content:space-between;gap:15px;align-items:end;margin-bottom:19px}.sectnum{font:750 12px Consolas,monospace;letter-spacing:.08em;color:var(--cyan);margin-bottom:6px}.sectionhead h2{font-size:clamp(24px,2.8vw,35px);line-height:1.13;letter-spacing:-.03em;margin:0}.sectionhead p{color:var(--muted);margin:7px 0 0;max-width:800px}.card{border:1px solid var(--stroke);background:linear-gradient(130deg,#11263aec,#0e1d2fed);border-radius:var(--r);min-width:0}.pad{padding:22px}.gridstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:6px}.stat{padding:20px 18px}.stat b{font:850 clamp(19px,2.5vw,30px) Consolas,monospace;color:var(--cyan);display:block;letter-spacing:-.04em}.stat small{font-size:12px;color:var(--muted)}.stat:nth-child(3) b,.stat:nth-child(4) b{color:var(--teal)}
+.diagram{display:grid;grid-template-columns:1fr 18px 1fr 18px 1.18fr 18px 1fr 18px 1fr;align-items:center;gap:7px}.node{min-height:135px;border:1px solid #3b5970;border-radius:12px;background:#13283f;padding:13px 14px;display:flex;flex-direction:column;justify-content:center;gap:5px;transition:border .2s,background .2s,box-shadow .2s}.node[data-active=true]{border-color:var(--cyan);background:#1a4655;box-shadow:0 0 24px #46dae12c}.node .nodecode{font:700 10px Consolas,monospace;color:var(--cyan)}.node .nodetitle{font-size:16px;font-weight:850}.node .nodesub{font-size:11px;color:#a9c0d3;line-height:1.4}.arr{font-size:24px;color:#6d97ad;text-align:center}.bufferline{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0 0}.bufferline span{font:650 12px Consolas,monospace;background:#20354c;border:1px solid #365773;padding:8px 11px;border-radius:9px}.bufferline strong{color:var(--teal)}.note{background:#16344878;border-left:3px solid var(--cyan);border-radius:0 9px 9px 0;padding:13px 15px;color:#cbdfed;font-size:13px;margin:17px 0 0}.note.green{border-color:var(--teal);background:#153a3077}.note.gold{border-color:var(--gold);background:#49382244}
+.controlbar{display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin:21px 0 15px}.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:11px;letter-spacing:.07em;font-weight:770;color:#b1c4d6}.field input,.field select,#refSearch{border:1px solid #405f78;background:#0b1f32;color:#eefaff;border-radius:10px;padding:10px 12px;min-height:43px}.field #scenario{min-width:248px}.field #lba{width:145px}.field #speed{min-width:116px}.controlactions{display:flex;align-items:end;gap:7px;flex-wrap:wrap}.simgird{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(290px,.72fr);gap:14px}.live{padding:23px;min-height:290px}.kicker{font:750 11px Consolas,monospace;letter-spacing:.11em;color:var(--cyan)}#activeTitle{font-size:27px;line-height:1.18;margin:13px 0 10px}#activeDesc{color:#c2d6e6;min-height:67px;margin:0}.buslabels{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.buslabel{padding:10px 13px;background:#142e43;border:1px solid #35657a;border-radius:9px;font:750 13px Consolas,monospace}.buslabel small{display:block;font:650 10px Segoe UI,Arial,sans-serif;color:#9db6c8;letter-spacing:.08em;text-transform:uppercase}.stepnote{border-top:1px solid #31506a;margin-top:13px;padding-top:11px;color:var(--gold);font-size:12px}.progress{margin-top:15px;height:5px;background:#2b4052;overflow:hidden;border-radius:8px}.progress>div{width:0;height:100%;transition:width .2s;background:linear-gradient(90deg,var(--cyan),var(--teal))}.stepsbox{padding:17px;max-height:515px;overflow:auto}.stepshead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px;font-size:13px;font-weight:800}.stepshead span:last-child{font:700 12px Consolas,monospace;color:var(--cyan)}.stepitem{width:100%;background:transparent;border:1px solid transparent;border-radius:9px;padding:8px;text-align:left;color:#abc5d7;display:flex;align-items:flex-start;gap:10px;font-size:12px;cursor:pointer}.stepitem:hover{background:#1a3b4e;color:white}.stepitem[data-state=active]{background:#1c4450;border-color:#39a7ae;color:#fff}.stepitem[data-state=done]{color:#82dfae}.stepidx{font:800 11px Consolas,monospace;border:1px solid #456076;padding:2px 5px;border-radius:5px;min-width:23px;text-align:center}.stepitem[data-state=active] .stepidx{background:var(--cyan);color:#091e28}.footnote{color:var(--muted);font-size:12px;margin:9px 0 0}
+.commandtiles{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.cmdtile{border:1px solid #3b5a74;background:#13283c;border-radius:11px;text-align:left;color:var(--ink);padding:13px 9px;cursor:pointer;min-width:0}.cmdtile:hover{border-color:var(--cyan)}.cmdtile[data-selected=true]{border-color:var(--cyan);background:#174152}.cmdtile b{font:800 19px Consolas,monospace;display:block}.cmdtile small{font-size:11px;color:var(--muted);display:block}.cmdtile code{font:700 11px Consolas,monospace;color:var(--teal)}.cols2{display:grid;grid-template-columns:1.03fr .97fr;gap:15px}.command-detail{margin-top:12px;padding:19px}.command-detail h3{font-size:23px;margin:6px 0}.command-detail p{color:#c2d6e6;margin:7px 0}.responsebox{padding:10px;border:1px solid #3b625e;background:#16343a;border-radius:9px;color:#aaf2d8;font:12px Consolas,monospace;margin-top:9px}.bytes{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}.byte{min-width:59px;text-align:center;border:1px solid #36526b;padding:9px 10px;border-radius:8px;background:#0b1d2f;font:750 16px Consolas,monospace}.byte small{font:700 10px Segoe UI,sans-serif;display:block;color:#91acbf}.byte.cmd{border-color:#258b9d;color:var(--cyan)}.byte.arg{color:var(--gold);border-color:#9b7442}.packetbox{padding:21px;margin-top:14px}.tabs{display:flex;flex-wrap:wrap;gap:7px}.tab{border:1px solid #37556b;border-radius:9px;background:#132a3c;color:#c4d9e7;padding:9px 11px;font:700 12px Consolas,monospace}.tab[data-selected=true]{background:#1b4a58;border-color:var(--cyan);color:white}.packet{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.pkt{border:1px solid #38536b;border-radius:8px;padding:9px 12px;background:#0b1f30;font:750 12px Consolas,monospace}.pkt small{font:650 10px Segoe UI,sans-serif;display:block;color:#9cb4c5;margin-bottom:4px}.pkt.head{border-color:#35abb1;color:var(--cyan)}.pkt.crc{border-color:#397f66;color:var(--teal)}.pkt.data{border-color:#b08a42;color:var(--gold)}
+.reference-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}.reference-controls input{flex:1;min-width:240px}.ref-filters{display:flex;gap:6px;flex-wrap:wrap}.ref-filters button{padding:8px 11px;border:1px solid #405e73;border-radius:9px;background:#142d41;color:#c7deed;font-size:12px;font-weight:700}.ref-filters button[data-active=true]{border-color:var(--cyan);color:white;background:#1a4c57}.ref-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.72fr);gap:13px}.tablewrap{max-height:610px;overflow:auto;border-radius:14px;border:1px solid #2b4862;background:#102035}.ref-table{border-collapse:collapse;width:100%;font-size:12px}.ref-table th{position:sticky;top:0;background:#183149;color:#a7daea;z-index:1;font-size:10px;letter-spacing:.06em;text-transform:uppercase}.ref-table th,.ref-table td{padding:10px 11px;text-align:left;border-bottom:1px solid #2c465a}.ref-table tbody tr{cursor:pointer}.ref-table tbody tr:hover{background:#1a374a}.ref-table tbody tr[data-selected=true]{background:#1d4756}.ref-table td:first-child{font:800 13px Consolas,monospace;color:var(--cyan)}.ref-table td:nth-child(2){font:700 12px Consolas,monospace;color:var(--gold)}.tag{border:1px solid #40667a;border-radius:999px;padding:2px 7px;font:700 10px Consolas,monospace;white-space:nowrap;color:#adc5d5}.tag.yes{border-color:#33735d;color:#7ff0b5}.tag.read{border-color:#576f9a;color:#a9c9ff}.tag.danger{border-color:#94515b;color:#ffabb4}.refdetail{padding:20px;position:relative}.refdetail h3{font-size:23px;margin:10px 0 4px}.refdetail p{color:#c3d7e9;font-size:13px}.refdetail .kv{display:grid;grid-template-columns:105px 1fr;gap:7px;border-bottom:1px solid #29455a;padding:9px 0;font-size:12px}.refdetail .kv span:first-child{color:#88a9bf}.refdetail .kv code{color:var(--gold);font-family:Consolas,monospace;overflow-wrap:anywhere}.refdetail .method{margin-top:12px;background:#183448;border-radius:9px;padding:11px;color:#cde7f1;font-size:13px}.refdetail .warning{margin-top:12px;background:#53372b65;border:1px solid #87644b;border-radius:9px;padding:11px;font-size:12px;color:#ffe0b1}
+.wavegrid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,.7fr);gap:14px}.wavebox{padding:20px;overflow:hidden}.wavebuttons{display:flex;gap:5px;flex-wrap:wrap}.wavebuttons button{background:#163047;color:#c1d4e8;border:1px solid #456378;padding:6px 8px;border-radius:8px;font:750 11px Consolas,monospace}.wavebuttons button[data-selected=true]{background:#235363;border-color:var(--cyan);color:#fff}#wave{display:block;width:100%;height:auto;margin-top:14px}.pin-table{border-collapse:collapse;width:100%;font-size:12px}.pin-table th,.pin-table td{padding:8px 4px;border-bottom:1px solid #2d485c;text-align:left}.pin-table th{font-size:10px;color:var(--cyan);letter-spacing:.05em}.pin-table td:nth-child(2){font:750 13px Consolas,monospace;color:var(--gold)}
+.rtlgrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.67fr);gap:14px}.codeframe{background:#081825;border:1px solid #2a4357;border-radius:12px;max-height:545px;overflow:auto}.codeframe pre{margin:0;padding:20px 22px;font:13px/1.72 Consolas,Monaco,monospace;color:#c5dbeb;white-space:pre;tab-size:4}.filename{font:700 11px Consolas,monospace;color:#9dd7dc}.rtlgrid aside p,.rtlgrid aside li{font-size:13px;color:#bdcfe0}.rtlgrid aside h3{font-size:18px;margin:0 0 12px}.rtlgrid aside ul{padding-left:18px}.rtlgrid aside a{overflow-wrap:anywhere}
+.proofs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.proof{padding:22px}.proof h3{font-size:18px;margin:9px 0}.proof p{font-size:12px;color:var(--muted)}.proof .pass{color:var(--teal);font:850 20px Consolas,monospace}.sha{font:12px/1.5 Consolas,monospace;overflow-wrap:anywhere;color:#d1e5f3}.proof-two{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}.twocolhex{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hexlist{font:11px/2 Consolas,monospace;overflow-x:auto}.hexline{white-space:nowrap;padding:3px 4px;border-bottom:1px solid #294154}.hexline .off{color:#8aa2b7;margin-right:9px}.hexline .newbyte{color:#69ecc0}.resrow{display:grid;grid-template-columns:95px minmax(0,1fr) 42px;gap:8px;align-items:center;font-size:12px;margin-top:11px}.bar{height:9px;background:#304254;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#429ec2,var(--cyan));border-radius:inherit}.footer{margin-top:30px;padding:27px 0 42px;color:#a5b9c8;font-size:12px;border-top:1px solid #284357}
+.video body{font-size:18px}.video .topbar{position:relative}.video nav{display:none}.video .wrap{max-width:1700px}.video .hero{padding-top:24px;padding-bottom:14px}.video h1{font-size:clamp(37px,4.2vw,60px)}.video .section{padding-top:21px;padding-bottom:25px}.video #videotip{display:none}
+@media(max-width:1170px){nav{gap:10px}.commandtiles{grid-template-columns:repeat(4,1fr)}.ref-layout,.rtlgrid,.wavegrid{grid-template-columns:1fr}.diagram{gap:4px}.node{padding:9px;min-height:145px}.nodetitle{font-size:13px!important}}
+@media(max-width:800px){.wrap{padding:0 14px}.hero{padding-top:35px}.head nav{display:none}.gridstats{grid-template-columns:repeat(2,1fr)}.simgird,.cols2,.proof-two,.proofs,.twocolhex{grid-template-columns:1fr}.diagram{display:flex;overflow:auto;padding-bottom:9px}.node{min-width:155px}.arr{min-width:17px}.section{padding-top:22px;padding-bottom:30px}.commandtiles{grid-template-columns:repeat(3,1fr)}.sectionhead{display:block}.stepnote{margin-bottom:0}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+/* Keep the document viewport fixed while the architecture and RTL scroll within their own panels. */
+html,body{overflow-x:clip}
+</style>
+</head><body>
+<header class="topbar"><div class="wrap head"><div class="brand">◈ PiKoSoL <span>/ SD–06</span></div><nav aria-label="Навигация"><a href="#model">Симулятор</a><a href="#protocol">SD протокол</a><a href="#reference">Справочник команд</a><a href="#physics">SPI / Pins</a><a href="#verilog">Verilog</a><a href="#results">Испытания</a></nav><button type="button" class="btn small ghost" id="videoMode">Режим видео ⛶</button></div></header>
+<main>
+<section class="hero wrap"><div class="eyebrow"><span class="dot"></span> TANG NANO 9K · GW1NR‑9C · 25.10.2026</div><h1>Как FPGA <em>читает и пишет</em><br>секторы microSD</h1><p class="lead">Интерактивная архитектура SD‑06: команды SD, обмен по UART/SPI, конечные автоматы и <b>настоящий Verilog</b>. Внизу — подтверждённые результаты физической записи и восстановления сектора.</p><div class="chips"><span class="chip green">CMD17 · CMD24 · RESTORE — HARDWARE PASS</span><span class="chip">512 байт / сектор</span><span class="chip">27 МГц / ~211 кГц SPI</span><span class="chip gold">HTML — безопасная офлайн-модель, НЕ COM-порт</span></div></section>
+<div class="wrap"><div class="gridstats"><div class="card stat"><b>CMD17</b><small>Чтение блока с microSD</small></div><div class="card stat"><b>CMD24</b><small>Запись блока на microSD</small></div><div class="card stat"><b>448 / 512</b><small>Байтов изменено в физическом тесте</small></div><div class="card stat"><b>PASS × 3</b><small>Read · Write · Restore</small></div></div></div>
+<section class="section wrap" id="model"><div class="sectionhead"><div><div class="sectnum">01 / АРХИТЕКТУРА И АНИМАЦИЯ</div><h2>Путь команды: ПК → FPGA → SDHC</h2><p>Выберите сценарий, нажмите «Шаг» или «Автопуск» — подсветка проходит по реальным узлам архитектуры Verilog.</p></div><span class="chip">Standalone SD‑06 · пока без PicoRV32 MMIO</span></div>
+<div class="card pad"><div class="diagram" id="diagram"><div class="node" data-node="pc"><span class="nodecode">HOST</span><span class="nodetitle">ПК / Python</span><span class="nodesub">LBA · FAT32 · SHA256 · защита от записи</span></div><div class="arr">→</div><div class="node" data-node="uart"><span class="nodecode">115200 8N1</span><span class="nodetitle">UART</span><span class="nodesub">A5 / 5A · CRC16 кадра · SEQ</span></div><div class="arr">→</div><div class="node" data-node="fsm"><span class="nodecode">VERILOG · 27 MHz</span><span class="nodetitle">FPGA / FSM</span><span class="nodesub">Состояния, RAM, preimage, LBA permit</span></div><div class="arr">→</div><div class="node" data-node="spi"><span class="nodecode">SPI · MODE 0</span><span class="nodetitle">SPI BYTE</span><span class="nodesub">SCK · MOSI · MISO · CS_N</span></div><div class="arr">→</div><div class="node" data-node="sd"><span class="nodecode">SDHC</span><span class="nodetitle">microSD</span><span class="nodesub">Номер блока LBA · 512 байт</span></div></div><div class="bufferline"><span>Reader <strong>512 B RAM</strong></span><span>Old sector <strong>512 B RAM</strong></span><span>New sector <strong>512 B RAM</strong></span><span>Writer payload <strong>512 B RAM</strong></span><span>HW permit <strong>LBA 10718</strong></span></div><div class="note">В микросхеме GW1NR‑9C нет отдельного процессора для SD. Все операции SD‑06 реализуются логическими автоматами Verilog; системные регистры работают от <b>27 МГц</b>, а SCK создаётся как управляемый выход.</div></div>
+<div class="controlbar"><div class="field"><label for="scenario">СЦЕНАРИЙ</label><select id="scenario"><option value="init">Пуск: CMD0 → CMD58</option><option value="read">CMD17 · чтение сектора</option><option value="write" selected>CMD24 · запись и проверка</option><option value="restore">CMD24 · восстановление</option><option value="guard">Защита: чужой LBA</option></select></div><div class="field"><label for="lba">LBA (десятичный)</label><input id="lba" type="number" value="10718" min="0" max="4294967295" step="1"></div><div class="field"><label for="speed">СКОРОСТЬ</label><select id="speed"><option value="2100">Медленно</option><option value="1150" selected>Нормально</option><option value="570">Быстро</option></select></div><div class="controlactions"><button type="button" class="btn primary" id="start">▶ Автопуск</button><button type="button" class="btn" id="next">Шаг →</button><button type="button" class="btn ghost" id="reset">↺ Сброс</button></div></div>
+<div class="simgird"><div class="card live"><div class="kicker">ШАГОВАЯ МОДЕЛЬ АЛГОРИТМА</div><h3 id="activeTitle">Нажмите «Автопуск»</h3><p id="activeDesc">В браузере не отправляется ни одной команды на физическую карту. Мы моделируем последовательность событий по реальной RTL-архитектуре.</p><div class="buslabels"><span class="buslabel"><small>Шина</small><span id="busLabel">Ожидание</span></span><span class="buslabel"><small>Байт / сигнал</small><span id="busValue">—</span></span><span class="buslabel"><small>Состояние</small><span id="fsmState">ST_IDLE</span></span></div><p class="stepnote" id="stepNote">Аппаратные результаты в разделе 06; анимация служит для обучения.</p><div class="progress"><div id="progress"></div></div></div><div class="card stepsbox"><div class="stepshead"><span>Этапы сценария</span><span id="stepNumber">0 / 0</span></div><div id="steplist"></div></div></div><p class="footnote" id="videotip">Удобно для видео: режим ⛶, скорость «Медленно». Горячие клавиши: <b>→</b> шаг, <b>Пробел</b> пауза/пуск, <b>R</b> сброс.</p>
+</section>
+<section class="section wrap" id="protocol"><div class="sectionhead"><div><div class="sectnum">02 / НАШИ КОМАНДЫ И ПАКЕТЫ</div><h2>CMD17 и CMD24 — в подробностях</h2><p>SPI кадр команды содержит 6 байтов: <b>(0x40 | CMD), аргумент 32 бита, CRC7/end</b>. В SDHC аргумент CMD17/CMD24 — номер сектора (LBA), а не байтовое смещение.</p></div></div>
+<div class="commandtiles" id="tiles"><button type="button" class="cmdtile" data-cmd="CMD0"><code>0x40</code><b>CMD0</b><small>Reset / SPI</small></button><button type="button" class="cmdtile" data-cmd="CMD8"><code>0x48</code><b>CMD8</b><small>IF_COND</small></button><button type="button" class="cmdtile" data-cmd="CMD55"><code>0x77</code><b>CMD55</b><small>Перед ACMD</small></button><button type="button" class="cmdtile" data-cmd="ACMD41"><code>0x69</code><b>ACMD41</b><small>SD init</small></button><button type="button" class="cmdtile" data-cmd="CMD58"><code>0x7A</code><b>CMD58</b><small>OCR / CCS</small></button><button type="button" class="cmdtile" data-cmd="CMD17" data-selected="true"><code>0x51</code><b>CMD17</b><small>READ 512 B</small></button><button type="button" class="cmdtile" data-cmd="CMD24"><code>0x58</code><b>CMD24</b><small>WRITE 512 B</small></button></div>
+<div class="card command-detail cols2"><div><div class="kicker" id="commandName">READ_SINGLE_BLOCK</div><h3 id="commandTitle">CMD17 — чтение блока</h3><p id="commandExplain"></p><div class="responsebox" id="commandResponse"></div></div><div><div class="kicker">ФАКТИЧЕСКИЕ 6 БАЙТОВ КАДРА (MOSI)</div><div class="bytes" id="commandBytes"></div><p class="footnote" id="commandArgument"></p></div></div>
+<div class="card packetbox"><div class="kicker">НЕ ПУТАТЬ УРОВНИ: ПК ОБЩАЕТСЯ ПО UART, SD-КАРТА — ПО SPI</div><h3 style="margin:5px 0 12px;font-size:20px">Кадры собственного UART-протокола SD‑06</h3><div class="tabs" id="pktTabs"><button type="button" class="tab" data-packet="readReq" data-selected="true">READ запрос · 9 B</button><button type="button" class="tab" data-packet="readReply">READ ответ · 523 B</button><button type="button" class="tab" data-packet="writeReq">WRITE запрос · 1033 B</button><button type="button" class="tab" data-packet="writeAck">WRITE ответ · 10 B</button></div><div class="packet" id="packetItems"></div><p class="footnote" id="packetCaption"></p><div class="note">CRC16 для кадров UART: <b>CRC16/CCITT-FALSE</b>, полином <b>0x1021</b>, начальное <b>0xFFFF</b>. CRC16 блока данных SD — тот же полином, но начало в RTL <b>0x0000</b>. Проверка CRC кадра и CRC сектора — два разных механизма.</div></div>
+</section>
+<section class="section wrap" id="reference"><div class="sectionhead"><div><div class="sectnum">03 / ВСТРОЕННЫЙ СПРАВОЧНИК</div><h2>Справочник команд SD / SDHC</h2><p>Фильтруйте команды по номеру, названию и назначению. Метка «В RTL» показывает реальные команды SD‑06; остальные включены для изучения и <b>не означают поддержки прошивкой</b>.</p></div><span class="chip">SPI-mode command catalog</span></div>
+<div class="reference-controls"><input type="search" id="refSearch" aria-label="Поиск команды" placeholder="Поиск: CMD24, CSD, erase, чтение, ACMD…"><div class="ref-filters" id="refFilters"><button type="button" data-filter="all" data-active="true">Все</button><button type="button" data-filter="real">В нашем RTL</button><button type="button" data-filter="extra">Дополнительно</button><button type="button" data-filter="danger">Стирание / риск</button></div></div>
+<div class="ref-layout"><div class="tablewrap"><table class="ref-table"><thead><tr><th>Команда</th><th>SPI код</th><th>Описание / назначение</th><th>Поддержка</th></tr></thead><tbody id="referenceRows"></tbody></table></div><div class="card refdetail"><div class="kicker" id="refCategory">CARD COMMAND</div><h3 id="refTitle">CMD17</h3><p id="refDescription"></p><div class="kv"><span>SPI 1-й байт</span><code id="refCode"></code></div><div class="kv"><span>Аргумент</span><code id="refArg"></code></div><div class="kv"><span>Ответ</span><code id="refAnswer"></code></div><div class="kv"><span>В SD‑06</span><code id="refStatus"></code></div><div class="method" id="refHow"></div><div class="warning" id="refWarning"></div><p class="footnote">Реализация ACMD: сначала CMD55, затем соответствующая команда. Таблица ориентирована на SPI; часть возможностей спецификации доступна только в нативном SD-режиме.</p></div></div>
+<div class="note gold">Команды стирания (CMD32 / CMD33 / CMD38) приведены только для справки. Их <b>нет</b> в SD‑06, и эту демонстрацию нельзя использовать для стирания настоящей карты. CMD16 в SDHC не меняет фиксированный размер блока 512 байт; CMD11 (смена напряжения) не нужен и не применим к SPI-обмену этого проекта.</div>
+</section>
+<section class="section wrap" id="physics"><div class="sectionhead"><div><div class="sectnum">04 / ВОЛНЫ И КОНТАКТЫ</div><h2>Физика SPI: что делают SCK, MOSI и MISO</h2><p>SPI mode 0: SCK в покое равен 0, MOSI выставляется до нарастающего фронта SCK, MISO считывается на фронте. Смена примера меняет 8 иллюстрируемых битов.</p></div></div>
+<div class="wavegrid"><div class="card wavebox"><div class="chips" style="justify-content:space-between;align-items:center"><span class="kicker">ЦИФРОВАЯ ВРЕМЕННАЯ ДИАГРАММА · 8 ТАКТОВ</span><div class="wavebuttons" id="waveButtons"><button type="button" data-wave="cmd17" data-selected="true">0x51 CMD17</button><button type="button" data-wave="cmd24">0x58 CMD24</button><button type="button" data-wave="token">0xFE TOKEN</button><button type="button" data-wave="response">0x05 RESPONSE</button></div></div><svg xmlns="http://www.w3.org/2000/svg" id="wave" viewBox="0 0 880 258" role="img" aria-label="Модель восьми бит SPI со сигналами CS, SCK, MOSI, MISO"></svg><p class="footnote" id="waveNote">Синтезированная временная диаграмма для обучения; не является осциллограммой реальной платы.</p><div class="note">В Verilog параметр <b>HALF_PERIOD = 64</b>. При clk 27 МГц: SCK ≈ <b>210,94 кГц</b> (128 тактов clk на период SCK). Домен синхронизации только один — 27 МГц.</div></div><div class="card pad"><div class="kicker">РЕАЛЬНЫЕ CONSTRAINTS · TANG NANO 9K</div><h3 style="margin:5px 0 13px">Физические пины FPGA</h3><table class="pin-table"><thead><tr><th>Сигнал RTL</th><th>Pin чипа</th><th>IO level</th></tr></thead><tbody><tr><td>clk 27 МГц</td><td>52</td><td>3,3 V</td></tr><tr><td>reset_n</td><td>3</td><td>1,8 V</td></tr><tr><td>uart_tx / uart_rx</td><td>17 / 18</td><td>3,3 V</td></tr><tr><td>sd_sck</td><td>36</td><td>3,3 V</td></tr><tr><td>sd_mosi</td><td>37</td><td>3,3 V</td></tr><tr><td>sd_cs_n</td><td>38</td><td>3,3 V</td></tr><tr><td>sd_miso</td><td>39</td><td>3,3 V</td></tr><tr><td>led_n[5:0]</td><td>10,11,13–16</td><td>1,8 V</td></tr></tbody></table><p class="footnote">Номера из <code>sd05_nano9k.cst</code> — это выводы FPGA GW1NR‑9C, а не номера контактов слота microSD.</p></div></div>
+</section>
+<section class="section wrap" id="verilog"><div class="sectionhead"><div><div class="sectnum">05 / ФИЗИЧЕСКАЯ РЕАЛИЗАЦИЯ В VERILOG</div><h2>Реальные модули SD‑06: автоматы, RAM, SPI</h2><p>Фрагменты точного RTL, использованного в проекте. Переключайте вкладки, чтобы увидеть, как команды превращаются в логику. Полные файлы — в GitHub.</p></div></div>
+<div class="rtlgrid"><div class="card pad"><div class="chips" style="align-items:center;justify-content:space-between;margin-bottom:12px"><div class="tabs" id="rtlTabs"><button type="button" class="tab" data-code="bridge" data-selected="true">UART/MUX</button><button type="button" class="tab" data-code="reader">CMD17 FSM</button><button type="button" class="tab" data-code="writer">CMD24 FSM</button><button type="button" class="tab" data-code="spi">SPI mode 0</button></div><span class="filename" id="rtlFilename"></span></div><div class="codeframe"><pre><code id="rtlCode"></code></pre></div><p class="footnote">Показаны выдержки из Verilog, а не компилируемая в браузере прошивка. Полная реализация и тесты доступны по ссылкам справа.</p></div><aside class="card pad"><div class="kicker">ОБЪЯСНЕНИЕ АРХИТЕКТУРЫ</div><h3 id="rtlTitle"></h3><p id="rtlText"></p><h3 style="margin-top:25px">Исходники Verilog</h3><ul><li><a target="_blank" rel="noopener" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/sd06-cmd24-offline/boards/tang-nano-9k/experiments/sd06-cmd24/rtl/sd06_rw_bridge_top.v">sd06_rw_bridge_top.v</a></li><li><a target="_blank" rel="noopener" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/sd06-cmd24-offline/boards/tang-nano-9k/experiments/sd06-cmd24/rtl/sd06_cmd24_engine.v">sd06_cmd24_engine.v</a></li><li><a target="_blank" rel="noopener" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/sd06-cmd24-offline/boards/tang-nano-9k/experiments/sd-mbr-fat32/rtl/sd_read_sector.v">sd_read_sector.v</a></li><li><a target="_blank" rel="noopener" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/sd06-cmd24-offline/boards/tang-nano-9k/experiments/sd-mbr-fat32/rtl/spi_byte.v">spi_byte.v</a></li><li><a target="_blank" rel="noopener" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/sd06-cmd24-offline/boards/tang-nano-9k/experiments/sd05-lba-bridge/constraints/sd05_nano9k.cst">sd05_nano9k.cst</a></li></ul><div class="note green">Физический результат — аппаратный: Gowin превратил Verilog в LUT, регистры и память на чипе. <b>Отдельная PiKoSoL CPU + HDMI интеграция пока не выполнена.</b></div></aside></div>
+</section>
+<section class="section wrap" id="results"><div class="sectionhead"><div><div class="sectnum">06 / ИЗМЕРЕНИЯ С РЕАЛЬНОЙ ПЛАТЫ</div><h2>CMD17 → CMD24 → CMD17 → восстановление</h2><p>Не «пример ожидаемого ответа», а значения из аппаратной видеодемонстрации 25 октября 2026 года.</p></div></div>
+<div class="proofs"><div class="card proof"><div class="kicker">CMD17 / ORIGINAL</div><h3>Прочитано 512 байт</h3><p>LBA 10718 · FAT32 cluster 11 · SDRWTEST.BIN</p><span class="pass">HARDWARE PASS</span><p class="sha">D4EE72A0614088909BD2B34C5100DE2E7A7370382F2C1E434A0EB2B7460B50F3</p></div><div class="card proof"><div class="kicker">CMD24 / WRITE</div><h3>Записано 448 новых байт</h3><p>Независимый CMD17 подтвердил содержимое</p><span class="pass">HARDWARE PASS</span><p class="sha">C934134A8F462557E29357920CFF96314FEBC5E363AF26A8F37ACD33E4B155A2</p></div><div class="card proof"><div class="kicker">CMD24 / RESTORE</div><h3>Все 512 байт восстановлены</h3><p>Повторное CMD17 и проверка FAT32 preflight</p><span class="pass">HARDWARE PASS</span><p class="sha">D4EE72A0614088909BD2B34C5100DE2E7A7370382F2C1E434A0EB2B7460B50F3</p></div></div>
+<div class="proof-two"><div class="card pad"><div class="kicker">НАСТОЯЩИЕ ДАННЫЕ ИЗ ЖУРНАЛА ВИДЕО</div><h3 style="margin:5px 0 14px">Сравнение: сектор по смещениям 0x40–0x7F</h3><div class="twocolhex"><div><span class="chip">CMD17 BEFORE</span><div class="hexlist" id="hexBefore"></div></div><div><span class="chip green">CMD17 AFTER / XOR 5A</span><div class="hexlist" id="hexAfter"></div></div></div><p class="footnote">Здесь представлены именно те 64 байта, которые показал PowerShell Format-Hex. По всем 512 байтам физический тест установил изменение 448 байт и совпадение исходных данных после восстановления.</p></div><div class="card pad"><div class="kicker">РЕСУРСЫ ПОЛНОГО АВТОНОМНОГО R/W RTL</div><h3 style="margin:5px 0 13px">Gowin PnR / Tang Nano 9K</h3><div class="resrow"><span>Logic</span><div class="bar"><i style="width:23%"></i></div><strong>23%</strong></div><div class="resrow"><span>FF</span><div class="bar"><i style="width:10%"></i></div><strong>10%</strong></div><div class="resrow"><span>BSRAM</span><div class="bar"><i style="width:12%"></i></div><strong>12%</strong></div><p class="footnote" style="margin-top:15px">1 937 / 8 640 логических ресурсов; 662 FF; 3 × SDPB; Fmax расчётная 57,23 МГц, без внутренних setup/hold нарушений при 27 МГц.</p><p class="footnote">Эти проценты относятся к <b>ранней полной измерительной сборке</b>, а не к CPU/HDMI или конкретной поздней версии с фиксированным LBA. Внешние временные ограничения SPI/UART отдельно не сертифицированы.</p><div class="note green">Завершённый функциональный тест: <b>одна тестовая SDHC-карта, сектор 10718, чтение, запись, независимая проверка, восстановление</b>.</div></div></div>
+<div class="note gold">Не охвачено испытанием: все модели SD, надёжность многократной записи, поведение при пропадании питания, полная проверка целостности тома Windows и совместное размещение с CPU/HDMI PiKoSoL. Данная HTML-страница — интерактивная модель, которая не подключается к плате и не изменяет карту.</div>
+<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:17px"><a class="btn" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/sd06-cmd24-offline/boards/tang-nano-9k/experiments/sd06-cmd24/acceptance/SD06_RW_HARDWARE_2026-10-25.md" target="_blank" rel="noopener">Акт аппаратной приёмки ↗</a><a class="btn" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/tree/feature/sd06-cmd24-offline/boards/tang-nano-9k/experiments/sd06-cmd24" target="_blank" rel="noopener">Репозиторий SD‑06 ↗</a></div>
+</section>
+</main><footer class="footer"><div class="wrap">PiKoSoL / SD‑06 · Sipeed Tang Nano 9K · Образовательная интерактивная демонстрация RTL Verilog и SDHC SPI. Данные аппаратных испытаний — 25.10.2026. Работает локально без интернета. <span style="color:var(--cyan)">CMD17 · CMD24 · CRC16 · Verilog · FPGA</span></div></footer>
+<script>'use strict';
+const $ = id => document.getElementById(id);
+const hexb = n => (Number(n) & 255).toString(16).padStart(2,'0').toUpperCase();
+const hex32 = n => (Number(n)>>>0).toString(16).padStart(8,'0').toUpperCase();
+const safe = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const APPROVED=10718;
+const H_ORIG='D4EE72A0614088909BD2B34C5100DE2E7A7370382F2C1E434A0EB2B7460B50F3';
+const H_WRITTEN='C934134A8F462557E29357920CFF96314FEBC5E363AF26A8F37ACD33E4B155A2';
+function getLba(){let n=Number($('lba').value);return Number.isSafeInteger(n)&&n>=0&&n<=4294967295?n:NaN;}
+function makeStages(type,lba){
+ const fmt=hex32(lba||0); const allow=(lba===APPROVED);const basic=(block,title,desc,bus,val,state,note)=>({block,title,desc,bus,val,state,note});
+ if(type==='init')return [
+ basic('sd','Power-on / SD SPI','Плата задаёт стабильное питание; контроллер выдаёт начальные 80 тактов с CS_N=1 и MOSI=1.','SPI','FF × 10','PH_POWER','Инициализация соответствует lab05_sd_read_sector: 1 мс ожидания и 10 байтов FF.'),
+ basic('spi','CMD0 — переход в SPI','Чип выбирается CS_N=0; CMD0 с обязательной контрольной последовательностью 95.','SPI','40 00 00 00 00 95','PH_CMD','R1 = 0x01: карта в idle state.'),
+ basic('spi','CMD8 — проверка напряжения','CMD8 с аргументом 0x000001AA и CRC 0x87; ожидается echo R7.','SPI','48 00 00 01 AA 87','PH_EXTRA','Проект отвергает неподходящий ответ CMD8.'),
+ basic('fsm','CMD55 + ACMD41','Отправляются CMD55 и затем ACMD41 с HCS=1. Цикл повторяется до выхода из idle state.','SPI','77 … / 69 40 …','PH_R1','ACMD41 означает application-specific command; сначала требуется CMD55.'),
+ basic('sd','CMD58 — OCR и CCS','Контроллер читает OCR, проверяет CCS: только SDHC/SDXC (блочная адресация), SDSC отвергается.','SPI','7A 00 00 00 00 01','PH_EXTRA','R3 = R1 + OCR32; CCS — бит 30 OCR.'),
+ basic('fsm','Карта готова','Флаг initialized=1. Дальнейшие запросы идут через CMD17/CMD24 без нового CMD0.','FPGA','initialized=1','S_IDLE','Для замены SD-карты необходимо повторно сбросить/перепрошить FPGA для корректной инициализации.')];
+ if(type==='read')return [
+ basic('pc','ПК готовит запрос чтения',`Хост выбирает SDHC LBA ${lba} (0x${fmt}).`,`HOST`,`A5 52 seq ${fmt}`,'READ_REQUEST','Хост вычисляет CRC16/CCITT-FALSE всего UART-запроса.'),
+ basic('uart','UART RX принимает 9 байт','UART-автомат принимает SOF=A5, cmd=52, seq, LBA32LE и CRC16LE.','UART','A5 52 + LBA + CRC','ST_RX','Фреймы с неправильной CRC не передаются в контроллер SD.'),
+ basic('fsm','FSM запускает reader','Формируется start=1, контроллер SPI выбран; если карта не инициализирована, сначала запускается последовательность CMD0…CMD58.','FPGA','rd_start=1','ST_READ_START','Всё работает в одном тактовом домене 27 МГц.'),
+ basic('spi','CMD17: READ_SINGLE_BLOCK',`На MOSI отправляется 51 ${fmt.match(/../g).join(' ')} 01.`,`SPI`,`51 ${fmt.match(/../g).join(' ')} 01`,'PH_CMD','Для SDHC аргумент команды — адрес сектора, не адрес в байтах.'),
+ basic('sd','SDHC отвечает R1 и FE','Контроллер ждёт R1=0x00, затем токен данных 0xFE с ограниченным тайм-аутом.','SPI','R1=00 / FE','PH_TOKEN','Фиксированное время ответа не предполагается; устройство может посылать FF.'),
+ basic('fsm','Приём 512 байт + CRC16','Поступившие по MISO 512 байт пишутся в sector[0..511]. Проверяются два байта CRC16 блока.','MISO','512 B + CRC16','PH_DATA','CRC блока SD: полином 0x1021 и начальный 0x0000.'),
+ basic('uart','UART отправляет ответ','FPGA формирует 5A 44 seq LBA32LE 00 00 DATA512 CRC16LE.','UART','5A 44 + 512 B','ST_REPLY_PREP','523 байта для успешного чтения, либо 10-байтный ответ об ошибке.'),
+ basic('pc','Компьютер получает сектор','Python сверяет длину 512, seq, LBA и CRC16, после чего может использовать сектор для FAT32.','HOST','512 bytes','READ_PASS','При LBA 10718 известен физический SHA256 исходных байтов; остальные адреса в браузере не считываются.')];
+ if(type==='guard')return [
+ basic('pc','Компьютер запрашивает запись',`Попытка CMD24 по LBA ${lba} при аппаратном разрешении только LBA 10718.`,`HOST`,`A5 57 / LBA=${lba}`,'WRITE_REQUEST','Проверка LBA проводится внутри RTL независимо от безопасности ПК.'),
+ basic('uart','UART RX принимает 1033 байта','Получены old_sector[512], new_sector[512], CRC16.','UART','old512 + new512','ST_RX','Полный UART фрейм не означает разрешение на запись.'),
+ basic('fsm','Аппаратный write_allow','Сравнение lba с WRITE_FIRST_LBA/WRITE_LAST_LBA, прошитыми в конфигурацию FPGA.','FPGA',`write_allow=${allow?1:0}`,'ST_RX',allow?'Искомый LBA разрешён: для реального отказа измените LBA на другой.':'Логика FAIL-CLOSED возвращает отказ F1, не активируя CMD24.'),
+ ...(allow?[basic('fsm','LBA совпал — доступ не отказан','Для иллюстрации отказа выберите другой LBA (например 10719). В реальном RTL дополнительно проверяются CRC, payload и старые данные.','FPGA','authorized=1','ST_READ_START','Запись всё равно невозможна из браузера: здесь только модель.')]:[basic('uart','Результат: отказ без CMD24','Контроллер отправляет статус F1. SD-карта физически не получает команду записи.','UART','5A 57 … F1 CRC','ST_REPLY_INIT','CMD24 не запущен; запись запрещена независимо от FAT32.')])];
+ let restore=type==='restore';
+ return [
+ basic('pc',restore?'ПК готовит восстановление':'ПК готовит защищённую запись',`Проверяются FAT32, имя SDRWTEST.BIN, физический LBA ${lba}, backup и SHA-256 исходного сектора.`,`HOST`,`LBA=${lba}`,'PREFLIGHT','Реальная программа также сверяет MBR/VBR и данные сектора с резервной копией.'),
+ basic('uart','1033-байтовый запрос UART','A5 57 seq LBA32LE, 512 байт старого содержимого, 512 байт нового, CRC16LE.','UART','A5 57 + old512 + new512','ST_RX','Важна полная приёмка кадра UART до какой-либо записи SD.'),
+ basic('fsm','Аппаратная проверка LBA',`В прошивке разрешён только 10718. Текущий LBA ${lba}: ${allow?'совпадает':'не совпадает'}.`,'FPGA',`write_allow=${allow?1:0}`,'ST_RX',allow?'Скоро проверяется preimage старого сектора.':'RTL откажет в записи: перейти к сценарию «Защита LBA».'),
+ ...(!allow?[basic('uart','Запись запрещена','В ответе UART статус F1, SD CMD24 не выполняется.','UART','STATUS F1','ST_REPLY_INIT','Анимация блокирует все последующие шаги записи при неправильном LBA.')]:[
+ basic('spi','CMD17: прочитать старый сектор','FPGA сама читает текущий SD-сектор до записи.','SPI',`51 ${fmt.match(/../g).join(' ')} 01`,'ST_READ_WAIT','Нельзя доверять только контрольной сумме на стороне ПК.'),
+ basic('fsm','Сравнение всех 512 старых байт','reader RAM сравнивается с переданным old_sector; mismatch прерывает запись.','FPGA','old512 == sd512','ST_OLD_WAIT2','Проверка выполняется byte-by-byte через синхронный RAM-выход.'),
+ basic('spi','CMD24: записать 512 байт','MOSI: 0x58, LBA32, 0x01. После R1=0x00 передаётся FE, данные 512 байт, CRC16 (два байта).','SPI',`58 ${fmt.match(/../g).join(' ')} 01`,'P_DATA','Пишется одна физическая логическая область, а не файл средствами FPGA.'),
+ basic('sd','SD отвечает data response','Получено R1=00, data response accepted = 0x05 (маска 0x1F), затем карта удерживает busy пока не готова.','MISO','R1=00 / 05 / busy','P_BUSY','Тайм-ауты ограничены. Ошибки аппаратно не считаются успехом.'),
+ basic('spi','CMD17 после записи','Независимый повторный CMD17 считывает тот же сектор после CMD24.','SPI','CMD17 + 512 B','ST_VERIFY_WAIT','Это аппаратная readback-проверка, отличная от ACK записи.'),
+ basic('fsm','Сравнение 512 новых байт',restore?'Исходное содержимое полностью восстановлено; readback соответствует сохранённому preimage.':'Считанные данные совпали с new_sector, который передавал ПК.','FPGA',restore?'SHA = ORIGINAL':'new512 == sd512','ST_NEW_WAIT2','В эксперименте менялись 448 байт из 512; первые 64 не изменялись.'),
+ basic('uart','FPGA подтверждает успешную операцию','UART ответ 5A 57 seq LBA32LE status=00 CRC16LE.','UART','5A 57 … 00 CRC','ST_REPLY_PREP','CRC16 в ответе защищает передачу результата в ПК.'),
+ basic('pc',restore?'Финал: сектор восстановлен':'Финал: новые данные подтверждены',restore?`Реальный тест: SHA-256 ${H_ORIG}`:`Реальный тест: SHA-256 ${H_WRITTEN}`,'HOST',restore?'RESTORE PASS':'WRITE VERIFY PASS','ACCEPTANCE','Результаты из лога Tang Nano 9K 25.10.2026; браузер лишь воспроизводит их логику.')])];
+}
+let scenario='write', steps=[], index=-1, playing=false, timer=null;
+function stop(){playing=false;if(timer!==null){clearTimeout(timer);timer=null;}$('start').textContent='▶ Автопуск';}
+function setScenario(){stop();scenario=$('scenario').value;let l=getLba();if(!Number.isFinite(l)) { $('lba').value='10718';l=APPROVED;}steps=makeStages(scenario,l);index=-1;renderSteps();}
+function renderSteps(){const l=getLba();let current=steps[index];$('stepNumber').textContent=`${Math.max(0,index+1)} / ${steps.length}`;$('progress').style.width=`${100*Math.max(0,index+1)/Math.max(1,steps.length)}%`;$('activeTitle').textContent=current?current.title:'Выберите сценарий и нажмите «Шаг»';$('activeDesc').textContent=current?current.desc:'Это точная структурная модель проверенной реализации SD‑06. Отправка команд на реальный COM-порт из HTML отсутствует.';$('busLabel').textContent=current?current.bus:'Ожидание';$('busValue').textContent=current?current.val:'—';$('fsmState').textContent=current?current.state:'ST_IDLE';$('stepNote').textContent=current?current.note:'Анимация основана на RTL, но не является аппаратной телеметрией.';document.querySelectorAll('.node').forEach(el=>el.dataset.active=String(current&&el.dataset.node===current.block));$('steplist').innerHTML=steps.map((s,i)=>`<button type="button" class="stepitem" data-step="${i}" data-state="${i===index?'active':i<index?'done':'pending'}"><span class="stepidx">${String(i+1).padStart(2,'0')}</span><span>${safe(s.title)}</span></button>`).join('');document.querySelectorAll('[data-step]').forEach(el=>el.onclick=()=>{stop();index=Number(el.dataset.step);renderSteps();});$('next').disabled=index>=steps.length-1;}
+function next(){if(index<steps.length-1){index++;renderSteps();}else stop();}
+function autop(){if(!playing)return;if(index>=steps.length-1){stop();return;}next();timer=setTimeout(autop,Number($('speed').value));}
+$('scenario').addEventListener('change',setScenario);$('lba').addEventListener('change',setScenario);$('next').onclick=()=>{stop();next();};$('reset').onclick=setScenario;$('start').onclick=()=>{if(playing){stop();return;}if(index>=steps.length-1){index=-1;renderSteps();}playing=true;$('start').textContent='❚❚ Пауза';autop();};
+$('videoMode').onclick=()=>{const enabled=document.documentElement.classList.toggle('video');$('videoMode').textContent=enabled?'Обычный режим ⨯':'Режим видео ⛶';};
+document.addEventListener('keydown',ev=>{if(['INPUT','TEXTAREA','SELECT','BUTTON'].includes(document.activeElement?.tagName))return;if(ev.key==='ArrowRight'){ev.preventDefault();stop();next();}if(ev.key===' '){ev.preventDefault();$('start').click();}if(ev.key.toLowerCase()==='r'){setScenario();}});
+setScenario();
+// SD command encyclopedia. SPI first byte is 0x40 | command index, ACMD requires CMD55.
+// 'implemented' explicitly describes THIS verified SD-06 hardware, not the SD specification.
+const SD_COMMANDS=[
+{id:'CMD0',n:0,label:'GO_IDLE_STATE',topic:'Сброс и переход в SPI mode',detail:'Переводит карту в idle и SPI-режим после минимум 74 тактов при CS=1. В нашем RTL передаётся 10 байтов FF до выбора карты.',arg:'0x00000000',resp:'R1 (обычно 0x01)',implemented:true,group:'init',how:'CMD0 → R1=01. CRC byte 95 обязателен для этой команды.',warning:'Выполнять при инициализации карты, а не посреди незавершённой записи.'},
+{id:'CMD1',n:1,label:'SEND_OP_COND (MMC)',topic:'Устаревшая инициализация MMC',detail:'Команда, характерная для MMC; не заменяет ACMD41 для современных SDHC. В нашем RTL не используется.',arg:'Конфигурация OCR (MMC)',resp:'R1',implemented:false,group:'extra',how:'Имеет смысл лишь при работе с совместимыми MMC, не как универсальный SDHC startup.',warning:'Не применять в учебной процедуре инициализации SDHC вместо CMD55+ACMD41.'},
+{id:'CMD6',n:6,label:'SWITCH_FUNC',topic:'Управление функциями карты',detail:'Чтение статуса поддерживаемых функций и, при разрешении, выбор режимов скорости. Относится к возможностям карты, не к собственной частоте FPGA.',arg:'Режим, группы функций',resp:'R1 + data block 64 B',implemented:false,group:'extra',how:'В SPI возвращает данные 64 байта по токену. Не реализован в SD-06.',warning:'Не путайте с ACMD6, который устанавливает ширину 4-битной нативной шины SD.'},
+{id:'CMD8',n:8,label:'SEND_IF_COND',topic:'Проверка поколения и напряжения',detail:'Проверяет SD v2.0+ и согласование диапазона напряжения; аргумент 000001AA. Карта возвращает контрольный шаблон AA и VHS.',arg:'0x000001AA',resp:'R7 (R1 + 4 байта echo)',implemented:true,group:'init',how:'SPI: 48 00 00 01 AA 87. Затем сравнение VHS=01 и echo=AA.',warning:'Некорректный R7 в проекте приводит к ошибке, а не к продолжению инициализации.'},
+{id:'CMD9',n:9,label:'SEND_CSD',topic:'Прочитать CSD',detail:'Чтение регистра Card-Specific Data: геометрия, максимальные частоты и параметры карты. Подготовьте отдельный парсер CSD.',arg:'0',resp:'R1 + data token + CSD 16 B + CRC16',implemented:false,group:'extra',how:'Полезна для будущего определения полной ёмкости и параметров карты.',warning:'Не все поля CSD одинаково интерпретируются для SDSC и SDHC/SDXC.'},
+{id:'CMD10',n:10,label:'SEND_CID',topic:'Прочитать CID',detail:'Регистрационные данные карты: изготовитель, product name, дата выпуска и серийные поля.',arg:'0',resp:'R1 + CID 16 B + CRC16',implemented:false,group:'extra',how:'Можно использовать как один из маркеров идентификации карты, но не как единственный криптографически надёжный идентификатор.',warning:'Одна лишь CID не заменяет проверку содержимого и резервного снимка.'},
+{id:'CMD12',n:12,label:'STOP_TRANSMISSION',topic:'Остановить многоблочное чтение',detail:'Прерывает команду CMD18 чтения нескольких блоков; ответ SPI имеет дополнительный stuff-байт перед R1b.',arg:'0',resp:'R1b',implemented:false,group:'extra',how:'Для CMD17 не нужен, так как CMD17 читает ровно один блок.',warning:'В SD-06 нет режима многоблочного чтения.'},
+{id:'CMD13',n:13,label:'SEND_STATUS',topic:'Прочитать статус карты',detail:'Возвращает двухбайтовый R2 в SPI, позволяет диагностировать статус ошибок.',arg:'0',resp:'R2 (2 байта)',implemented:false,group:'extra',how:'Служебная команда диагностики после операций.',warning:'Не путать R2 (SPI card status) с R1b busy.'},
+{id:'CMD16',n:16,label:'SET_BLOCKLEN',topic:'Установить длину блока для SDSC',detail:'Для SDSC задаёт длину блока в байтах; SDHC/SDXC используют фиксированные 512-байтные блоки для чтения/записи.',arg:'Длина блока в байтах',resp:'R1',implemented:false,group:'extra',how:'Наш контроллер обслуживает SDHC/SDXC и работает с блоком 512 B, поэтому CMD16 не требуется.',warning:'Не использовать CMD16 в качестве средства изменить размер блока SDHC.'},
+{id:'CMD17',n:17,label:'READ_SINGLE_BLOCK',topic:'Прочитать один блок 512 B',detail:'Основная команда SD-06: передать LBA, получить R1, дождаться FE, затем прочитать 512 байт + два байта CRC16.',arg:'LBA32 — номер сектора SDHC',resp:'R1 + FE + 512 B + CRC16',implemented:true,group:'rw',how:'После CMD17 данные поступают в sector[0..511]. Аппаратная логика проверяет CRC16 блока.',warning:'Только чтение. Никакой записи в том FAT32 не производится.'},
+{id:'CMD18',n:18,label:'READ_MULTIPLE_BLOCK',topic:'Чтение непрерывных блоков',detail:'Последовательное чтение нескольких 512-байтных блоков; прекращается CMD12.',arg:'LBA первого блока',resp:'R1 + последовательность data blocks',implemented:false,group:'extra',how:'Быстрее последовательных CMD17 при правильно реализованном потоковом тракте.',warning:'Требует корректного завершения CMD12; отсутствует в текущем RTL.'},
+{id:'CMD24',n:24,label:'WRITE_BLOCK',topic:'Записать один блок 512 B',detail:'Основная команда записи SD-06: CMD24 + LBA, R1=00, токен FE, 512 байт и CRC16. Карта возвращает data response (0x05 accepted) и busy.',arg:'LBA32 — номер сектора SDHC',resp:'R1 → FE + 512 B + CRC16 → 0x05 → busy',implemented:true,group:'rw',how:'FPGA сравнивает исходный сектор, записывает CMD24 и самостоятельно проверяет CMD17 readback. Физически подтверждено на LBA 10718.',warning:'Разрешение на запись в проверенном bitstream ограничено одним LBA; на других SD-картах этот же LBA может принадлежать критичным данным.'},
+{id:'CMD25',n:25,label:'WRITE_MULTIPLE_BLOCK',topic:'Записать много блоков',detail:'Многоблочная запись с отдельным токеном начала 0xFC, завершение специальным токеном stop tran (0xFD).',arg:'LBA первого блока',resp:'R1 + data responses + busy',implemented:false,group:'extra',how:'Будущая оптимизация скорости при наличии очереди буферов и полноценной проверки питания.',warning:'Неправильная остановка может повредить несколько секторов; в SD-06 не реализована.'},
+{id:'CMD32',n:32,label:'ERASE_WR_BLK_START',topic:'Начало области стирания',detail:'Задаёт первый блок диапазона последующего стирания для SD-карт.',arg:'Начальный LBA',resp:'R1',implemented:false,group:'danger',how:'Команда не стирает самостоятельно; задаёт начало диапазона для CMD38.',warning:'ОПАСНО: диапазон может включать метаданные файловой системы. SD-06 её не поддерживает.'},
+{id:'CMD33',n:33,label:'ERASE_WR_BLK_END',topic:'Конец области стирания',detail:'Задаёт конечный блок диапазона для последующего стирания.',arg:'Конечный LBA',resp:'R1',implemented:false,group:'danger',how:'Используется вместе с CMD32, затем CMD38.',warning:'ОПАСНО: ошибка LBA может привести к массовой потере данных.'},
+{id:'CMD38',n:38,label:'ERASE',topic:'Стереть установленный диапазон',detail:'Запускает стирание диапазона, определённого командами CMD32 и CMD33.',arg:'Обычно 0 в SPI для обычного erase',resp:'R1b с busy',implemented:false,group:'danger',how:'Стирание может быть длительным и зависит от карты; в проекте не применяется.',warning:'НЕ ВЫПОЛНЯТЬ на реальной карте в рамках этой демонстрации.'},
+{id:'CMD55',n:55,label:'APP_CMD',topic:'Префикс следующей ACMD',detail:'Показывает карте, что последующая команда является application-specific command (ACMD).',arg:'0 в SPI',resp:'R1',implemented:true,group:'init',how:'CMD55 → ACMD41. В начальной последовательности повторяется до готовности карты.',warning:'Нельзя отправлять ACMD41 без CMD55.'},
+{id:'CMD58',n:58,label:'READ_OCR',topic:'Прочитать OCR и CCS',detail:'SPI-команда возвращает OCR: рабочие напряжения, power-up и признак SDHC/SDXC CCS.',arg:'0',resp:'R3 (R1 + OCR32)',implemented:true,group:'init',how:'В RTL проверяется OCR[30] (CCS). Карты с SDSC-адресацией отвергаются.',warning:'CCS проверять после завершения инициализации (ACMD41 готова).'},
+{id:'CMD59',n:59,label:'CRC_ON_OFF',topic:'Включить проверку CRC команд в SPI',detail:'Управляет обязательностью CRC7 команд SPI после начальной инициализации.',arg:'bit0 1=on, 0=off',resp:'R1',implemented:false,group:'extra',how:'По умолчанию текущий проект отправляет CRC для CMD0/CMD8, а для остальных байт-заглушку 01.',warning:'Если включить CRC7 через CMD59, нужно правильно вычислять CRC для всех последующих команд; текущий RTL этого не делает.'},
+{id:'ACMD6',n:6,label:'SET_BUS_WIDTH',topic:'Ширина нативной SD-шины',detail:'Выбор 1- или 4-битного режима в нативном SD-интерфейсе (не при использовании SPI).',arg:'2 бита ширины шины',resp:'native SD R1; SPI не используется',implemented:false,group:'extra',how:'Не нужна для Tang Nano 9K SD-06: интерфейс SPI использует одну MOSI и одну MISO.',warning:'Не путать с CMD6 SWITCH_FUNC.'},
+{id:'ACMD13',n:13,label:'SD_STATUS',topic:'Расширенный SD Status',detail:'Чтение блока состояния SD-карты; полезно для диагностики возможностей и распределения AU.',arg:'0',resp:'R1 + data block 64 B',implemented:false,group:'extra',how:'CMD55, затем ACMD13; точный формат SD Status определён стандартом.',warning:'В SD-06 не реализован парсер SD Status.'},
+{id:'ACMD23',n:23,label:'SET_WR_BLK_ERASE_COUNT',topic:'Подсказка количества блоков при записи',detail:'Предварительное указание числа блоков для многоблочной записи; не заменяет защиту LBA.',arg:'Количество блоков',resp:'R1',implemented:false,group:'extra',how:'Становится полезна в оптимизированной CMD25 многоблочной записи.',warning:'Не уменьшает риски записи не в тот сектор.'},
+{id:'ACMD41',n:41,label:'SD_SEND_OP_COND',topic:'Запуск инициализации SDHC',detail:'Application-specific init: после CMD55 запрос с HCS=1, повтор до R1=0x00.',arg:'0x40000000 (HCS=1)',resp:'R1 (01 пока не готова, 00 готова)',implemented:true,group:'init',how:'Пара CMD55+ACMD41 повторяется до успеха либо ограниченного тайм-аута.',warning:'Для SDHC требуется последующее чтение OCR/CCS через CMD58.'},
+{id:'ACMD51',n:51,label:'SEND_SCR',topic:'Прочитать SCR',detail:'Чтение SD Configuration Register с характеристиками и поддерживаемыми режимами.',arg:'0',resp:'R1 + token + SCR 8 B + CRC16',implemented:false,group:'extra',how:'В SPI может использоваться для получения SCR в будущей версии.',warning:'Не является чтением пользовательского сектора и не нужна для CMD17/CMD24.'}
+];
+const commandMap=Object.fromEntries(SD_COMMANDS.map(c=>[c.id,c]));
+function frameBytes(command,lba){let arg=0,crc=0x01;switch(command){case'CMD0':crc=0x95;break;case'CMD8':arg=0x1AA;crc=0x87;break;case'ACMD41':arg=0x40000000;break;case'CMD17':case'CMD24':arg=lba;break;}
+ const n=commandMap[command].n;return [0x40|n,(arg>>>24)&255,(arg>>>16)&255,(arg>>>8)&255,arg&255,crc];}
+function selectPrimary(command){const c=commandMap[command];if(!c)return;document.querySelectorAll('[data-cmd]').forEach(el=>el.dataset.selected=String(el.dataset.cmd===command));$('commandName').textContent=c.label;$('commandTitle').textContent=`${c.id} — ${c.topic}`;$('commandExplain').textContent=c.detail;$('commandResponse').textContent=c.resp;$('commandArgument').textContent='Аргумент: '+c.arg+' • Завершающий байт 01 у большинства команд использует отключённую CRC7 после инициализации.';
+ const bs=frameBytes(command,Number.isFinite(getLba())?getLba():APPROVED);$('commandBytes').innerHTML=bs.map((b,i)=>`<span class="byte ${i===0?'cmd':i===5?'':'arg'}">${hexb(b)}<small>${i===0?'CMD':i===5?'CRC / END':'ARG'+(4-i)}</small></span>`).join('');}
+document.querySelectorAll('[data-cmd]').forEach(el=>el.addEventListener('click',()=>{selectPrimary(el.dataset.cmd);selectReference(el.dataset.cmd);}));$('lba').addEventListener('change',()=>{const sel=document.querySelector('[data-cmd][data-selected=true]');if(sel)selectPrimary(sel.dataset.cmd);});
+selectPrimary('CMD17');
+const packets={
+ readReq:{label:'UART A5 52 · чтение: 9 байт',fields:[['SOF','A5','head'],['READ','52','head'],['seq','1 B',''],['LBA32LE','4 B','data'],['CRC16LE','2 B','crc']],caption:'LBA передаётся младшим байтом первым. CRC16 считает A5, 52, seq и LBA.'},
+ readReply:{label:'UART 5A 44 · успешное чтение: 523 байта',fields:[['SOF','5A','head'],['DATA','44','head'],['seq','1 B',''],['LBA32LE','4 B','data'],['status','00 00',''],['SD-sector','512 B','data'],['CRC16LE','2 B','crc']],caption:'5A 45 — ошибка чтения с 10-байтным ответом вместо 523 байт.'},
+ writeReq:{label:'UART A5 57 · защищённая запись: 1033 байта',fields:[['SOF','A5','head'],['WRITE','57','head'],['seq','1 B',''],['LBA32LE','4 B','data'],['OLD','512 B','data'],['NEW','512 B','data'],['CRC16LE','2 B','crc']],caption:'1033 = 1+1+1+4+512+512+2. Физический CMD24 выполняется только после полного приёма и совпадения preimage.'},
+ writeAck:{label:'UART 5A 57 · ответ записи: 10 байт',fields:[['SOF','5A','head'],['WRITE','57','head'],['seq','1 B',''],['LBA32LE','4 B','data'],['status','1 B',''],['CRC16LE','2 B','crc']],caption:'status 00 = успех, F1 = запрет/предусловие, F7 = CRC, F9 = старые байты не совпали, FA = readback mismatch; аппаратные ошибки CMD24 F2–F6.'}
+};
+function selectPacket(name){let p=packets[name];if(!p)return;document.querySelectorAll('[data-packet]').forEach(el=>el.dataset.selected=String(el.dataset.packet===name));$('packetItems').innerHTML=p.fields.map(([key,val,cl])=>`<span class="pkt ${cl}"><small>${safe(key)}</small>${safe(val)}</span>`).join('');$('packetCaption').textContent=p.label+' · '+p.caption;}
+document.querySelectorAll('[data-packet]').forEach(el=>el.onclick=()=>selectPacket(el.dataset.packet));selectPacket('readReq');
+let filter='all', query=''; let refId='CMD17';
+function isVisible(c){const group=filter==='all'||(filter==='real'&&c.implemented)||(filter==='extra'&&!c.implemented&&c.group!=='danger')||(filter==='danger'&&c.group==='danger');return group&&[c.id,c.label,c.topic,c.detail].join(' ').toLowerCase().includes(query);}
+function renderReference(){let visible=SD_COMMANDS.filter(isVisible);$('referenceRows').innerHTML=visible.length?visible.map(c=>`<tr data-ref="${c.id}" data-selected="${c.id===refId}"><td>${c.id}</td><td>0x${hexb(0x40|c.n)}</td><td>${safe(c.topic)}</td><td><span class="tag ${c.implemented?'yes':c.group==='danger'?'danger':'read'}">${c.implemented?'В RTL':c.group==='danger'?'ОПАСНО':'СПРАВКА'}</span></td></tr>`).join(''):'<tr><td colspan="4">Команды не найдены.</td></tr>';
+ document.querySelectorAll('[data-ref]').forEach(el=>el.onclick=()=>selectReference(el.dataset.ref));}
+function selectReference(id){const c=commandMap[id];if(!c)return;refId=id;$('refCategory').textContent=c.label;$('refTitle').textContent=c.id+' — '+c.topic;$('refDescription').textContent=c.detail;$('refCode').textContent='0x'+hexb(0x40|c.n);$('refArg').textContent=c.arg;$('refAnswer').textContent=c.resp;$('refStatus').textContent=c.implemented?'РЕАЛИЗОВАНО В VERILOG':'НЕТ, ТОЛЬКО СПРАВКА';$('refHow').textContent='Практика / последовательность: '+c.how;$('refWarning').textContent='Внимание: '+c.warning;renderReference();}
+$('refSearch').oninput=()=>{query=$('refSearch').value.trim().toLowerCase();renderReference();};document.querySelectorAll('[data-filter]').forEach(el=>el.onclick=()=>{filter=el.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.dataset.active=String(x===el));renderReference();});selectReference('CMD17');
+// SPI mode-0 illustrations: each waveform represents one 8-bit exchange;
+// card responses and timing are schematic, not hardware captures.
+const waveData={
+ cmd17:{out:0x51,ins:0xFF,label:'Командный байт CMD17: MOSI=0x51, MISO показан как FF (idle during transmit).'},
+ cmd24:{out:0x58,ins:0xFF,label:'Командный байт CMD24: MOSI=0x58, команда записи одного SDHC блока.'},
+ token:{out:0xFE,ins:0xFF,label:'CMD24 data start token: MOSI=0xFE, далее 512 байт и CRC16; 0xFE здесь передаёт FPGA.'},
+ response:{out:0xFF,ins:0x05,label:'Схематический обмен после CMD24 data block: MOSI=0xFF для выдачи тактов, MISO=0x05 «Data accepted» (маска 0x1F).'}
+};
+function bits(n){return [...Array(8)].map((_,i)=>(n>>(7-i))&1);}
+function wavePath(vals,yhigh,ylow,left,w){let d=`M ${left} ${vals[0]?yhigh:ylow}`;for(let i=0;i<vals.length;i++){let x=left+i*w;d+=` L ${x+w} ${vals[i]?yhigh:ylow}`;if(i!==vals.length-1)d+=` L ${x+w} ${vals[i+1]?yhigh:ylow}`;}return d;}
+function renderWave(which){const entry=waveData[which];if(!entry)return;document.querySelectorAll('[data-wave]').forEach(el=>el.dataset.selected=String(el.dataset.wave===which));let out=bits(entry.out),input=bits(entry.ins);const W=76,LEFT=192,N=8;
+ let parts=['<rect width="880" height="258" fill="#091b2a" rx="12"/>'];
+ for(let n=0;n<8;n++){let x=LEFT+W*n;parts.push(`<rect x="${x}" y="22" width="${W}" height="216" fill="${n%2?'#102538':'#0b1d2d'}"/>`,`<line x1="${x}" y1="22" x2="${x}" y2="239" stroke="#294358" stroke-dasharray="3 4"/>`,`<text x="${x+W/2}" y="245" fill="#91b0c2" text-anchor="middle" font-size="12" font-family="Consolas">b${7-n}</text>`,`<text x="${x+W/2}" y="26" fill="#d4f4fd" text-anchor="middle" font-family="Consolas" font-size="14">${out[n]}</text>`);}
+ parts.push(`<line x1="${LEFT+N*W}" y1="22" x2="${LEFT+N*W}" y2="239" stroke="#294358" stroke-dasharray="3 4"/>`);
+ const labels=[['CS_N',55,'#97b4c9'],['SCK',98,'#5adce9'],['MOSI',153,'#ffcc7c'],['MISO',206,'#46deb0']];labels.forEach(([t,y,c])=>{parts.push(`<text x="24" y="${y+4}" font-size="14" font-family="Consolas" font-weight="bold" fill="${c}">${t}</text>`);});
+ parts.push(`<path d="M 120 44 H ${LEFT-8} V 65 H ${LEFT+8*W} V 44 H 860" fill="none" stroke="#97b4c9" stroke-width="2.5"/>`);
+ let sck=`M 120 113 H ${LEFT}`;for(let i=0;i<N;i++){let x=LEFT+i*W;sck+=` H ${x+W/4} V 87 H ${x+3*W/4} V 113 H ${x+W}`;}
+ parts.push(`<path d="${sck}" fill="none" stroke="#5adce9" stroke-width="3" stroke-linejoin="round"/>`);
+ parts.push(`<path d="${wavePath(out,137,165,LEFT,W)}" fill="none" stroke="#ffcc7c" stroke-width="3"/>`);
+ parts.push(`<path d="${wavePath(input,190,219,LEFT,W)}" fill="none" stroke="#46deb0" stroke-width="3"/>`);
+ for(let i=0;i<N;i++){let x=LEFT+i*W+W/4;parts.push(`<circle cx="${x}" cy="87" r="3.5" fill="#5adce9"/>`,`<text x="${LEFT+i*W+W/2}" y="179" font-family="Consolas" font-size="11" text-anchor="middle" fill="#ffcc7c">${out[i]}</text>`,`<text x="${LEFT+i*W+W/2}" y="231" font-family="Consolas" font-size="11" text-anchor="middle" fill="#46deb0">${input[i]}</text>`);}
+ $('wave').innerHTML=parts.join('');$('waveNote').textContent=entry.label+' Показаны идеализированные переходы; это не запись логического анализатора.';
+}
+document.querySelectorAll('[data-wave]').forEach(el=>el.onclick=()=>renderWave(el.dataset.wave));renderWave('cmd17');
+// Verbatim excerpts from the physical project RTL; ellipsis comments indicate omitted spans.
+const RTL={
+ bridge:{file:'sd06_rw_bridge_top.v',title:'UART bridge + аппаратное разрешение + SPI MUX',explain:'Это точная аппаратная проверка разрешённого диапазона LBA, выбор единственного активного SPI-движка и обработка записи с предварительным чтением. Физически разрешён только LBA 10718 в прошивке демонстрации.',src:`module sd06_rw_bridge_top #(
+    parameter integer HALF_PERIOD=64,
+    parameter integer STARTUP_CYCLES=27000,
+    parameter integer UART_BAUD=115200,
+    parameter [31:0] WRITE_FIRST_LBA=32'd0,
+    parameter [31:0] WRITE_LAST_LBA=32'd0
+)(
+    input wire clk,reset_n,uart_rx,sd_miso,
+    output wire uart_tx,sd_sck,sd_mosi,sd_cs_n,
+    output wire [5:0] led_n
+);
+
+// ...
+wire write_allow=(WRITE_FIRST_LBA!=0 && WRITE_LAST_LBA>=WRITE_FIRST_LBA
+                 && lba>=WRITE_FIRST_LBA && lba<=WRITE_LAST_LBA);
+
+// ...
+assign sd_sck=mux_write ? wr_sck : rd_sck;
+assign sd_mosi=mux_write ? wr_mosi : rd_mosi;
+assign sd_cs_n=mux_write ? wr_cs_n : rd_cs_n;
+
+// ...
+ST_WRITE_START:begin
+    // Reader must be idle with CS released before bus hand-over.
+    mux_write<=1;wr_start<=1;state<=ST_WRITE_WAIT;
+end
+ST_WRITE_WAIT:if(wr_done)begin
+    mux_write<=0;
+    if(wr_error!=0)begin
+        response_write<=1;response_read_data<=0;
+        response_status<=wr_error;result_error<=1;
+        result_read<=0;result_write<=0;state<=ST_REPLY_INIT;
+    end else state<=ST_VERIFY_START;
+end`},
+ reader:{file:'sd_read_sector.v',title:'CMD17: кадр команды, получение FE и 512 байт',explain:'lab05_sd_read_sector инициализирует SDHC, передаёт команду 0x51 с четырёхбайтовым LBA и по токену FE записывает ровно 512 входных байтов в RAM. Затем проверяет CRC16 блока.',src:`reg [7:0] sector [0:511] /* synthesis syn_ramstyle = "block_ram" */;
+always @(posedge clk) peek_data <= sector[peek_addr];
+
+function [7:0] command_byte;
+    input [5:0] cmd;
+    input [2:0] pos;
+    input [31:0] lba;
+    begin
+        case (pos)
+          3'd0: command_byte=8'h40 | {2'b00,cmd};
+          3'd1: command_byte=(cmd==6'd41) ? 8'h40 :
+                                 (cmd==6'd17) ? lba[31:24] : 8'h00;
+          3'd2: command_byte=(cmd==6'd17) ? lba[23:16] : 8'h00;
+          3'd3: command_byte=(cmd==6'd8) ? 8'h01 :
+                                 (cmd==6'd17) ? lba[15:8] : 8'h00;
+          3'd4: command_byte=(cmd==6'd8) ? 8'haa :
+                                 (cmd==6'd17) ? lba[7:0] : 8'h00;
+          default: command_byte=(cmd==6'd0) ? 8'h95 :
+                                (cmd==6'd8) ? 8'h87 : 8'h01;
+        endcase
+    end
+endfunction
+
+// ...
+PH_TOKEN: begin
+    if (spi_rx==8'hfe) begin
+        data_pos<=0;
+        crc16<=0;
+        phase<=PH_DATA;
+    end else if (spi_rx!=8'hff || token_polls==13'd4095) begin
+        error_code<=8'he9;
+        phase<=PH_RELEASE;
+    end else
+        token_polls<=token_polls+1'b1;
+    state<=S_SEND;
+end
+PH_DATA: begin
+    sector[data_pos]<=spi_rx;
+    crc16<=crc16_next(crc16,spi_rx);
+    if (data_pos==9'd511) begin
+        phase<=PH_CRC_HI;
+    end else
+        data_pos<=data_pos+1'b1;
+    state<=S_SEND;
+end`},
+ writer:{file:'sd06_cmd24_engine.v',title:'CMD24: токен FE, payload, CRC16, ответ и busy',explain:'sd06_cmd24_engine получает 512 байт данных, выдаёт 0x58 и LBA, передаёт FE и данные, читает ответ карты, ждёт завершения busy и возвращает done/error. Перед этим мост сравнивает исходные 512 байт, а после — выполняет CMD17 readback.',src:`reg [7:0] payload [0:511];
+reg [9:0] load_count;
+assign payload_ready = (load_count == 10'd512);
+
+function [7:0] command_byte;
+    input [2:0] index;
+    input [31:0] address;
+    begin
+        case (index)
+            0: command_byte=8'h58; // CMD24 = 0x40+24
+            1: command_byte=address[31:24];
+            2: command_byte=address[23:16];
+            3: command_byte=address[15:8];
+            4: command_byte=address[7:0];
+            default: command_byte=8'h01; // CRC off after SDHC init
+        endcase
+    end
+endfunction
+
+// ...
+P_DATA:begin
+    data_crc<=crc16_next(data_crc,payload[data_pos]);
+    if (data_pos==511) phase<=P_CRC_HI;
+    else data_pos<=data_pos+1'b1;
+end
+P_RESP:begin
+    if (spi_rx==8'hff) begin
+        if (response_count==MAX_RESP_POLLS-1) begin
+            error_code<=8'hf5;phase<=P_RELEASE;
+            sd_cs_n<=1;
+        end else response_count<=response_count+1'b1;
+    end else if ((spi_rx & 8'h1f) == 8'h05) begin
+        phase<=P_BUSY;busy_count<=0;
+    end else begin
+        error_code<=8'hf4;phase<=P_RELEASE;
+        sd_cs_n<=1;
+    end
+end`},
+ spi:{file:'spi_byte.v',title:'SPI mode 0: делитель, MOSI и захват MISO',explain:'lab05_spi_byte обменивается одним байтом MSB-first на SCK, генерируемом из clk. MOSI выставляется заранее, по фронту считывается MISO, по спаду сменяется выводимый бит. Нет второй тактовой сети FPGA.',src:`module lab05_spi_byte #(
+    parameter integer HALF_PERIOD = 64
+) (
+    input  wire       clk,
+    input  wire       reset_n,
+    input  wire       start,
+    input  wire [7:0] tx_data,
+    input  wire       miso,
+    output reg        sck,
+    output reg        mosi,
+    output reg        busy,
+    output reg        done,
+    output reg  [7:0] rx_data
+);
+
+// ...
+else if (divider != 0) begin
+    divider <= divider - 1'b1;
+end else begin
+    divider <= HALF_PERIOD - 1;
+    if (!high_phase) begin
+        // Rising SCK: receiver samples a stable MOSI/MISO bit.
+        sck <= 1'b1;
+        rx_hold[bit_index] <= miso;
+        high_phase <= 1'b1;
+    end else begin
+        // Falling SCK: present next bit or complete the byte.
+        sck <= 1'b0;
+        high_phase <= 1'b0;
+        if (bit_index == 0) begin
+            busy    <= 1'b0;
+            done    <= 1'b1;
+            rx_data <= rx_hold;
+            mosi    <= 1'b1;
+        end else begin
+            bit_index <= bit_index - 1'b1;
+            mosi <= tx_hold[bit_index - 1'b1];
+        end
+    end
+end`}
+};
+function selectRTL(id){let r=RTL[id];if(!r)return;document.querySelectorAll('[data-code]').forEach(el=>el.dataset.selected=String(el.dataset.code===id));$('rtlFilename').textContent=r.file;$('rtlTitle').textContent=r.title;$('rtlText').textContent=r.explain;$('rtlCode').textContent=r.src;}
+document.querySelectorAll('[data-code]').forEach(el=>el.onclick=()=>selectRTL(el.dataset.code));selectRTL('bridge');
+// Real 64 bytes copied verbatim from the operator's PowerShell Format-Hex log.
+const HEXDUMP='86 F1 69 69 69 04 3A 21 E1 31 62 D7 CD C6 98 17 C7 13 E7 1E 5F 04 D3 6F 16 BF 83 A1 AF 04 60 3F 0F 21 8B 9E 96 CB 16 85 49 CC 22 8D 16 76 1A AE 03 79 41 6C 91 06 B9 09 32 F3 D1 CF A9 B2 D8 07'.split(' ').map(x=>parseInt(x,16));
+function renderHex(){for(const which of ['Before','After']){const target=$('hex'+which);const bytes=which==='Before'?HEXDUMP:HEXDUMP.map(b=>b^0x5A);let text='';for(let i=0;i<bytes.length;i+=16){text+=`<div class="hexline"><span class="off">${(64+i).toString(16).padStart(4,'0').toUpperCase()}</span><span class="${which==='After'?'newbyte':''}">${bytes.slice(i,i+16).map(hexb).join(' ')}</span></div>`;}target.innerHTML=text;}}
+renderHex();
+</script>
+</body></html>
