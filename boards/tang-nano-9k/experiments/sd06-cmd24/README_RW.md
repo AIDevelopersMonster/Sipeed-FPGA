@@ -1,12 +1,12 @@
-# Standalone SDHC PC / FPGA read-write prototype
+# Standalone SDHC PC / FPGA read-write — hardware qualified test case
 
-**Purpose:** reusable SD subsystem for a future larger PiKoSoL. Tang Nano 9K is the independent test bench, not the final CPU+HDMI+SD target.
+**STATUS 2026-10-25:** Hardware CMD17/CMD24/readback/restore PASS on Tang Nano 9K for a single protected 512-byte scratch sector, **LBA 10718**. Complete evidence: [hardware acceptance receipt](acceptance/SD06_RW_HARDWARE_2026-10-25.md). Tang Nano 9K is the independent test bench, not yet the final CPU+HDMI+SD target.
 
 ## Confirmed vs pending
 
 - SD-05 read-only bitstream: real hardware PASS on two FAT32 SDHC cards. A 131073-byte five-cluster file matched SHA-256.
 - SD-06B CMD24 byte-engine: offline Python and SPI-byte model PASS.
-- Merged PC UART / CMD17 / CMD24 / CMD17 verification: **offline PASS** (16 Python tests, integrated UART mock, CMD24 SPI mock). **Standalone full-RW Gowin PnR and internal STA PASS** on 9K; hardware CMD24 write is still NOT TESTED.
+- Merged PC UART / CMD17 / CMD24 / CMD17 verification: **offline PASS** (16 Python tests, integrated UART mock, CMD24 SPI mock). **Standalone full-RW Gowin PnR and internal STA PASS** on 9K. **Physical CMD24 WRITE and subsequent RESTORE PASS** on disposable SDHC single-sector file LBA 10718.
 - FPGA writes are **disabled by default** using compiled constant region 0..0. Do not program the merged prototype before complete qualification.
 
 ## Single PC interface
@@ -32,7 +32,7 @@ Existing FAT32 read-only file browser remains in sd05-lba-bridge/tools/fat32_hos
 
 The separate build script copies source and constraints into an isolated directory and runs Gowin, without programming FPGA. It uses compiled WRITE_FIRST_LBA=0 WRITE_LAST_LBA=0: no writes possible. First independently review full-frame UART simulation, synthesized resource reports, STA and bus arbitration.
 
-## Physical write gate (NOT YET AUTHORIZED)
+## Physical write gate (QUALIFIED ONLY FOR ONE SCRATCH SECTOR)
 
 Only on a **disposable SDHC card** with full external backup and identified scratch LBA not intersecting any partition/metadata. Authorize exactly one confirmed sector in a separately reviewed experiment build; compile and retain immutable input hashes, run SRAM only, validate original preimage, send CMD24, CMD17 readback, compare SHA-256 and restore backup. Writing any sector of a valuable FAT32 card is prohibited.
 
@@ -64,8 +64,7 @@ byte-level SPI tests remain included. The integration test **passed on the opera
 including read/write/readback and all specified fail-closed cases. This is a
 mock SD-card test, not physical-media qualification.
 
-**Program status:** only the previously accepted SD-05 read-only bitstream is
-approved for hardware use. `build_rw.ps1` is an isolated *build-only*
+**Program status:** read-only merged SD-06 and specifically locked SD-06 scratch bitstreams have been hardware tested. Do not use the scratch bitstream on any other card. `build_rw.ps1` is an isolated *build-only*
 operation. New physical writes require explicit confirmation for a different
 backed-up sacrificial card, after the integrated test and PnR/STA have passed.
 
@@ -108,10 +107,7 @@ careful RTL and inferred-RAM review before physical write approval.
 The standalone statistics **do not** establish whether PiKoSoL CPU + HDMI +
 graphics + RW can fit simultaneously on 9K.
 
-**Remaining hardware acceptance:** preserve qualified SD-05 image, validate
-merged *write-disabled* RTL read-only against a real SD card, then qualify
-one explicitly approved LBA on a disposable fully backed-up SDHC card for
-write and independent CMD17 readback. No RW hardware PASS is claimed yet.
+**Hardware acceptance completed 2026-10-25:** merged write-disabled RTL CMD17 PASS; separately qualified one-LBA scratch CMD24 + CMD17 full 512-byte readback PASS, original-sector restore + CMD17 PASS. See [receipt](acceptance/SD06_RW_HARDWARE_2026-10-25.md).
 
 ## Hardware qualification: approved first gate (merged read-only)
 
@@ -164,7 +160,7 @@ program + real SDHC LBA 0 CMD17 + 512-byte SHA-256**:
 16 Python tests, integrated UART mock simulation and CMD24 SPI-byte mock PASS;
 Gowin read-only hardware build passed internal STA, SHA-256
 `98CED68AA1ED5DBCD91BA6670E137771CDED816254760D24223485E2D05EC2FF`.
-**Hardware CMD24 has never yet been tested.**
+**Historical note:** hardware CMD24 had not been tested at the time of the read-only milestone; it subsequently PASSED the single-sector qualification documented below.
 
 Use **a disposable FAT32 SDHC card** on which all information may be
 destroyed, *not the confirmed SD-05 card with important data*.
@@ -215,3 +211,7 @@ card was not written.
 All commands work on raw 512-byte sectors. No FAT32 directory metadata or FAT
 allocation entries are written by the FPGA. The file content is intentionally
 changed only for a disposable card and returned by explicit restore.
+
+## Final physical SD-06 acceptance — 2026-10-25
+
+**PASS** on Tang Nano 9K, compiled WRITE permission restricted to one file-data sector LBA 10718, cluster 11. Original SHA-256 `D4EE72A0614088909BD2B34C5100DE2E7A7370382F2C1E434A0EB2B7460B50F3`; CMD24 replacement readback SHA-256 `C934134A8F462557E29357920CFF96314FEBC5E363AF26A8F37ACD33E4B155A2`; CMD24 restore readback SHA-256 exactly matches original. Scratch write-enabled bitstream SHA-256 `694D9526525B8AEF99126AF5EF73D7A85216658E707482342521AD035E34F109`. No FPGA Flash or FAT32 metadata writes. Complete evidence: [SD06_RW_HARDWARE_2026-10-25.md](acceptance/SD06_RW_HARDWARE_2026-10-25.md). Standalone success does not prove PiKoSoL CPU+HDMI+SD fit. 
