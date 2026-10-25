@@ -11,8 +11,8 @@ $sd03=Join-Path $root 'boards\tang-nano-9k\experiments\sd-mbr-fat32'
 $vendor=Join-Path $base 'vendor\picotiny_ref'
 $gw=Join-Path $GowinRoot 'IDE\bin\gw_sh.exe'
 if(-not(Test-Path $gw)){throw "Gowin not installed at $gw"}
-& python (Join-Path $lab 'tools\verify_kit.py')
-if($LASTEXITCODE -ne 0){throw 'PiKoSoL verified-kit source integrity failure'}
+& python (Join-Path $here 'check_active_sources.py')
+if($LASTEXITCODE -ne 0){throw 'SD07 active PiKoSoL input SHA256 verification failure'}
 & python (Join-Path $lab 'tools\build_rom.py') --check
 if($LASTEXITCODE -ne 0){throw 'PiKoSoL original firmware reproducibility failure'}
 $must=@(
