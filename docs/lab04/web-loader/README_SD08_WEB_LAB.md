@@ -34,3 +34,15 @@ Before public SD-08 download can work, verify the above file on the operator PC 
 ## Separate follow-up, not part of SD-08
 
 User clarified the vendor/seller firmware name as `PicoSoc`. Its exact image and any recovery procedure are not yet identified. Do not assume Sipeed PicoTiny or any arbitrary example is that image. Do not attempt Flash programming in this PR.
+
+## Acceptance note — 2026-10-25
+
+Operator accepted the preserved look and verified portions of the existing browser workflow using the SD-08 image on another Windows computer. **This is acceptance of the additive web UI integration with documented exceptions, not a claim that every WebUSB programming mode has passed new physical tests.** The operator reports that the other UI features work, and local-file programming may work; this machine's FT2232 JTAG drivers have not been independently confirmed.
+
+The automated firmware download behaves differently depending on origin and binary publication:
+
+- On an unpacked `file://` copy, the browser may reject `fetch("./firmware/...")` under local-file origin restrictions. The original HTML/CSS remain usable without an HTTP server; the firmware auto-fetch requirement applies to the trusted HTTPS GitHub Pages deployment.
+- On GitHub Pages, the existing v0.2.0 image is hosted at `./firmware/picorv32_lab04_hdmi_nano9k.fs`; the SD-08 image is **not yet uploaded**, so SD-08 auto-fetch is expected to fail until the pinned Release asset and publication workflow have completed.
+- WebUSB USB/JTAG device permissions and Windows WinUSB drivers are a *separate* concern from downloading the .fs file over HTTP.
+
+The SD-08 profile may be selected with a verified local `.fs` already on disk. No persistent FPGA Flash actions were added. PicoSoc factory firmware identification remains a separate future investigation.
