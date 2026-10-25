@@ -6,7 +6,7 @@
 
 - SD-05 read-only bitstream: real hardware PASS on two FAT32 SDHC cards. A 131073-byte five-cluster file matched SHA-256.
 - SD-06B CMD24 byte-engine: offline Python and SPI-byte model PASS.
-- Merged PC UART / CMD17 / CMD24 / CMD17 verification prototype: SOURCE CREATED, **full integration simulation, Gowin PnR/STA, and hardware write NOT YET PASS**.
+- Merged PC UART / CMD17 / CMD24 / CMD17 verification prototype: SOURCE CREATED, **full integration simulation is prepared but NOT YET RUN, Gowin PnR/STA and hardware write NOT YET PASS**.
 - FPGA writes are **disabled by default** using compiled constant region 0..0. Do not program the merged prototype before complete qualification.
 
 ## Single PC interface
@@ -45,3 +45,26 @@ Future CLI after physical qualification:
 ## PiKoSoL feasibility measurement
 
 Record standalone combined read/write module LUT, FF, BSRAM, Fmax and STA, then only after that compare to resource use of CPU+HDMI PiKoSoL. A 20K/25K device is a candidate, not a measured integration result. No separate SD-06 micro-releases: keep one final module README and reproducible tests.
+
+## End-to-end acceptance gate (one command)
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git pull --ff-only
+$sd = '.\boards\tang-nano-9k\experiments\sd06-cmd24'
+& "$sd\test.ps1"
+```
+
+The test script now includes `tb_sd06_rw_uart.v`, exercising real UART
+receiver/transmitter and the combined RTL top with isolated CMD17/CMD24 mock
+modules. The simulated transfer covers read, write with 512-byte preimage,
+verified readback, and denial of stale preimage, corrupt frame CRC, unapproved
+LBA, CMD24 rejection and corrupted readback. Existing Python and CMD24
+byte-level SPI tests remain included. The integration test has not yet been
+observed passing on the operator machine; do not interpret successful RTL
+compilation or older CMD24 model tests as end-to-end acceptance.
+
+**Program status:** only the previously accepted SD-05 read-only bitstream is
+approved for hardware use. `build_rw.ps1` is an isolated *build-only*
+operation. New physical writes require explicit confirmation for a different
+backed-up sacrificial card, after the integrated test and PnR/STA have passed.
