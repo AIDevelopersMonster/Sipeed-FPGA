@@ -116,6 +116,14 @@ $("btn-connect").addEventListener("click",connect);
 $("btn-disconnect").addEventListener("click",()=>void disconnect());
 $("btn-test").addEventListener("click",async()=>{await sendLine("INFO");await sendLine("LED ?")});
 $("command-form").addEventListener("submit",ev=>{ev.preventDefault();const value=$("command-input").value;sendCommand(value);$("command-input").value=""});
+$("sd-type-form").addEventListener("submit",ev=>{
+  ev.preventDefault();
+  const name=$("sd-filename").value.trim().toUpperCase();
+  if(!/^[A-Z0-9_~$-]{1,8}(?:\.[A-Z0-9_~$-]{1,3})?$/.test(name)){
+    notice("Введите короткое имя FAT32 8.3, например PIKO.TXT.",true);return;
+  }
+  sendCommand("TYPE "+name);
+});
 $("command-input").addEventListener("keydown",e=>{if(e.key==="ArrowUp"){e.preventDefault();if(state.historyIndex>0)$("command-input").value=state.commandHistory[--state.historyIndex]}else if(e.key==="ArrowDown"){e.preventDefault();if(state.historyIndex<state.commandHistory.length-1)$("command-input").value=state.commandHistory[++state.historyIndex];else{state.historyIndex=state.commandHistory.length;$("command-input").value=""}}});
 document.querySelectorAll("[data-cmd]").forEach(b=>b.addEventListener("click",()=>{const cmd=b.dataset.cmd;if(cmd==="KEYS"){if(state.mode!=="gfx"){notice("Сначала переключитесь в GFX.",true);return}sendCommand(cmd)}else sendCommand(cmd)}));
 document.querySelectorAll("[data-obj]").forEach(b=>b.addEventListener("click",()=>{graphicsCommand("obj",b.dataset.obj);$("obj-a").classList.toggle("active",b.dataset.obj==="A");$("obj-b").classList.toggle("active",b.dataset.obj==="B")}));
