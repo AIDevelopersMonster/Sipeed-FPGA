@@ -12,68 +12,46 @@ const ENGINE_URL="./vendor/bundle.js";
 // Version selector changes only the verified bitstream, NOT the JTAG/WASM runtime.
 const PROFILES=Object.freeze({
   v020:Object.freeze({name:"PiKoSoL v0.2.0",sha:FW_SHA,url:FW_URL,filename:"picorv32_lab04_hdmi_nano9k.fs",release:RELEASE_URL,notes:"Аппаратно проверенная базовая версия: PicoRV32, HDMI, UART, GFX. Команд FAT32 нет."}),
-  sd08:Object.freeze({name:"PiKoSoL SD-08 · FAT32",sha:"37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b",url:"./firmware/sd08_pikosol_fat32_readonly.fs",filename:"sd08_pikosol_fat32_readonly.fs",release:"https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-sd08-fat32-ro/sd08_pikosol_fat32_readonly.fs",notes:"25.10.2026 HARDWARE PASS: FS, DIR, TYPE PIKO.TXT. Только FAT32 8.3 read-only. Автозагрузка станет доступна после публикации файла."}),
-  picotiny:Object.freeze({name:"Sipeed PicoTiny (сторонняя)",sha:null,url:null,filename:"picotiny.fs",release:null,notes:"Эксперимент восстановления: выберите локальный picotiny.fs; это не подтверждённый заводской PicoSoc. Только SRAM."})
+  sd08:Object.freeze({name:"PiKoSoL SD-08 · FAT32",sha:"37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b",url:"./firmware/sd08_pikosol_fat32_readonly.fs",filename:"sd08_pikosol_fat32_readonly.fs",release:"https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-sd08-fat32-ro/sd08_pikosol_fat32_readonly.fs",notes:"25.10.2026 HARDWARE PASS: FS, DIR, TYPE PIKO.TXT. Только FAT32 8.3 read-only. Автозагрузка станет доступна после публикации файла."})
 });
 let activeProfile=PROFILES.v020;
-let device=null, firmware=null, loadedSha="", isVerified=false, busy=false, engine=null, hashFailed=false;
+let device=null, firmware=null, loadedSha="", isVerified=false, busy=false, engine=null;
 const logEl=$("log");
 function log(message){const date=new Date();logEl.textContent+="["+date.toLocaleTimeString("ru-RU")+"] "+message+"\n";if(logEl.textContent.length>90000)logEl.textContent=logEl.textContent.slice(-80000);logEl.scrollTop=logEl.scrollHeight;}
 function status(msg,type="neutral"){$("operation-status").textContent=msg;$("operation-status").className="notice "+type;}
 function hashResult(msg,type="neutral"){$("hash-result").textContent=msg;$("hash-result").className="notice "+type;}
 function metric(id,text,pass=null){const e=$(id);e.textContent=text;e.className=pass===true?"pass":pass===false?"fail":"";}
-function ready(){ $("program").disabled=busy||!firmware||!device||hashFailed;$("load-github").disabled=busy||!activeProfile.url;$("connect-jtag").disabled=busy;$("input-file").disabled=busy;$("hash-file").disabled=busy;$("firmware-profile").disabled=busy;}
+function ready(){ $("program").disabled=busy||!firmware||!device||(!isVerified&&!$("custom-confirm").checked);$("load-github").disabled=busy;$("connect-jtag").disabled=busy;$("input-file").disabled=busy;$("firmware-profile").disabled=busy;}
 function selectFirmwareProfile(){
   activeProfile=PROFILES[$("firmware-profile").value]||PROFILES.v020;
-  firmware=null;loadedSha="";isVerified=false;hashFailed=false;
+  firmware=null;loadedSha="";isVerified=false;
   $("input-file").value="";$("firmware-name").textContent="Нет файла";
-  $("firmware-size").textContent="—";$("actual-sha").textContent="Файл ещё не выбран";$("expected-sha").textContent="Не выбран";$("hash-comparison").textContent="Для локального файла можно выбрать отдельный SHA256SUMS.txt. Без него хеш вычисляется, но подлинность не подтверждается.";
+  $("firmware-size").textContent="—";$("actual-sha").textContent="Файл ещё не выбран";
   $("profile-name").textContent=activeProfile.name;$("profile-notes").textContent=activeProfile.notes;
-  $("release-download").hidden=!activeProfile.release;if(activeProfile.release)$("release-download").href=activeProfile.release;
-  $("hash-file").value="";
+  $("release-download").href=activeProfile.release;
+  $("custom-confirm").checked=false;$("custom-confirm").disabled=true;
   hashResult("Контрольная сумма не проверена.");ready();
 }
 function hex(array){return [...new Uint8Array(array)].map(x=>x.toString(16).padStart(2,"0")).join("")}
-function manifestHash(text,name){
-  const hashes=[];
-  for(const line of text.split(/\r?\n/)){
-    const m=line.trim().match(/^([a-fA-F0-9]{64})(?:\s+\*?(.+))?$/);
-    if(m && (!m[2] || m[2].trim().replace(/^\.\//,"")===name)) hashes.push(m[1].toLowerCase());
-  }
-  return hashes.length===1?hashes[0]:null;
-}
-async function acceptFile(bytes,name,expected=null,source="local"){
+async function acceptFile(bytes,name){
   const buffer=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);
   if(!name.toLowerCase().endsWith(".fs"))throw new Error("Нужен файл Gowin .fs");
-  if(buffer.length<10000||buffer.length>12*1024*1024)throw new Error("Размер .fs вне допустимого диапазона");
+  if(buffer.length<10000||buffer.length>12*1024*1024)throw new Error("Размер .fs вне безопасного диапазона");
+  if(!crypto.subtle)throw new Error("SHA-256 требует безопасного HTTPS-соединения");
   const digest=hex(await crypto.subtle.digest("SHA-256",buffer));
-  firmware=buffer;loadedSha=digest;hashFailed=!!expected && digest!==expected.toLowerCase();
-  isVerified=!!expected && !hashFailed;
-  $("firmware-name").textContent=name;$("firmware-size").textContent=(buffer.length/1048576).toFixed(2)+" MiB";
+  firmware=buffer;loadedSha=digest;isVerified=digest.toLowerCase()===activeProfile.sha;
+  $("firmware-name").textContent=name;$("firmware-size").textContent=(buffer.length/1024/1024).toFixed(2)+" MiB";
   $("actual-sha").textContent=digest.toUpperCase();
-  $("expected-sha").textContent=expected?expected.toUpperCase():"Эталон отсутствует";
-  $("hash-comparison").textContent="Файл: "+name+"; эталон: "+(source==="local"?"выбранный файл SHA-256 / без эталона":source)+".";
-  if(hashFailed){
-    firmware=null;hashResult("SHA-256 FAIL: файл не совпадает со своим эталоном. Загрузка запрещена.","error");status("Проверка SHA-256 не пройдена.","error");
-  }else if(isVerified){
-    hashResult("SHA-256 PASS: хеш файла совпадает с его эталоном.","ok");status("Файл проверен; можно загрузить в SRAM.","ok");
-  }else{
-    hashResult("SHA-256 вычислен. Эталона нет — подлинность не проверена. Загрузка в SRAM разрешена.","neutral");status("Локальный файл без эталона, можно загрузить в SRAM.","neutral");
-  }
-  log((hashFailed?"HASH FAIL ":isVerified?"HASH PASS ":"NO REFERENCE HASH ")+name+" actual="+digest+(expected?" expected="+expected:""));
-  ready();
+  $("custom-confirm").checked=false;$("custom-confirm").disabled=isVerified;
+  if(isVerified){hashResult("✓ SHA-256 совпадает с аппаратно проверенной "+activeProfile.name,"ok");status("Прошивка прошла SHA-256 проверку. Выберите JTAG Debugger.","neutral");log("Файл "+name+": SHA-256 PASS ("+buffer.length+" B) · "+activeProfile.name)}
+  else{hashResult("⚠ SHA-256 отличается от выбранного профиля "+activeProfile.name+". Пользовательский bitstream требует отдельного подтверждения.","error");status("Непроверенная прошивка; подтвердите использование чужого .fs отдельно.","error");log("Файл "+name+": SHA-256 mismatch "+digest)}
+  ready()
 }
-async function localSelection(){
-  const file=$("input-file").files?.[0];if(!file)return;
-  try{
-    const hashFile=$("hash-file").files?.[0];
-    const expected=hashFile?manifestHash(await hashFile.text(),file.name):null;
-    if(hashFile&&!expected)throw new Error("В файле хешей нет однозначной SHA-256 для "+file.name);
-    await acceptFile(new Uint8Array(await file.arrayBuffer()),file.name,expected,"local");
-  }catch(err){firmware=null;hashFailed=true;ready();status(err.message,"error");hashResult(err.message,"error")}
-}
-$("input-file").addEventListener("change",localSelection);
-$("hash-file").addEventListener("change",localSelection);
+$("input-file").addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{await acceptFile(new Uint8Array(await file.arrayBuffer()),file.name)}catch(err){firmware=null;ready();status(err.message,"error")}
+});
+$("custom-confirm").addEventListener("change",ready);
 $("firmware-profile").addEventListener("change",selectFirmwareProfile);
 $("load-github").addEventListener("click",async()=>{
   const profile=activeProfile;
@@ -83,7 +61,7 @@ $("load-github").addEventListener("click",async()=>{
     if(!response.ok)throw new Error("HTTP "+response.status);
     const bytes=new Uint8Array(await response.arrayBuffer());
     if(profile!==activeProfile){log("Профиль изменился во время загрузки: старый файл отброшен");return;}
-    await acceptFile(bytes,profile.filename,profile.sha,"GitHub profile");
+    await acceptFile(bytes,profile.filename);
   }catch(e){
     if(profile!==activeProfile)return;
     status("Автоматическая загрузка "+profile.name+" с GitHub Pages недоступна. Выберите локальный проверенный .fs или скачайте его из Releases. "+e.message,"error");
@@ -115,7 +93,7 @@ async function resolveEngine(){
   return engine;
 }
 async function program(){
-  if(busy||!firmware||!device||hashFailed)return;
+  if(busy||!firmware||!device||(!isVerified&&!$("custom-confirm").checked))return;
   if(!navigator.usb){status("Нет WebUSB.","error");return;}
   if(!window.crossOriginIsolated){status("Нет изоляции SharedArrayBuffer (COOP/COEP); обновите страницу после установки service worker. На GitHub Pages первый запуск может автоматически перезагрузиться.","error");log("crossOriginIsolated=false; abort");return;}
   busy=true;ready();
