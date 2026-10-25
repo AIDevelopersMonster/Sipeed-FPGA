@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Интерактивная лаборатория HOST-01: от сектора 512 байт до FAT32. MBR, сигнатура 55 AA, кластеры, FAT, каталог и реальные дампы FPGA.">
+<title>HOST-01 · От сектора к файлу | MBR, FAT32, FPGA</title>
+<style>
+:root{color-scheme:dark;--bg:#07121f;--panel:#112639;--panel2:#19344a;--line:#31516c;--text:#eff8ff;--muted:#abc1d1;--cyan:#67dbff;--green:#76ecc0;--orange:#ffd48a;--violet:#c4acfa;--red:#ffad9d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse 55% 35% at 84% -7%,#193f65 0,transparent 90%),radial-gradient(ellipse 40% 23% at 6% 0,#172a4c,transparent 95%),var(--bg);color:var(--text);font:15px/1.55 "Segoe UI",Arial,sans-serif}
+a{color:var(--cyan)}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+.shell{max-width:1240px;margin:0 auto;padding:22px 24px 70px}header{border-bottom:1px solid var(--line);padding-bottom:19px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{font:900 12px/1.5 "Segoe UI",Arial,sans-serif;color:var(--green);letter-spacing:.17em}nav{display:flex;gap:8px;flex-wrap:wrap}nav a{font-size:12px;text-decoration:none;color:var(--muted);border:1px solid var(--line);padding:7px 11px;border-radius:9px}nav a:hover{color:#fff;border-color:var(--cyan)}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:26px;align-items:center;padding:36px 0 22px}.kicker{color:var(--green);font-weight:850;letter-spacing:.15em;font-size:12px}h1{font-size:clamp(42px,6vw,75px);line-height:1.04;letter-spacing:-.055em;margin:11px 0 18px}h1 span{color:var(--cyan)}h2{font-size:25px;letter-spacing:-.025em;line-height:1.2;margin:0 0 12px}h3{font-size:16px;margin:0 0 8px}.lead{color:var(--muted);font-size:17px;max-width:710px}.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:21px}.pill{font-size:11px;font-weight:750;border:1px solid var(--line);color:var(--muted);border-radius:30px;padding:7px 10px}.pill.ok{border-color:#3f8d78;color:var(--green)}.panel{background:linear-gradient(150deg,#152d40,#0d1d2e);border:1px solid var(--line);border-radius:16px;padding:22px}.hero-flow{display:grid;gap:6px;text-align:center}.hero-flow div{background:#18354b;border:1px solid #416c83;padding:11px;border-radius:8px;font:700 14px Consolas,monospace}.hero-flow .arrow{color:var(--orange);border:0;background:none;padding:0}.muted{color:var(--muted)}.small{font-size:12.5px}.mono{font-family:"Cascadia Code",Consolas,monospace}.notice{padding:13px 15px;border-radius:10px;background:#12344a;border:1px solid #366d89;color:#d4ebf7;font-size:13px}.notice.success{background:#17392f;border-color:#41866e;color:#d1ffe8}.notice.warning{background:#3b2f21;border-color:#89673f;color:#ffeacb}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:19px 0 25px}.metric{padding:16px;background:#142b40;border:1px solid var(--line);border-radius:12px}.metric strong{display:block;font:900 25px Consolas,monospace;color:var(--cyan)}.metric small{display:block;color:var(--muted);font-size:12px}
+.tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;padding:7px;border-radius:13px;background:#0f2030;border:1px solid var(--line);margin:20px 0}.tab{background:transparent;color:var(--muted);border:0;border-radius:9px;font-size:13px;padding:12px 8px;font-weight:800}.tab:hover{background:#1c384d}.tab[aria-selected=true]{background:var(--cyan);color:#061e2b}.tab .n{opacity:.67;margin-right:4px}
+.section{display:none;animation:fadeIn .16s ease-out}.section.active{display:block}@keyframes fadeIn{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}.heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:17px 0}
+.grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.buttons{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}.btn{padding:10px 14px;background:#1d536e;color:#fff;border:1px solid #4989aa;border-radius:9px;font-weight:800}.btn:hover{background:#266984}.btn.alt{background:#1a3448;border-color:#426781}.btn.good{background:#215e4e;border-color:#419880}.control-label{display:block;font-size:13px;font-weight:800;color:var(--muted);margin:0 0 6px}.input{width:100%;padding:10px 12px;border:1px solid #476b82;border-radius:9px;color:var(--text);background:#071a29}code{font-family:Consolas,monospace;color:#c1f1ff}.code{font:12px/1.8 Consolas,monospace;color:#b8f3dd;background:#091927;border:1px solid var(--line);border-radius:10px;padding:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.road{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}.sector{padding:14px 4px;min-height:84px;border:1px solid #466781;border-radius:9px;background:#173449;color:#cce5f5;text-align:center;font:800 12px Consolas,monospace}.sector small{display:block;color:var(--muted);font:11px "Segoe UI",sans-serif}.sector.active{border-color:var(--orange);background:#625033;color:#fff;box-shadow:inset 0 0 0 2px var(--orange)}.sector:hover{border-color:var(--cyan)}.equation{font:800 16px/1.8 Consolas,monospace;background:#082334;color:var(--green);border-radius:9px;padding:15px;margin:12px 0;overflow-x:auto}
+.map{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.zone{border:1px solid #3c5c78;background:#163248;border-radius:11px;padding:16px 12px;min-height:100px;text-align:left;color:var(--text)}.zone b{display:block;color:var(--cyan);font-size:14px}.zone small{color:var(--muted)}.zone.selected{outline:2px solid var(--orange);outline-offset:-3px}.zone .range{font:800 12px Consolas,monospace;color:var(--green)}.zone:last-child{grid-column:span 2;background:#1c3c45}.zone:hover{border-color:var(--orange)}
+.layout{display:grid;grid-template-columns:2fr .9fr;gap:14px}.cells{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mini-card{background:#182d40;border:1px solid var(--line);border-radius:10px;padding:13px}.mini-card small{display:block;color:var(--muted)}.mini-card b{font:800 17px Consolas,monospace;color:var(--cyan);overflow-wrap:anywhere}.mini-card .extra{font-size:11px;color:var(--muted)}
+.rangebar{display:flex;gap:3px;align-items:stretch;margin:12px 0 4px;min-height:65px}.segment{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:1px solid #456c7e;border-radius:7px;min-width:0;background:#15354b;padding:6px;font-size:11px}.segment b{font-size:11px}.segment small{font-size:10px;color:var(--muted)}.segment.boot{background:#3e3732;border-color:#9b7953}.segment.fat{background:#28384d;border-color:#6c85bf}.segment.data{background:#194339;border-color:#4c997f}
+.table-scroll{overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;font-size:13px}thead th{position:sticky;top:0;background:#1d3a50;color:#c7effe}td,th{padding:10px;text-align:left;border-bottom:1px solid #28485f;vertical-align:top}tbody tr:hover{background:#1b394c}.status-ok{color:var(--green);font-weight:800}.status-no{color:var(--orange);font-weight:700}.tag{display:inline-block;border:1px solid #416a88;border-radius:20px;font-size:11px;padding:3px 7px;color:var(--cyan)}
+.signature{display:flex;justify-content:center;gap:18px;align-items:center;margin:20px 0}.sigbyte{border:2px solid var(--orange);background:#4a3b2d;border-radius:13px;min-width:112px;text-align:center;padding:12px}.sigbyte b{display:block;font:900 34px Consolas,monospace;color:#fff}.sigbyte small{color:#ffdead}.hexline{display:grid;grid-template-columns:52px repeat(16,minmax(0,1fr)) 144px;gap:2px;align-items:center;margin:2px 0;min-width:775px}.hexaddr{font:11px Consolas,monospace;color:#8fb0c6}.hexbyte{font:11px Consolas,monospace;color:#e6f6ff;padding:4px 0;border:0;background:transparent;border-radius:3px}.hexbyte:hover,.hexbyte.pick{background:#376783;color:#fff}.hexbyte.unknown{color:#657d90}.hexbyte.sign{background:#4d4231;color:var(--orange)}.hexascii{font:11px Consolas,monospace;color:#85acbd;white-space:pre}.hexbox{overflow-x:auto;background:#091b2a;border:1px solid var(--line);border-radius:10px;padding:12px}.hexlabel{font:12px Consolas,monospace;color:var(--green)}.file-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.upload{border:1px dashed #5385a2;border-radius:13px;padding:17px;background:#132e42}.upload label{display:block;font-weight:850;margin-bottom:10px}.upload input{font-size:12px;max-width:100%}.upload small{display:block;margin-top:9px;color:var(--muted)}.upload strong{display:block;color:var(--green);font-size:12px;margin-top:9px}.source{font-size:12px;color:var(--orange);font-weight:750}.source.real{color:var(--green)}.file-sel{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:13px 0}.file-sel label{font-size:13px}.file-sel select{max-width:245px}
+.cluster-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.clus{background:#273e59;border:1px solid #6581a5;border-radius:10px;padding:14px;min-width:105px;text-align:center;color:#fff;font:900 15px Consolas,monospace}.clus.active{border:2px solid var(--orange);background:#634f37}.clus.end{background:#215143;border-color:#4aa38b}.arrow{color:var(--orange);align-self:center}.quiz{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.q{padding:14px;border:1px solid var(--line);border-radius:10px;background:#172b40}.q button{display:block;width:100%;background:#102638;color:#dceef9;border:1px solid #45657e;border-radius:7px;text-align:left;padding:9px;margin:6px 0}.q button:hover{background:#244359}.q p{font-size:12px;margin:8px 0 0;min-height:33px}.q .good{color:var(--green)}.q .bad{color:var(--orange)}
+footer{margin-top:39px;border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:12px}
+@media(max-width:950px){.hero,.layout,.grid2{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(3,1fr)}.metrics{grid-template-columns:repeat(2,1fr)}.map,.file-grid,.quiz{grid-template-columns:repeat(2,1fr)}}@media(max-width:570px){.shell{padding:14px 12px 48px}.panel{padding:15px}.tabs,.road{grid-template-columns:repeat(2,1fr)}.metrics,.map,.grid3,.file-grid,.quiz{grid-template-columns:1fr}.zone:last-child{grid-column:auto}h1{font-size:44px}.sigbyte{min-width:93px}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header><div class="brand">SIPEED FPGA · HOST-01 · ИНТЕРАКТИВНЫЙ АТЛАС</div><nav aria-label="Другие страницы лаборатории"><a href="../../../cores/uart-8n1/v1/demo/index.html">UART 8N1</a><a href="../../../cores/fifo-sync/v1/demo/index.html">FIFO</a><a href="../../../cores/lifo-sync/v1/demo/index.html">LIFO</a><a href="../README.md">HOST-01 README</a></nav></header>
+<section class="hero">
+<div><div class="kicker">Учебная лаборатория · от физической карты до файла</div><h1>СЕКТОР <span>→ ФАЙЛ</span></h1><p class="lead">Зачем данные делят на сектора? Где заканчивается карта и начинается раздел? Что делают MBR, сигнатура 55 AA и FAT32? И как из 512-байтовых блоков получается файл с именем?</p><div class="pills"><span class="pill ok">HOST-01: 3/3 реальных чтения</span><span class="pill">Сектор 512 байт</span><span class="pill">Только чтение</span><span class="pill">Можно загрузить .bin</span></div></div>
+<div class="panel"><h3>Пять уровней одной карты</h3><div class="hero-flow"><div>microSD · блоки LBA</div><div class="arrow">↓</div><div>MBR · таблица разделов</div><div class="arrow">↓</div><div>FAT32 · VBR + FAT</div><div class="arrow">↓</div><div>Кластеры + каталоги</div><div class="arrow">↓</div><div>Файлы и их байты</div></div><p class="muted small" style="margin-top:14px">Блочный интерфейс не знает слова «файл». Он читает сектор по номеру, а смысл байтов определяет программа.</p></div>
+</section>
+<div class="metrics"><div class="metric"><small>Блок чтения HOST-01</small><strong>512 Б</strong></div><div class="metric"><small>В кластере FAT32</small><strong id="metricClus">64 сект.</strong></div><div class="metric"><small>Размер кластера</small><strong id="metricSize">32 КиБ</strong></div><div class="metric"><small>Аппаратная проверка</small><strong>3/3 PASS</strong></div></div>
+<div class="notice">Два режима доказательств: <b>подтверждённые значения из логов HOST-01</b> и <b>полные файлы, выбранные вами в браузере</b>. Пока .bin не загружены, неизвестные байты будут показаны знаком <code>??</code> — мы не подменяем их вымышленными данными.</div>
+
+<div class="tabs" role="tablist" aria-label="Разделы демонстрации">
+<button class="tab" role="tab" aria-selected="true" data-tab="brick"><span class="n">01</span>Сектор</button>
+<button class="tab" role="tab" aria-selected="false" data-tab="map"><span class="n">02</span>Карта диска</button>
+<button class="tab" role="tab" aria-selected="false" data-tab="mbr"><span class="n">03</span>MBR и сигнатура</button>
+<button class="tab" role="tab" aria-selected="false" data-tab="fat"><span class="n">04</span>FAT32</button>
+<button class="tab" role="tab" aria-selected="false" data-tab="dir"><span class="n">05</span>Каталоги</button>
+<button class="tab" role="tab" aria-selected="false" data-tab="real"><span class="n">06</span>Реальные BIN</button>
+</div>
+
+<section class="section active" id="tab-brick" role="tabpanel">
+<div class="heading"><h2>01. Сектор — минимальный адресуемый «кирпичик» HOST-01</h2><span class="tag">Блоковый адрес LBA</span></div>
+<div class="grid2">
+<div class="panel"><p>Представьте диск как очень длинную линейку из одинаковых блоков. Каждый блок имеет номер — <b>LBA (Logical Block Address)</b>. В нашем SDHC SPI-контроллере команда <code>CMD17</code> читает <b>один блок 512 байт</b>.</p>
+<label class="control-label" for="absByte">Номер байта от начала карты (0…1 000 000)</label>
+<input class="input mono" type="number" id="absByte" value="1025" min="0" max="1000000" step="1">
+<div class="buttons"><button class="btn" id="addByte">+1 байт</button><button class="btn alt" id="addSector">+512 байт</button><button class="btn alt" id="clearByte">К началу диска</button></div>
+<div id="brickEquation" class="equation">LBA = floor(1025 / 512) = 2</div><h3>Сектора вокруг выбранного адреса</h3><div id="road" class="road"></div>
+<div class="notice" id="brickDetails" style="margin-top:13px">Выбранный сектор и смещение вычисляются автоматически.</div></div>
+<div class="panel"><h3>Почему именно блоки?</h3><p>Блочный интерфейс позволяет адресовать данные единообразно и передавать их порциями фиксированного размера. Это упрощает контроллер, буферизацию, проверку ошибок и файловую систему.</p>
+<p><b>Важно:</b> сектор — минимальная единица <em>нашего интерфейса блочного чтения</em>, а не минимальный физический элемент флеш-памяти и не обязательно единица стирания. Внутри microSD контроллер управляет страницами NAND, блоками стирания и износом.</p>
+<div class="code">logical_byte_address = LBA × 512 + offset
+LBA    = floor(byte_address / 512)
+offset = byte_address % 512
+
+Например, байт 1025 → сектор 2, смещение 1.</div>
+<p class="muted small" style="margin-top:14px">На иных накопителях логический сектор может иметь размер 4096 байт. Здесь <code>512</code> — размер, непосредственно проверенный для SDHC и FAT32 HOST-01.</p></div></div>
+</section>
+
+<section class="section" id="tab-map" role="tabpanel">
+<div class="heading"><h2>02. Один диск — несколько слоёв смысла</h2><span class="tag">Адреса нашей карты</span></div>
+<section class="panel"><p>Байты MBR, FAT и файлов физически лежат в одной линейной последовательности LBA. Программа интерпретирует <b>разные диапазоны</b> по-разному. Нажмите любую область:</p>
+<div class="map" id="mapZones"></div>
+<div class="notice" id="zoneDetail" role="status" aria-live="polite" style="margin-top:13px">Выберите область карты.</div>
+<div id="diskFormula" class="equation">LBA данных = начало раздела + резерв + две FAT</div>
+<p class="small muted">Блоки на схеме нарисованы <b>не в масштабе</b>: длинная область данных иначе заняла бы почти весь экран. Реальные размеры указаны номерами секторов.</p></section>
+<div class="grid3" style="margin-top:14px">
+<div class="panel"><h3>MBR ≠ файловая система</h3><p class="small muted">MBR сообщает, где начинается раздел и сколько LBA он занимает. Само содержимое файлов находится в другом месте.</p></div>
+<div class="panel"><h3>VBR ≠ MBR</h3><p class="small muted">VBR лежит в начале раздела и задаёт параметры конкретной FAT32: размеры секторов, кластеров, FAT и адрес корневого каталога.</p></div>
+<div class="panel"><h3>FAT ≠ содержимое файла</h3><p class="small muted">Таблица FAT связывает номера кластеров. Фактические байты файла записаны в области данных.</p></div>
+</div>
+</section>
+
+<section class="section" id="tab-mbr" role="tabpanel">
+<div class="heading"><h2>03. MBR и «магические» байты 55 AA</h2><span class="tag">LBA 0 · 512 байт</span></div>
+<div class="grid2">
+<div class="panel"><h3>Master Boot Record</h3><p>В классической схеме MBR первый сектор носителя делится на области: загрузочный код или служебные данные в начале, четыре 16-байтовые записи разделов с позиции <code>446</code> и двухбайтовую сигнатуру в конце.</p>
+<div class="rangebar"><div class="segment boot" style="flex:4">0…445<small>код / служебное</small></div><div class="segment" style="flex:2">446…509<small>4 × 16 Б · разделы</small></div><div class="segment data" style="flex:1">510–511<small>55 AA</small></div></div>
+<div class="signature"><div class="sigbyte"><small>offset 510</small><b>55</b><small>HEX = 85 DEC</small></div><div class="sigbyte"><small>offset 511</small><b>AA</b><small>HEX = 170 DEC</small></div></div>
+<div class="code">Байты по порядку:      55 AA
+Как uint16 little-endian: 0xAA55
+В десятичной системе:   85 170
+По битам:               01010101 10101010</div>
+<p class="muted small" style="margin-top:14px">Это <b>маркер формата</b>, а не криптографическая подпись и не CRC: присутствие 55 AA само по себе не доказывает исправность диска. Такие же два байта встретились в конце VBR.</p></div>
+<div class="panel"><h3>Таблица разделов: четыре записи</h3><div class="source" id="mbrOrigin">Источник: лог HOST-01, начало и конец сектора; таблица не загружена.</div><div class="table-scroll" style="margin-top:12px"><table><thead><tr><th>#</th><th>Тип</th><th>Начало LBA</th><th>Размер, сект.</th></tr></thead><tbody id="partitionRows"></tbody></table></div><p class="muted small" style="margin-top:12px">В каждой записи 16 байт: флаг загрузки, CHS-поля, тип, стартовый LBA и число секторов. Поля старого CHS-адресования в современных задачах обычно второстепенны.</p>
+<div class="notice" id="mbrSignature" style="margin-top:14px">Сигнатура MBR будет проверена ниже.</div>
+<button class="btn alt" data-goto="real" style="margin-top:14px">Загрузить настоящий sector0.bin →</button></div></div>
+</section>
+
+<section class="section" id="tab-fat" role="tabpanel">
+<div class="heading"><h2>04. FAT32: почему «32» и как вычисляется адрес файла</h2><span class="tag">VBR: LBA 64</span></div>
+<div class="grid2"><div class="panel"><p><b>FAT</b> = <em>File Allocation Table</em>, таблица размещения файлов. Число <b>32</b> — размер <b>одной записи FAT</b> в битах. Из 32 бит для индекса кластера FAT32 используются 28; старшие четыре зарезервированы.</p>
+<div class="cells"><div class="mini-card"><small>FAT12</small><b>12 бит</b><div class="extra">на запись таблицы</div></div><div class="mini-card"><small>FAT16</small><b>16 бит</b><div class="extra">на запись таблицы</div></div><div class="mini-card"><small>FAT32</small><b>32 бита</b><div class="extra">28 бит адреса кластера</div></div></div>
+<h3 style="margin-top:21px">Почему именно FAT32 на этой карте?</h3><p class="small muted">Не потому, что microSD «обязана быть FAT32». Наша карта отформатирована в FAT32: это следует из полей её VBR и числа кластеров. Другие карты могут использовать FAT16 или exFAT. FAT32 проста и совместима со многими микроконтроллерами и встроенными устройствами.</p>
+<p class="small muted">Файловая система FAT32 выделяет место <b>кластерами</b>, а контроллер microSD читает данные <b>секторами</b>. Это разные уровни.</p>
+<div class="notice" id="vbrSignature">Подтверждённая по логу сигнатура VBR: 55 AA.</div></div>
+<div class="panel"><h3>BPB — параметры тома из VBR</h3><div class="source" id="bpbOrigin">Источник: первые 64 байта из HOST-01</div><div id="bpbFields" class="cells" style="margin-top:14px"></div><h3 style="margin-top:22px">Формулы FAT32</h3><div id="fatFormula" class="code"></div></div></div>
+<section class="panel" style="margin-top:14px"><h3>Модель цепочки кластеров — учебный пример, не содержимое карты</h3><p class="muted small">Файл может быть фрагментирован: его кластеры не обязаны идти друг за другом. В FAT32 запись кластера указывает следующий кластер цепочки или специальный признак конца.</p><div id="clusterChain" class="cluster-row"></div><div id="clusterDetail" class="notice" role="status">Выберите кластер.</div></section>
+</section>
+
+<section class="section" id="tab-dir" role="tabpanel">
+<div class="heading"><h2>05. Каталоги — как 32-байтовые записи превращаются в имена</h2><span class="tag">ROOT: LBA 17472</span></div>
+<div class="grid2"><div class="panel"><h3>Корневой каталог — тоже данные</h3><p>В FAT32 корень начинается с кластера, номер которого хранится в BPB (здесь <b>кластер 2</b>). Каталог состоит из записей по <b>32 байта</b>. В секторе 512 байт помещается 16 записей.</p>
+<div class="code">Обычная запись 8.3 (32 байта)
+0…10   имя и расширение (11 байт)
+11     атрибуты
+20…21  старшие 16 бит первого кластера
+26…27  младшие 16 бит первого кластера
+28…31  размер файла, байт
+
+LFN: attr = 0x0F
+Несколько LFN-записей + короткое имя
+→ длинное Unicode-имя</div>
+<p class="muted small" style="margin-top:12px">В показанных HOST-01 первых 64 байтах каталога видны две LFN-записи с номерами <code>42</code> и <code>01</code>. Их имя соответствует <code>System Volume Information</code>. Полную проверку сцепления с короткой записью можно выполнить, загрузив <code>root.bin</code>.</p></div>
+<div class="panel"><h3>Кластер ≠ сектор</h3><p>Файл занимает кластер или цепочку кластеров. Для чтения файла программа:</p>
+<div class="code">1. Находит запись в каталоге.
+2. Узнаёт первый кластер и размер.
+3. Читает 64 сектора этого кластера.
+4. Узнаёт следующий номер из FAT.
+5. Продолжает до EOF / конца размера.</div>
+<p class="muted small" style="margin-top:13px">Если файл имеет размер 100 байт, при выделении 32 КиБ под кластер файловая система всё равно хранит полезными только 100 байт. Остальное — внутреннее неиспользованное место последнего кластера.</p>
+<button class="btn alt" data-goto="real">Посмотреть реальный каталог →</button></div></div>
+<section class="panel" style="margin-top:14px"><div class="heading"><h3>Разбор 16 записей первого сектора root.bin</h3><span id="rootOrigin" class="source">Источник: в логе известны только первые 64 байта</span></div><div class="table-scroll"><table><thead><tr><th>Смещение</th><th>Тип</th><th>Имя / фрагмент LFN</th><th>Кластер</th><th>Размер / проверка</th></tr></thead><tbody id="directoryRows"></tbody></table></div></section>
+</section>
+
+<section class="section" id="tab-real" role="tabpanel">
+<div class="heading"><h2>06. Исследуем настоящие 512 байт FPGA — без сервера</h2><span class="tag">Локальная загрузка .bin</span></div>
+<div class="notice success">HOST-01 уже создал на компьютере файлы <code>sector0.bin</code>, <code>vbr.bin</code>, <code>root.bin</code>. Выберите их ниже. Браузер читает их <b>локально</b>; отправки в интернет, связи с COM или записи на SD-карту здесь нет.</div>
+<div class="file-grid" style="margin-top:16px">
+<div class="upload"><label for="uploadMbr">MBR · LBA 0</label><input type="file" id="uploadMbr" accept=".bin,application/octet-stream"><small>sector0.bin · таблица разделов + 55 AA</small><strong id="fileMbr">Ожидается файл</strong></div>
+<div class="upload"><label for="uploadVbr">FAT32 VBR · LBA 64</label><input type="file" id="uploadVbr" accept=".bin,application/octet-stream"><small>vbr.bin · BPB, размеры FAT/кластеров</small><strong id="fileVbr">Ожидается файл</strong></div>
+<div class="upload"><label for="uploadRoot">ROOT · LBA 17472</label><input type="file" id="uploadRoot" accept=".bin,application/octet-stream"><small>root.bin · 16 каталоговых записей</small><strong id="fileRoot">Ожидается файл</strong></div>
+</div>
+<div class="panel" style="margin-top:15px"><div class="file-sel"><div><label class="control-label" for="hexSource">Просматривать сектор</label><select class="input" id="hexSource"><option value="mbr">MBR · LBA 0</option><option value="vbr" selected>VBR · LBA 64</option><option value="root">ROOT · LBA 17472</option></select></div><div><label class="control-label" for="hexJump">Перейти к offset 0…511</label><input class="input mono" type="number" min="0" max="511" id="hexJump" value="0" style="max-width:155px"></div><button class="btn alt" id="hexGo">Показать байт</button><span id="hexSourceLabel" class="source">Источник: лог</span></div>
+<p class="muted small">Все 32 строки по 16 байт. Нажмите ячейку, чтобы увидеть значение, адрес и ASCII. <code>??</code> означает, что байт отсутствует в предоставленном текстовом логе; после загрузки .bin появится точное содержимое.</p>
+<div class="hexbox" id="hexGrid" aria-label="Шестнадцатеричный просмотр 512-байтового сектора"></div><div id="hexDetail" class="notice" role="status" aria-live="polite" style="margin-top:12px">Выберите байт.</div></div>
+</section>
+
+<div class="heading" style="margin-top:34px"><h2>Проверьте себя</h2><span class="muted small">Три коротких вопроса по уровням хранения</span></div>
+<div class="quiz">
+<div class="q" data-q="0"><h3>Что означает число 32 в FAT32?</h3><button data-answer="0">32 сектора в кластере</button><button data-answer="1">32 бита в записи FAT</button><button data-answer="2">32 байта в секторе</button><p aria-live="polite"></p></div>
+<div class="q" data-q="1"><h3>Где находится таблица разделов MBR?</h3><button data-answer="0">В начале каждого файла</button><button data-answer="1">В секторе LBA 17472</button><button data-answer="2">В секторе LBA 0</button><p aria-live="polite"></p></div>
+<div class="q" data-q="2"><h3>Байты 55 AA — это…</h3><button data-answer="0">Маркер сектора, не криптоподпись</button><button data-answer="1">CRC16 всех данных</button><button data-answer="2">Число 55 и число 170 в одной системе</button><p aria-live="polite"></p></div>
+</div>
+<footer>
+<p><b>Основание демонстрации:</b> аппаратные журналы HOST-01: LBA 0, 64, 17472 по 512 байт, CRC PASS и сигнатуры 55 AA у MBR/VBR. Значения из первых 64 байт и проверенные последние 2 байта показаны до выбора файлов; остальные байты неизвестны. Макет цепочки кластеров отдельно отмечен как учебный.</p>
+<p><b>Справочные источники:</b> <a href="https://uefi.org/specs/UEFI/2.10/05_GUID_Partition_Table_Format.html" target="_blank" rel="noopener">UEFI — структура MBR, разделы и 55 AA</a>; <a href="https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/storage/fatfs.html" target="_blank" rel="noopener">Espressif — FAT12/16/32, сектора и кластеры</a>; <a href="https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification" target="_blank" rel="noopener">Microsoft — обозначения FAT</a>. Они не нужны для автономной работы этой страницы.</p>
+<p>© Учебный проект Sipeed-FPGA · HOST-01 · Только чтение · HTML/CSS/JavaScript без внешних библиотек.</p>
+</footer>
+</main>
+<script>
+"use strict";
+(function(){
+ var $=function(id){return document.getElementById(id);};
+ var data={mbr:null,vbr:null,root:null};
+ var known={mbr:new Uint8Array(512),vbr:new Uint8Array(512),root:new Uint8Array(512)};
+ var snapshot={mbr:new Uint8Array(512),vbr:new Uint8Array(512),root:new Uint8Array(512)};
+ var observedVbr="eb 58 90 4d 53 44 4f 53 35 2e 30 00 02 40 00 08 02 00 00 00 00 f8 00 00 3f 00 ff 00 40 00 00 00 c0 3b c0 03 00 1e 00 00 00 00 00 00 02 00 00 00 01 00 06 00 00 00 00 00 00 00 00 00 00 00 00 00";
+ var observedRoot="42 20 00 49 00 6e 00 66 00 6f 00 0f 00 72 72 00 6d 00 61 00 74 00 69 00 6f 00 00 00 6e 00 00 00 01 53 00 79 00 73 00 74 00 65 00 0f 00 72 6d 00 20 00 56 00 6f 00 6c 00 75 00 00 00 6d 00 65 00";
+ function seed(type,hex){var parts=hex.trim().split(/\s+/);parts.forEach(function(x,i){snapshot[type][i]=parseInt(x,16);known[type][i]=1;});}
+ seed("vbr",observedVbr);seed("root",observedRoot);
+ for(var i=0;i<64;i++){known.mbr[i]=1;} // first 64 bytes shown as all zero in HOST-01
+ ["mbr","vbr","root"].forEach(function(t){
+  known[t][510]=1;known[t][511]=1;
+  snapshot[t][510]=t==="root"?0:0x55;snapshot[t][511]=t==="root"?0:0xaa;
+ });
+ function arr(t){return data[t]||snapshot[t];}
+ function mask(t){return data[t]?null:known[t];}
+ function available(t,offset,length){if(offset<0||offset+length>512)return false;if(data[t])return true;for(var j=0;j<length;j++)if(!known[t][offset+j])return false;return true;}
+ function u16(t,n){if(!available(t,n,2))return null;return arr(t)[n]|(arr(t)[n+1]<<8);}
+ function u32(t,n){if(!available(t,n,4))return null;return ((arr(t)[n]|arr(t)[n+1]<<8|arr(t)[n+2]<<16|arr(t)[n+3]<<24)>>>0);}
+ function u8(t,n){return available(t,n,1)?arr(t)[n]:null;}
+ function H(v,p){if(v===null||v===undefined)return "??";return Number(v).toString(16).toUpperCase().padStart(p||2,"0");}
+ function group(n){return n===null?"?":Number(n).toLocaleString("ru-RU");}
+ function sourceText(t){return data[t]?"ЗАГРУЖЕН ФАЙЛ · все 512 байт":"ЛОГ HOST-01 · известные смещения, остальное ??";}
+ function geometry(){
+  var bps=u16("vbr",11),spc=u8("vbr",13),res=u16("vbr",14),nf=u8("vbr",16),fs=u32("vbr",36),root=u32("vbr",44),hidden=u32("vbr",28);
+  var total=u32("vbr",32),pstart=hidden,parts=parsePartitions();
+  // A real MBR partition record takes priority over BPB hidden sectors.
+  var primary=parts.find(function(x){return x.start!==null && x.size>0 && x.type!==0;});
+  if(primary)pstart=primary.start;
+  var valid=bps>0&&spc>0&&res!==null&&nf>0&&fs>0&&pstart!==null;
+  var fat0=valid?pstart+res:null,first=valid?fat0+nf*fs:null;
+  var rootLba=valid&&root>=2?first+(root-2)*spc:null;
+  var dataCount=valid&&total?Math.floor((total-res-nf*fs)/spc):null;
+  return {bps:bps,spc:spc,res:res,nf:nf,fs:fs,root:root,hidden:hidden,total:total,pstart:pstart,valid:valid,fat0:fat0,first:first,rootLba:rootLba,clusters:dataCount};
+ }
+ function parsePartitions(){
+  var x=[];
+  for(var i=0;i<4;i++){var off=446+i*16;
+   x.push({index:i+1,offset:off,boot:u8("mbr",off),type:u8("mbr",off+4),start:u32("mbr",off+8),size:u32("mbr",off+12)});
+  }
+  return x;
+ }
+ function showTab(t){
+  document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-selected",String(b.dataset.tab===t));});
+  document.querySelectorAll(".section").forEach(function(s){s.classList.toggle("active",s.id==="tab-"+t);});
+  if(t==="real")renderHex();
+ }
+ document.querySelectorAll(".tab").forEach(function(b){b.addEventListener("click",function(){showTab(b.dataset.tab);});});
+ document.querySelectorAll("[data-goto]").forEach(function(b){b.addEventListener("click",function(){showTab(b.dataset.goto);document.querySelector(".tabs").scrollIntoView({behavior:"smooth",block:"start"});});});
+ var addr=1025;
+ function drawBrick(){
+  var input=$("absByte"),raw=Number(input.value);if(!Number.isSafeInteger(raw)||raw<0||raw>1000000){input.setCustomValidity("Целое от 0 до 1 000 000");input.reportValidity();return;}
+  input.setCustomValidity("");addr=raw;
+  var lba=Math.floor(addr/512),rem=addr%512,start=Math.floor(lba/8)*8;
+  $("brickEquation").textContent="LBA = floor("+group(addr)+" / 512) = "+group(lba)+"; offset = "+group(addr)+" % 512 = "+rem;
+  var html="";for(var k=start;k<start+8;k++){html+='<button class="sector '+(k===lba?'active':'')+'" data-lba="'+k+'">LBA '+k+'<small>'+group(k*512)+'…'+group(k*512+511)+'</small></button>';}
+  $("road").innerHTML=html;
+  $("brickDetails").textContent="Запрос FPGA: read_sector("+lba+"). Из полученных 512 байт выбираем байт ["+rem+"]. В пределах сектора этот адрес локальный.";
+  document.querySelectorAll(".sector").forEach(function(b){b.addEventListener("click",function(){var v=Number(b.dataset.lba)*512;$("absByte").value=String(v);drawBrick();});});
+ }
+ $("absByte").addEventListener("change",drawBrick);
+ $("addByte").addEventListener("click",function(){$("absByte").value=Math.min(1000000,addr+1);drawBrick();});
+ $("addSector").addEventListener("click",function(){$("absByte").value=Math.min(1000000,addr+512);drawBrick();});
+ $("clearByte").addEventListener("click",function(){$("absByte").value=0;drawBrick();});
+ function renderMap(){
+  var g=geometry(),start=g.pstart||64,first=g.first||17472,splits=[
+   {name:"MBR",range:"0",note:"таблица разделов + 55 AA",detail:"LBA 0 — первый сектор всей карты. Служебные данные, четыре записи разделов по 16 байт, два байта сигнатуры 55 AA."},
+   {name:"До раздела",range:"1…"+(start-1),note:"промежуток",detail:"Сектора между MBR и началом раздела. Их назначение не определяется одной только таблицей; могут быть свободны или содержать служебные данные."},
+   {name:"VBR",range:String(start),note:"BPB · начало FAT32",detail:"Первый сектор раздела: поля BPB, которые определяют геометрию тома, в частности размер кластера и FAT. Здесь VBR найден по LBA "+start+"."},
+   {name:"Резерв",range:(start+1)+"…"+(g.fat0-1),note:"служебные сектора",detail:"Зарезервированная область FAT32 включает VBR и, возможно, FSInfo/резервный загрузочный сектор. Она не равна области файлов."},
+   {name:"FAT №1",range:g.fat0+"…"+(g.fat0+g.fs-1),note:"цепочки кластеров",detail:"Первая File Allocation Table, содержащая 32-битные записи размещения кластеров."},
+   {name:"FAT №2",range:(g.fat0+g.fs)+"…"+(first-1),note:"вторая таблица",detail:"Вторая копия FAT присутствует в нашем BPB (NumFATs=2). Ее назначение и актуальность зависят от настроек тома."},
+   {name:"Данные",range:first+"…",note:"кластеры · каталоги · файлы",detail:"Область данных начинается с кластера №2 по LBA "+first+". Корневой кластер из BPB="+g.root+", его начальный LBA="+g.rootLba+"."}
+  ];
+  $("mapZones").innerHTML=splits.map(function(x,i){return '<button class="zone '+(i===6?"selected":"")+'" data-zone="'+i+'"><b>'+x.name+'</b><span class="range">'+x.range+'</span><br><small>'+x.note+'</small></button>';}).join("");
+  $("zoneDetail").textContent=splits[6].detail;
+  document.querySelectorAll(".zone").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".zone").forEach(function(x){x.classList.remove("selected");});b.classList.add("selected");$("zoneDetail").textContent=splits[Number(b.dataset.zone)].detail;});});
+  $("diskFormula").textContent="Первый LBA данных = "+start+" + "+g.res+" + "+g.nf+" × "+g.fs+" = "+first+"\nКорень: LBA("+g.root+") = "+first+" + ("+g.root+" − 2) × "+g.spc+" = "+g.rootLba;
+ }
+ function renderMbr(){
+  $("mbrOrigin").textContent=sourceText("mbr");
+  var list=parsePartitions();
+  $("partitionRows").innerHTML=list.map(function(x){
+   return "<tr><td>"+x.index+"</td><td>"+(x.type===null?"неизв.":"0x"+H(x.type))+"</td><td>"+group(x.start)+"</td><td>"+group(x.size)+"</td></tr>";
+  }).join("");
+  var sig=available("mbr",510,2)?H(arr("mbr")[510])+" "+H(arr("mbr")[511]):"неизвестно";
+  $("mbrSignature").textContent="MBR: смещение 510–511 = "+sig+(sig==="55 AA"?" · подтверждённая сигнатура":" · сигнатура не совпадает");
+  $("mbrSignature").className="notice "+(sig==="55 AA"?"success":"warning");
+ }
+ function infoBox(k,v,extra){return '<div class="mini-card"><small>'+k+'</small><b>'+v+'</b>'+(extra?'<div class="extra">'+extra+'</div>':'')+'</div>';}
+ function renderBpb(){
+  var g=geometry();
+  $("bpbOrigin").textContent=sourceText("vbr");
+  $("vbrSignature").textContent="VBR: байты 510–511 = "+(available("vbr",510,2)?H(arr("vbr")[510])+" "+H(arr("vbr")[511]):"??")+" · маркер, не CRC";
+  $("bpbFields").innerHTML=[
+   infoBox("Сектор, Б",group(g.bps)),infoBox("Секторов/кластер",group(g.spc)),infoBox("Кластер, Б",group(g.bps*g.spc)),
+   infoBox("Резерв, сект.",group(g.res)),infoBox("Копий FAT",group(g.nf)),infoBox("FAT, сект.",group(g.fs)),
+   infoBox("Начало раздела",group(g.pstart)),infoBox("Корневой кластер",group(g.root)),infoBox("Всего секторов",group(g.total))
+  ].join("");
+  $("metricClus").textContent=g.spc+" сект.";
+  $("metricSize").textContent=Math.round(g.bps*g.spc/1024)+" КиБ";
+  $("fatFormula").textContent="FAT0 = PartStart + Reserved\n    = "+g.pstart+" + "+g.res+" = "+g.fat0+
+  "\nDATA = FAT0 + NumFATs × FATSize\n     = "+g.fat0+" + "+g.nf+" × "+g.fs+" = "+g.first+
+  "\nLBA(cluster N) = DATA + (N − 2) × "+g.spc+
+  "\nRoot cluster "+g.root+" starts at LBA "+g.rootLba+
+  "\nДоступных кластеров ≈ "+group(g.clusters);
+ }
+ function renderCluster(){
+  var g=geometry();
+  var clusterList=[5,9,11],html="";
+  clusterList.forEach(function(n,i){html+='<button class="clus" data-cluster="'+n+'">Кластер '+n+'</button><span class="arrow">→</span>';});
+  html+='<span class="clus end">EOF</span>';
+  $("clusterChain").innerHTML=html;
+  document.querySelectorAll(".clus[data-cluster]").forEach(function(b){b.addEventListener("click",function(){var n=Number(b.dataset.cluster);document.querySelectorAll(".clus[data-cluster]").forEach(function(x){x.classList.remove("active");});b.classList.add("active");$("clusterDetail").textContent="Учебная модель: кластер "+n+" → LBA "+(g.first+(n-2)*g.spc)+" … "+(g.first+(n-1)*g.spc-1)+" ("+g.spc+" секторов). Следующая запись FAT содержит "+(n===5?"9":n===9?"11":"маркер EOF")+". Эта цепочка НЕ прочитана с карты HOST-01.";});});
+  var first=document.querySelector(".clus[data-cluster]");if(first)first.click();
+ }
+ function decodeLFN(b,offset){
+  var positions=[1,3,5,7,9,14,16,18,20,22,24,28,30],units=[];
+  positions.forEach(function(p){var a=b[offset+p],c=b[offset+p+1],v=a|(c<<8);if(v!==0x0000 && v!==0xffff)units.push(v);});
+  return String.fromCharCode.apply(String,units);
+ }
+ function checksum(b,off){var s=0;for(var i=0;i<11;i++){s=((s&1)?0x80:0)+(s>>1);s=(s+b[off+i])&0xff;}return s;}
+ function sfn(b,off){var name="",ext="";for(var i=0;i<8;i++){name+=String.fromCharCode(b[off+i]);}for(var j=8;j<11;j++){ext+=String.fromCharCode(b[off+j]);}name=name.trim();ext=ext.trim();return name+(ext?"."+ext:"");}
+ function parseRoot(){
+  var b=arr("root"),rows=[],lfn=[];
+  for(var off=0;off<512;off+=32){
+   if(!available("root",off,32)){rows.push([off,"неизвестно","Нужен root.bin для чтения остальных байтов","—","—"]);break;}
+   var lead=b[off],attr=b[off+11];
+   if(lead===0){rows.push([off,"END","0x00 · конец активных записей","—","—"]);break;}
+   if(lead===0xe5){lfn=[];rows.push([off,"Удалена","0xE5 · удалённая запись","—","—"]);continue;}
+   if(attr===0x0f){
+    var item={seq:lead&0x1f,checksum:b[off+13],text:decodeLFN(b,off)};
+    lfn.push(item);rows.push([off,"LFN 0x0F","Фрагмент "+item.seq+": "+item.text,"—","checksum 0x"+H(item.checksum)]);continue;
+   }
+   var lo=b[off+26]|b[off+27]<<8,hi=b[off+20]|b[off+21]<<8,clus=((hi<<16)|lo)>>>0;
+   var len=((b[off+28]|b[off+29]<<8|b[off+30]<<16|b[off+31]<<24)>>>0);
+   var name=sfn(b,off),note="";
+   if(lfn.length){
+    var right=checksum(b,off),ok=lfn.every(function(x){return x.checksum===right;});
+    var sorted=lfn.slice().sort(function(x,y){return x.seq-y.seq;});
+    var full=sorted.map(function(x){return x.text;}).join("");
+    if(full)name=full+" (8.3: "+name+")";
+    note="LFN "+(ok?"checksum PASS":"checksum FAIL");
+   }else note="атрибуты 0x"+H(attr);
+   rows.push([off,(attr&0x08?"VOLUME":attr&0x10?"DIR":"FILE"),name,clus,len+" Б; "+note]);
+   lfn=[];
+  }
+  return rows;
+ }
+ function renderRoot(){
+  $("rootOrigin").textContent=sourceText("root");
+  $("directoryRows").innerHTML=parseRoot().map(function(x){
+   return "<tr><td>0x"+H(x[0],3)+"</td><td><span class='tag'>"+x[1]+"</span></td><td>"+escapeHTML(String(x[2]))+"</td><td>"+x[3]+"</td><td>"+escapeHTML(String(x[4]))+"</td></tr>";
+  }).join("");
+ }
+ function escapeHTML(t){return t.replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+ var picked=0;
+ function renderHex(){
+  var type=$("hexSource").value,b=arr(type),km=mask(type);
+  $("hexSourceLabel").textContent=sourceText(type);
+  $("hexSourceLabel").className="source"+(data[type]?" real":"");
+  var out="";
+  for(var r=0;r<32;r++){
+   var start=r*16,ascii="",line='<div class="hexline"><span class="hexaddr">'+H(start,3)+'</span>';
+   for(var j=0;j<16;j++){
+    var pos=start+j,v=b[pos],yes=!km||km[pos],symbol=yes?H(v):"??";
+    line+='<button type="button" class="hexbyte '+(!yes?"unknown ":"")+(pos===picked?"pick ":"")+(pos>=510&&type!=="root"?"sign":"")+'" data-pos="'+pos+'">'+symbol+'</button>';
+    ascii+=(yes && v>=32&&v<=126)?String.fromCharCode(v):(yes?".":"?");
+   }
+   line+='<span class="hexascii">'+escapeHTML(ascii)+'</span></div>';
+   out+=line;
+  }
+  $("hexGrid").innerHTML=out;
+  $("hexGrid").querySelectorAll(".hexbyte").forEach(function(btn){btn.addEventListener("click",function(){picked=Number(btn.dataset.pos);$("hexJump").value=picked;renderHex();});});
+  var val=b[picked],yes=!km||km[picked];
+  $("hexDetail").textContent="Файл "+type.toUpperCase()+" · byte offset "+picked+" (0x"+H(picked,3)+") → "+(yes?"0x"+H(val)+" = "+val+" DEC = "+val.toString(2).padStart(8,"0")+" BIN":"неизвестен в текстовом логе; загрузите соответствующий .bin")+(picked===510?" · начало сигнатуры":picked===511?" · конец сигнатуры":"");
+ }
+ $("hexSource").addEventListener("change",function(){picked=0;$("hexJump").value=0;renderHex();});
+ $("hexGo").addEventListener("click",function(){var off=Number($("hexJump").value);if(!Number.isInteger(off)||off<0||off>511){$("hexJump").setCustomValidity("0…511");$("hexJump").reportValidity();return;}$("hexJump").setCustomValidity("");picked=off;renderHex();});
+ $("hexJump").addEventListener("change",function(){$("hexJump").setCustomValidity("");});
+ async function loadFile(type,input,statusId){
+  var file=input.files&&input.files[0];if(!file)return;
+  if(file.size!==512){$(statusId).textContent="Ошибка: "+file.size+" Б, требуется ровно 512 Б";$(statusId).style.color="var(--red)";return;}
+  try{
+   var buffer=await file.arrayBuffer();
+   if(buffer.byteLength!==512)throw new Error("недостаточная длина");
+   data[type]=new Uint8Array(buffer);
+   $(statusId).textContent="Загружено: "+file.name+" · 512 байт";$(statusId).style.color="var(--green)";
+   renderAll();
+   $("hexSource").value=type;picked=0;$("hexJump").value=0;renderHex();
+  }catch(e){$(statusId).textContent="Ошибка чтения: "+e.message;$(statusId).style.color="var(--red)";}
+ }
+ [["mbr","uploadMbr","fileMbr"],["vbr","uploadVbr","fileVbr"],["root","uploadRoot","fileRoot"]].forEach(function(z){$(z[1]).addEventListener("change",function(){loadFile(z[0],this,z[2]);});});
+ var quizCorrect=[1,2,0];
+ document.querySelectorAll(".q").forEach(function(q){
+  q.querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){
+   var right=Number(b.dataset.answer)===quizCorrect[Number(q.dataset.q)];
+   q.querySelector("p").textContent=right?"Верно!":"Нет. Попробуйте ещё раз.";
+   q.querySelector("p").className=right?"good":"bad";
+  });});
+ });
+ function renderAll(){drawBrick();renderMap();renderMbr();renderBpb();renderCluster();renderRoot();renderHex();}
+ renderAll();
+ window.SectorFatDemo={getGeometry:geometry,getPartitions:parsePartitions,parseRoot:parseRoot,getKnownBytes:function(t){return available(t,0,512);},goTo:showTab};
+})();
+</script>
+</body>
+</html>

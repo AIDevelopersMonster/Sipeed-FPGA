@@ -1,0 +1,89 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>UART 8N1 — интерактивная лаборатория FPGA</title>
+<style>
+:root{color-scheme:dark;--bg:#081524;--panel:#13283b;--line:#34536d;--text:#ebf6ff;--mut:#a9c2d4;--blue:#75d4ff;--green:#75ebc1;--amber:#ffd282;--red:#ffaaa2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 77% -10%,#174965,transparent 40%),radial-gradient(ellipse at 2% 0%,#202f59,transparent 35%),var(--bg);font:15px/1.55 "Segoe UI",Arial,sans-serif;color:var(--text)}a{color:var(--blue)}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-offset:3px}.shell{max-width:1190px;margin:auto;padding:22px 24px 72px}header{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:20px}.brand{color:var(--green);letter-spacing:.17em;font-size:12px;font-weight:900}nav{display:flex;gap:9px;flex-wrap:wrap}nav a{border:1px solid var(--line);border-radius:9px;padding:7px 12px;text-decoration:none;color:var(--mut);font-size:13px}nav a[aria-current]{background:var(--blue);border-color:var(--blue);color:#091b29;font-weight:800}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:26px;padding:46px 0 25px;align-items:center}.eyebrow{font-size:12px;color:var(--green);font-weight:800;letter-spacing:.17em}h1{font-size:clamp(42px,6vw,73px);letter-spacing:-.06em;line-height:1.02;margin:12px 0}h1 span{color:var(--blue)}.lead{font-size:17px;color:var(--mut)}.tagline{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}.tag{padding:7px 10px;border:1px solid var(--line);border-radius:99px;font-size:12px;color:var(--mut)}.tag.ok{color:var(--green);border-color:#3f816d}.panel{background:linear-gradient(145deg,#162e42,#0e2030);border:1px solid var(--line);border-radius:16px;padding:22px}.diagram{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:14px 0}.diagram span{border:1px solid #3b7290;padding:10px;border-radius:8px;background:#19384e;font:700 12px Consolas,monospace}.diagram b{color:var(--green)}.mut{color:var(--mut)}.small{font-size:13px}h2{font-size:25px;letter-spacing:-.03em}h3{font-size:17px;margin:0 0 10px}.section{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:30px 0 14px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{background:#152f43;border:1px solid var(--line);border-radius:12px;padding:15px}.metric small{display:block;color:var(--mut)}.metric b{font:800 22px Consolas,monospace;color:var(--blue)}.lab{display:grid;grid-template-columns:1.25fr .75fr;gap:15px}.control{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{display:block;font-size:13px;font-weight:750;color:var(--mut);margin:0 0 5px}input,select{width:100%;background:#081a29;color:#f3fbff;border:1px solid #466c86;padding:10px 12px;border-radius:9px}.buttons{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0}.btn{border:1px solid #4489aa;background:#19516e;color:#f6fdff;font-weight:800;padding:10px 14px;border-radius:9px}.btn:hover{background:#28708e}.btn.alt{background:#203549;border-color:#45667e}.btn.warn{background:#563a35;border-color:#926553}.status{background:#152e40;border:1px solid #40708d;border-radius:10px;padding:12px 14px;font-size:13px}.status.ok{background:#14362f;border-color:#3d927b;color:#bdffe3}.status.error{background:#432d31;border-color:#975761;color:#ffd4cf}.frame{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;margin:16px 0}.bit{border:1px solid #406b81;border-radius:9px;min-height:95px;background:#142b3d;text-align:center;padding:9px 3px}.bit b{display:block;font-size:25px;color:var(--blue);font-family:Consolas,monospace}.bit small{font-size:10px;color:var(--mut)}.bit.start{border-color:#a77165}.bit.start b{color:var(--amber)}.bit.stop{border-color:#5c987c}.bit.stop b{color:var(--green)}.bit.current{box-shadow:0 0 0 3px var(--amber);background:#264356}.wave{overflow-x:auto;background:#091a28;border-radius:12px;border:1px solid #34546c;padding:13px;margin:14px 0}.wave svg{width:100%;min-width:500px;display:block}.code{font:12px/1.8 Consolas,monospace;color:#aff6cf;background:#081b2a;border:1px solid var(--line);border-radius:10px;padding:15px;overflow-x:auto}.signals{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.sig{background:#102439;border:1px solid var(--line);border-radius:10px;padding:10px}.sig small{display:block;color:var(--mut)}.sig b{font:800 20px Consolas,monospace;color:var(--blue)}.sig.live b{color:var(--green)}.table{border-collapse:collapse;width:100%;font-size:13px}.table th,.table td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}.table th{color:var(--blue)}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}.log{font:12px/1.7 Consolas,monospace;background:#091b2a;border:1px solid var(--line);border-radius:10px;padding:12px;min-height:145px;max-height:230px;overflow-y:auto;white-space:pre-wrap;color:#d7f1ff}footer{border-top:1px solid var(--line);padding-top:24px;margin-top:34px;font-size:12px;color:var(--mut)}
+@media(max-width:860px){.hero,.lab,.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.shell{padding:15px 12px 45px}.panel{padding:15px}.control{grid-template-columns:1fr}.frame{gap:2px}.bit{padding:5px 1px;min-height:75px}.bit small{font-size:9px}.bit b{font-size:18px}}
+</style></head><body><main class="shell">
+<header><div class="brand">SIPEED FPGA · DIGITAL DESIGN LAB</div><nav aria-label="Учебные страницы"><a href="../../../fifo-sync/v1/demo/index.html">FIFO</a><a href="../../../lifo-sync/v1/demo/index.html">LIFO</a><a aria-current="page" href="index.html">UART</a></nav></header>
+<section class="hero"><div><div class="eyebrow">Реальный RTL UART TX / RX · аппаратный эксперимент</div><h1>UART <span>8N1</span></h1><p class="lead">Универсальный асинхронный последовательный интерфейс: один провод передаёт байт по битам, второй принимает. Разбираем стартовый бит, порядок LSB-first, стоповый бит и реальные сигналы двух независимых аппаратных модулей.</p><div class="tagline"><span class="tag ok">HOST-00.1: BOARD PASS · 3/3</span><span class="tag">27 МГц</span><span class="tag">115200 бод</span><span class="tag">TX / RX · 8N1</span></div></div>
+<div class="panel"><h3>Модульная архитектура HOST-00</h3><div class="diagram"><span>PC</span><b>↔</b><span>UART</span><b>↔</b><span>FIFO</span><b>↔</b><span>HELLO</span></div><p class="mut small">В проекте отдельно реализованы <code>uart_rx_8n1.v</code>, <code>uart_tx_8n1.v</code>, FIFO RX, FIFO TX и обработчик команды. Подтверждённый аппаратный тест: Python отправил <code>H</code>, получил <code>HELLO\n</code> три раза.</p><p class="small">При этом данная HTML-страница <b>не подключается</b> к COM-порту и не показывает live-сигналы FPGA. Ниже моделируется алгоритм протокола.</p></div></section>
+<div class="metrics"><div class="metric"><small>Частота FPGA</small><b>27 MHz</b></div><div class="metric"><small>Делитель UART</small><b>234</b></div><div class="metric"><small>Реальная скорость</small><b>115385</b></div><div class="metric"><small>Тактов на кадр</small><b>2340</b></div></div>
+<div class="section"><h2>01. Интерактивный кадр UART</h2><span class="mut small">Выберите байт и нажимайте «Следующий бит»</span></div>
+<div class="lab"><section class="panel">
+<div class="control"><div><label for="byte">Данные (HEX, 00…FF)</label><input id="byte" value="48" maxlength="4" spellcheck="false"><div class="small mut">0x48 — ASCII «H» из HOST-00</div></div><div><label for="view">Тип передачи</label><select id="view"><option value="normal">Нормальный 8N1</option><option value="bad">Неверный стоп-бит (ошибка)</option></select></div></div>
+<div class="buttons"><button class="btn" id="next">▶ Следующий бит</button><button class="btn alt" id="play">Показать весь кадр</button><button class="btn warn" id="reset">Сброс</button></div><div id="status" class="status" role="status" aria-live="polite">Линия свободна: уровень 1. Для передачи выберите байт.</div>
+<div id="frame" class="frame" aria-label="Десять бит кадра 8N1"></div>
+<h3>Временная диаграмма TXD</h3><div id="wave" class="wave"></div>
+<p class="small mut">Номинально каждый бит занимает 234 такта системного генератора по 27 МГц. Визуализация здесь переключается по одному <b>битовому интервалу</b>, а не по каждому из 234 тактов.</p>
+</section>
+<aside class="panel"><h3>Состояние модельного передатчика</h3><div class="signals" id="signals"></div><h3 style="margin-top:20px">Последовательность событий</h3><div id="history" class="log"></div></aside></div>
+<div class="section"><h2>02. Устройство кадра</h2></div>
+<div class="grid2"><section class="panel"><h3>10 бит на один байт</h3><div class="code">Покой: 1 (HIGH)
+START : 0 (LOW)
+DATA  : D0 → D1 → ... → D7
+PARITY: нет
+STOP  : 1 (HIGH)
+→ 1 + 8 + 1 = 10 бит</div><p class="mut small" style="margin-top:14px">Для 115200 бод идеальное время бита ≈ 8,681 мкс. С делителем 234 при 27 МГц получается 8,667 мкс/бит, т.е. около 115385 бод. Идеальный UART-кадр занимает около 86,7 мкс на проводе.</p></section>
+<section class="panel"><h3>Соответствие FPGA</h3><table class="table"><thead><tr><th>Сигнал</th><th>Функция</th></tr></thead><tbody><tr><td><code>tx</code></td><td>Последовательные биты: покой HIGH</td></tr><tr><td><code>start</code></td><td>Однотактная команда TX начать кадр</td></tr><tr><td><code>busy</code></td><td>Передатчик занят; новые запросы игнорируются</td></tr><tr><td><code>rx</code></td><td>Асинхронный внешний вход</td></tr><tr><td><code>valid</code></td><td>Однотактное событие: принят байт</td></tr><tr><td><code>framing_error</code></td><td>Однотактное событие: неверный стоп-бит</td></tr></tbody></table></section></div>
+<div class="section"><h2>03. Как работает RX</h2></div>
+<div class="grid2"><section class="panel"><h3>Приёмник не знает фазу передатчика</h3><p>Наш <code>uart_rx_8n1.v</code> использует двухкаскадную синхронизацию входного сигнала с тактом FPGA, затем проверяет стартовый бит в его середине и выбирает D0…D7 по центрам следующих битовых интервалов.</p><div class="code">IDLE → START → DATA → STOP → IDLE
+          ↓       ↓       ↓
+       validate  8 bits  validate
+                           STOP</div><p class="mut small" style="margin-top:13px">Это не большинство голосов по 16 пробам и не auto-baud. Ошибочный стоп-бит создаёт <code>framing_error</code>, но не <code>valid</code>.</p></section>
+<section class="panel"><h3>Где используется FIFO</h3><div class="code">USB-UART (PC)
+    ↓ RX pin 18
+uart_rx_8n1.v
+    ↓ valid + data[7:0]
+sync_fifo.v    ← приёмная очередь
+    ↓ pop_valid + pop_data
+host00_hello.v
+    ↓ tx_valid + tx_data
+sync_fifo.v    ← очередь передачи
+    ↓
+uart_tx_8n1.v
+    ↓ TX pin 17
+USB-UART (PC)</div><p class="small"><a href="../../../fifo-sync/v1/demo/index.html">Исследовать FIFO ↗</a></p></section></div>
+<section class="panel" style="margin-top:15px"><h3>Проверенные границы</h3><p>UART TX/RX были выделены без изменения RTL из проверенной лаборатории LAB-02. В HOST-00.1 составная схема дала три физических ответа <code>HELLO\n</code> через COM10, при 0 внутренних нарушений Setup/Hold. Эта демонстрация описывает сигнальный протокол, но не является измерением формы реального сигнала на осциллографе.</p><p class="small"><a href="../rtl/uart_tx_8n1.v">Исходник UART TX</a> · <a href="../rtl/uart_rx_8n1.v">Исходник UART RX</a> · <a href="../tests/tb_uart_loopback.v">Loopback testbench</a> · <a href="../../../../experiments/host00-hello/acceptance/HOST00_UART_SMOKE_2026-10-24.md">Акт HOST-00</a></p></section>
+<footer>Sipeed-FPGA · Самостоятельная офлайн-страница UART 8N1 v1. Сектор SD не читается и не записывается. Все изображения сигнала являются расчётными.</footer>
+</main>
+<script>
+"use strict";
+(function(){
+ const el=id=>document.getElementById(id);
+ const m={byte:0x48,frame:[],index:-1,log:[]};
+ function hex(v){return v.toString(16).toUpperCase().padStart(2,"0");}
+ function parse(){let s=el("byte").value.trim().replace(/^0x/i,"");if(!/^[0-9a-f]{1,2}$/i.test(s)){el("byte").setCustomValidity("HEX: от 00 до FF");el("byte").reportValidity();return false;}el("byte").setCustomValidity("");m.byte=parseInt(s,16);return true;}
+ function createFrame(){m.frame=[0,...Array.from({length:8},(_,i)=>(m.byte>>i)&1),el("view").value==="bad"?0:1];}
+ function status(s,type){el("status").className="status "+(type||"");el("status").textContent=s;}
+ function name(i){return i===0?"START":i===9?"STOP":"D"+(i-1);}
+ function render(){
+  el("frame").innerHTML=m.frame.map((b,i)=>'<div class="bit '+(i===0?"start":i===9?"stop":"")+(i===m.index?" current":"")+'"><small>'+name(i)+'</small><b>'+b+'</b><small>'+(i===0?"старт":i===9?"конец":"бит "+(i-1))+'</small></div>').join("");
+  const width=820,unit=76,y=b=>b?32:100;
+  let points=["0,32"],current=1;
+  for(let i=0;i<10;i++){let x=i*unit+10;points.push(x+","+y(current));points.push(x+","+y(m.frame[i]));current=m.frame[i];points.push((x+unit)+","+y(current));}
+  points.push("810,"+y(1));
+  let guides=Array.from({length:11},(_,i)=>'<line x1="'+(10+i*unit)+'" y1="10" x2="'+(10+i*unit)+'" y2="125" stroke="#2d4d65" stroke-dasharray="3 4"/>').join("");
+  let cursor=m.index>=0?'<rect x="'+(10+m.index*unit)+'" y="9" width="'+unit+'" height="117" fill="#ffd282" fill-opacity=".12"/>':"";
+  let labels=m.frame.map((b,i)=>'<text x="'+(10+i*unit+unit/2)+'" y="148" text-anchor="middle" fill="#c2d2de" font-size="12">'+name(i)+'</text>').join("");
+  el("wave").innerHTML='<svg viewBox="0 0 820 158" role="img" aria-label="Расчётная временная диаграмма UART"><text x="2" y="24" fill="#89bacc" font-size="12">HIGH</text><text x="2" y="94" fill="#89bacc" font-size="12">LOW</text>'+guides+cursor+'<polyline points="'+points.join(" ")+'" fill="none" stroke="#78ebc3" stroke-width="3" stroke-linejoin="round"/>'+labels+'</svg>';
+  const done=m.index>=9,bit=m.index<0?1:m.frame[m.index],state=m.index<0?"IDLE":done?"STOP / DONE":"TX ACTIVE";
+  const data=[["tx",bit],["busy",Number(m.index>=0&&!done)],["bit_index",m.index<0?"—":m.index],["byte","0x"+hex(m.byte)],["RX valid",done&&m.frame[9]===1?"1":"0"],["RX framing_error",done&&m.frame[9]===0?"1":"0"]];
+  el("signals").innerHTML=data.map(([k,v])=>'<div class="sig '+(String(v)==="1"?"live":"")+'"><small>'+k+'</small><b>'+v+'</b></div>').join("");
+  el("history").textContent=m.log.length?m.log.join("\n"):"Выберите «Следующий бит» для моделирования.";
+ }
+ function reset(){m.index=-1;m.log=[];if(!parse())return;createFrame();status("IDLE=1. Сериализация начнётся с START=0.");render();}
+ function next(){if(m.index>=9){status("Кадр завершён. Нажмите «Сброс» для новой передачи.","ok");return;}
+  m.index++;let i=m.index,b=m.frame[i];m.log.push("Интервал "+(i+1)+"/10: "+name(i)+" = "+b);
+  if(i===9){if(b===0){m.log.push("RX: framing_error=1, valid=0");status("Стоп-бит имеет уровень 0: приёмник отвергает кадр (framing_error).","error");}else{m.log.push("RX: valid=1, data=0x"+hex(m.byte));status("Кадр завершён: один байт 0x"+hex(m.byte)+" принят при корректном STOP.","ok");}}
+  else status("Передаётся "+name(i)+" = "+b+". Интервал "+(i+1)+" из 10.");
+  render();
+ }
+ el("reset").addEventListener("click",reset);
+ el("next").addEventListener("click",next);
+ el("play").addEventListener("click",()=>{reset();if(!m.frame.length)return;for(let i=0;i<10;i++)next();});
+ el("view").addEventListener("change",reset);
+ el("byte").addEventListener("change",reset);
+ reset();
+ window.UARTDemo={getState:()=>({byte:m.byte,frame:m.frame.slice(),index:m.index}),next,reset};
+})();
+</script></body></html>

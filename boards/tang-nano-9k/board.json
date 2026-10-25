@@ -1,0 +1,81 @@
+{
+  "schema": "sipeed-fpga-board-v1",
+  "id": "tang-nano-9k",
+  "board_name": "Sipeed Tang Nano 9K",
+  "fpga": {
+    "family": "GW1NR",
+    "device": "GW1NR-9C",
+    "part_number": "GW1NR-LV9QN88PC6/I5"
+  },
+  "reference_clock_hz": 27000000,
+  "pins": {
+    "clock_27mhz": {
+      "pin": 52,
+      "rtl_port": "clk"
+    },
+    "system_reset": {
+      "pin": 3,
+      "rtl_port": "reset_n",
+      "active_low": true,
+      "physical_button": "S2",
+      "note": "physical S2 observed by operator; verify variant silkscreen"
+    },
+    "uart": {
+      "tx_pin": 17,
+      "rx_pin": 18,
+      "baud_tested": 115200
+    },
+    "leds": {
+      "active_low": true,
+      "pins": [
+        10,
+        11,
+        13,
+        14,
+        15,
+        16
+      ]
+    },
+    "sd_spi": {
+      "clk": 36,
+      "mosi": 37,
+      "cs_n": 38,
+      "miso": 39,
+      "signal_voltage_v": 3.3
+    },
+    "hdmi_tmds_pairs": {
+      "clk": [
+        69,
+        68
+      ],
+      "data": [
+        [
+          71,
+          70
+        ],
+        [
+          73,
+          72
+        ],
+        [
+          75,
+          74
+        ]
+      ],
+      "note": "differential pin pairs specified in LAB-04 CST"
+    }
+  },
+  "status": {
+    "lab04_cpu_uart_hdmi": "operator_hardware_pass_v0.2.0_2026-10-23",
+    "lab05_sd_spi_single_sector": "operator_hardware_pass_2026-10-24",
+    "lab05_multi_lba": "rtl_experimental",
+    "combined_pikosol_sd_fat32": "not_built"
+  },
+  "evidence_paths": [
+    "01-PicoRV32/lab04/constraints/lab04_cpu_hdmi.cst",
+    "01-PicoRV32/lab05/constraints/lab05_sd_probe.cst",
+    "docs/lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md",
+    "01-PicoRV32/lab05/HARDWARE_PROBE.md"
+  ],
+  "scope": "board metadata; no automatic Gowin CST/SDC generation or programming"
+}

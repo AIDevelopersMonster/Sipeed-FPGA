@@ -1,0 +1,217 @@
+# Standalone SDHC PC / FPGA read-write — hardware qualified test case
+
+**STATUS 2026-10-25:** Hardware CMD17/CMD24/readback/restore PASS on Tang Nano 9K for a single protected 512-byte scratch sector, **LBA 10718**. Complete evidence: [hardware acceptance receipt](acceptance/SD06_RW_HARDWARE_2026-10-25.md). Tang Nano 9K is the independent test bench, not yet the final CPU+HDMI+SD target.
+
+## Confirmed vs pending
+
+- SD-05 read-only bitstream: real hardware PASS on two FAT32 SDHC cards. A 131073-byte five-cluster file matched SHA-256.
+- SD-06B CMD24 byte-engine: offline Python and SPI-byte model PASS.
+- Merged PC UART / CMD17 / CMD24 / CMD17 verification: **offline PASS** (16 Python tests, integrated UART mock, CMD24 SPI mock). **Standalone full-RW Gowin PnR and internal STA PASS** on 9K. **Physical CMD24 WRITE and subsequent RESTORE PASS** on disposable SDHC single-sector file LBA 10718.
+- FPGA writes are **disabled by default** using compiled constant region 0..0. Do not program the merged prototype before complete qualification.
+
+## Single PC interface
+
+Read packets are backward compatible with SD-05. Writes use frame
+A5 57 seq LBA32_LE old512 new512 CRC16_LE (1033 bytes).
+FPGA checks frame CRC and 512 old-sector bytes using CMD17 before allowing CMD24. It then reads the sector again via CMD17 and verifies all new bytes. Write response: 5A 57 seq LBA32_LE status CRC16_LE (10 bytes). Errors are fail-closed.
+
+PC command line: tools/sd_rw.py. This requires pyserial and Windows COM.
+
+Read sector today using **accepted SD-05 firmware**:
+
+    python .\boards\tang-nano-9k\experiments\sd06-cmd24\tools\sd_rw.py --port COM10 read --lba 0 --out .\sd_mbr.bin
+
+Existing FAT32 read-only file browser remains in sd05-lba-bridge/tools/fat32_host.py. It supports info, ls, get. Raw sector writing does NOT create a FAT32 file.
+
+## Development verification
+
+    cd C:\GitHub\Sipeed-FPGA-LAB05
+    git pull --ff-only
+    .\boards\tang-nano-9k\experiments\sd06-cmd24\test.ps1
+    .\boards\tang-nano-9k\experiments\sd06-cmd24\build_rw.ps1
+
+The separate build script copies source and constraints into an isolated directory and runs Gowin, without programming FPGA. It uses compiled WRITE_FIRST_LBA=0 WRITE_LAST_LBA=0: no writes possible. First independently review full-frame UART simulation, synthesized resource reports, STA and bus arbitration.
+
+## Physical write gate (QUALIFIED ONLY FOR ONE SCRATCH SECTOR)
+
+Only on a **disposable SDHC card** with full external backup and identified scratch LBA not intersecting any partition/metadata. Authorize exactly one confirmed sector in a separately reviewed experiment build; compile and retain immutable input hashes, run SRAM only, validate original preimage, send CMD24, CMD17 readback, compare SHA-256 and restore backup. Writing any sector of a valuable FAT32 card is prohibited.
+
+Future CLI after physical qualification:
+
+    python sd_rw.py --port COM10 write --lba 12345 --data new512.bin --preimage old512.bin --expect-sha256 HASH --allow-lba 12345 --confirm WRITE-TEST-CARD-LBA-12345
+
+12345 is only an **example**, not a proven safe sector.
+
+## PiKoSoL feasibility measurement
+
+Record standalone combined read/write module LUT, FF, BSRAM, Fmax and STA, then only after that compare to resource use of CPU+HDMI PiKoSoL. A 20K/25K device is a candidate, not a measured integration result. No separate SD-06 micro-releases: keep one final module README and reproducible tests.
+
+## End-to-end acceptance gate (one command)
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git pull --ff-only
+$sd = '.\boards\tang-nano-9k\experiments\sd06-cmd24'
+& "$sd\test.ps1"
+```
+
+The test script now includes `tb_sd06_rw_uart.v`, exercising real UART
+receiver/transmitter and the combined RTL top with isolated CMD17/CMD24 mock
+modules. The simulated transfer covers read, write with 512-byte preimage,
+verified readback, and denial of stale preimage, corrupt frame CRC, unapproved
+LBA, CMD24 rejection and corrupted readback. Existing Python and CMD24
+byte-level SPI tests remain included. The integration test **passed on the operator machine on 2026-10-25**,
+including read/write/readback and all specified fail-closed cases. This is a
+mock SD-card test, not physical-media qualification.
+
+**Program status:** read-only merged SD-06 and specifically locked SD-06 scratch bitstreams have been hardware tested. Do not use the scratch bitstream on any other card. `build_rw.ps1` is an isolated *build-only*
+operation. New physical writes require explicit confirmation for a different
+backed-up sacrificial card, after the integrated test and PnR/STA have passed.
+
+## Verified full-RW Gowin 9K measurement — 2026-10-25
+
+**Evidence:** `SD_RW_9K_REPORTS.zip` from operator's isolated run
+`build/measurement_20261025_082230_205` with exact source SHA-256
+manifest `inputs.csv`, Gowin CLI log, PnR report and STA HTML.
+
+| Metric | PnR / STA observation |
+|---|---|
+| Device / tool | GW1NR-LV9QN88PC6/I5; Gowin V1.9.9 Beta-4 Education |
+| Full controller logic | **1937 / 8640 (23%)**; includes 1459 LUT, 94 ALU, 64 RAM16 |
+| Registers | **662 / 6693 (10%)**; 660 logic FF, 2 I/O FF |
+| BSRAM | **3 SDPB (12%)** |
+| CLS | **1180 / 4320 (28%)** |
+| Clock | single fabric `clk27` 27.000 MHz, period 37.037 ns |
+| Calculated max frequency | **57.230 MHz** (STA internal clock path) |
+| Worst setup slack | **+19.564 ns** |
+| Worst hold slack | **+0.443 ns** |
+| Worst recovery / removal | **+33.268 ns / +2.563 ns** |
+| Setup / hold violated endpoints | **0 / 0**; TNS **0 / 0** |
+| Paths / endpoints analyzed | **2874 / 2624** |
+| PLL / DSP | **0 / 0** |
+| Ports | **14** |
+
+**Meaning:** the standalone complete CMD17 + CMD24 + UART controller
+*fits Tang Nano 9K* and meets the internal 27 MHz timing constraint in the
+examined implementation. This measurement intentionally retains the full
+write datapath by using a synthetic constant LBA in a **measurement-only**
+wrapper. Its configuration files must **never** be used for programming a
+real FPGA; the script deletes programming outputs.
+
+**Important limitations and warnings:** the SDC constrains the 27 MHz input
+clock only; the SPI SCK-to-MISO external timing and UART input/output timing
+are not independently characterized. Gowin reported four bounded 11/10-to-9
+bit width truncations in the merged top and one RAM-style attribute warning
+in the writer. These warnings did not prevent synthesis/PnR but require
+careful RTL and inferred-RAM review before physical write approval.
+The standalone statistics **do not** establish whether PiKoSoL CPU + HDMI +
+graphics + RW can fit simultaneously on 9K.
+
+**Hardware acceptance completed 2026-10-25:** merged write-disabled RTL CMD17 PASS; separately qualified one-LBA scratch CMD24 + CMD17 full 512-byte readback PASS, original-sector restore + CMD17 PASS. See [receipt](acceptance/SD06_RW_HARDWARE_2026-10-25.md).
+
+## Hardware qualification: approved first gate (merged read-only)
+
+2026-10-25: Four Gowin EX3791 address-width warnings were addressed by
+explicit modulo-512 address calculations; the unsupported payload RAM-style
+hint was removed. Rebuild is **required**; the older PnR measurements are
+a baseline, not proof that the modified RTL remains equivalent.
+
+The first physical gate must **not** write any card. It builds the combined
+controller with both WRITE_FIRST_LBA and WRITE_LAST_LBA equal to zero. With
+these constants, the hardware writer is intentionally unavailable; this
+gate checks combined RTL CMD17 + UART and pin/timing compatibility.
+
+From the existing feature branch:
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git pull --ff-only
+$sd = '.\boards\tang-nano-9k\experiments\sd06-cmd24'
+& "$sd\hw_read_gate.ps1"
+```
+
+The default runs all offline tests, builds a fresh isolated bitstream and
+checks STA **without programming**. After reviewing the .fs path, exact
+SHA-256 and passed internal timing, an explicitly authorized SRAM-only test
+on a *read-only / preserved* SD card is:
+
+```powershell
+& "$sd\hw_read_gate.ps1" -Program -Port COM10 -Lba 0
+```
+
+This reruns the build (isolated new directory) and uses Gowin Programmer
+operation_index 2: **volatile SRAM**, not configuration flash. It then
+saves the returned 512-byte LBA 0 to the build directory, prints SHA-256
+and never overwrites an existing sector file. This test does **not**
+exercise CMD24. Do not load measurement-only files or any
+write-enabled bitstream.
+
+**Write gate is deliberately not published as an automated programming
+command.** Before ever releasing a write-enabled image, independently
+validate a disposable SDHC card's complete partition table, sector count,
+scratch-LBA ownership and backup, and verify physical CMD24/SPI timing.
+Do not select a random LBA on an existing FAT32 volume.
+
+## One-card CMD24 physical qualification: scratch file, no arbitrary LBA
+
+2026-10-25: unified RTL in WRITE-DISABLED configuration has passed **real SRAM
+program + real SDHC LBA 0 CMD17 + 512-byte SHA-256**:
+`3F74254E7991D8DF616EB040D0A5424FEAC7F4AF3ED2512FC7031DF216CE9980`.
+16 Python tests, integrated UART mock simulation and CMD24 SPI-byte mock PASS;
+Gowin read-only hardware build passed internal STA, SHA-256
+`98CED68AA1ED5DBCD91BA6670E137771CDED816254760D24223485E2D05EC2FF`.
+**Historical note:** hardware CMD24 had not been tested at the time of the read-only milestone; it subsequently PASSED the single-sector qualification documented below.
+
+Use **a disposable FAT32 SDHC card** on which all information may be
+destroyed, *not the confirmed SD-05 card with important data*.
+Prepare `SDRWTEST.BIN` (exactly one 512-byte file), copy to the root of
+that card using a PC card reader and safely eject:
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git pull --ff-only
+$sd = '.\boards\tang-nano-9k\experiments\sd06-cmd24'
+& "$sd\test.ps1"
+python "$sd\tools\scratch_gate.py" make --out .\SDRWTEST.BIN
+```
+
+With the card in Tang Nano 9K running the **verified write-disabled** firmware,
+locate the actual FAT32 file cluster and preserve its exact original sector:
+
+```powershell
+python "$sd\tools\scratch_gate.py" inspect --port COM10 --out-dir .\_reports\sd_rw_scratch
+```
+
+This reports an exact LBA, saves `manifest.json`, `preimage.bin`, and
+`newimage.bin`, and makes **no writes**. Do not proceed if it refuses
+a file or the card identity changed. Keep an independent full-media backup.
+
+To build a firmware image that allows **only that exact LBA**:
+
+```powershell
+& "$sd\build_scratch.ps1" -Manifest .\_reports\sd_rw_scratch\manifest.json -Backup .\_reports\sd_rw_scratch\preimage.bin
+```
+
+The script validates the manifest, creates an isolated wrapper with identical
+WRITE_FIRST_LBA / WRITE_LAST_LBA, runs Gowin PnR/STA and publishes the image SHA,
+**but never programs FPGA**. The original qualified read-only image remains
+untouched. Inspect the generated .fs/report and the backup before any physical
+operation. This operation is not included in the automated build gate.
+
+On a separately approved write-enabled image, the independent PC commands are
+`scratch_gate.py preflight --port COM10 --manifest ... --backup ...`,
+`scratch_gate.py write --port COM10 --manifest ... --backup ... --confirm WRITE-ONE-DISPOSABLE-SD-SCRATCH-SECTOR`,
+and for explicit subsequent recovery,
+`scratch_gate.py restore --port COM10 --manifest ... --backup ... --confirm WRITE-ONE-DISPOSABLE-SD-SCRATCH-SECTOR`.
+Both write and restore issue **at most one CMD24** without automatic retry,
+and require byte-exact CMD17 readback. If any operation fails, inspect the
+sector before doing anything else; an absent UART ACK is not proof that the
+card was not written.
+
+All commands work on raw 512-byte sectors. No FAT32 directory metadata or FAT
+allocation entries are written by the FPGA. The file content is intentionally
+changed only for a disposable card and returned by explicit restore.
+
+## Final physical SD-06 acceptance — 2026-10-25
+
+**PASS** on Tang Nano 9K, compiled WRITE permission restricted to one file-data sector LBA 10718, cluster 11. Original SHA-256 `D4EE72A0614088909BD2B34C5100DE2E7A7370382F2C1E434A0EB2B7460B50F3`; CMD24 replacement readback SHA-256 `C934134A8F462557E29357920CFF96314FEBC5E363AF26A8F37ACD33E4B155A2`; CMD24 restore readback SHA-256 exactly matches original. Scratch write-enabled bitstream SHA-256 `694D9526525B8AEF99126AF5EF73D7A85216658E707482342521AD035E34F109`. No FPGA Flash or FAT32 metadata writes. Complete evidence: [SD06_RW_HARDWARE_2026-10-25.md](acceptance/SD06_RW_HARDWARE_2026-10-25.md). Standalone success does not prove PiKoSoL CPU+HDMI+SD fit. 
