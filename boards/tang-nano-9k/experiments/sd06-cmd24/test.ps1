@@ -26,8 +26,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'SD06 Python offline tests FAIL' }
     & iverilog -g2005 -s sd06_cmd24_engine -o (Join-Path $dir 'real_spi.vvp') $spi $core
     if ($LASTEXITCODE -ne 0) { throw 'SD06 production SPI interface compile FAIL' }
-    & iverilog -g2005 -s sd06_rw_bridge_top -o (Join-Path $dir 'sd06_rw_integrated.vvp') $spi $core $merged $reader $tx $rx
-    if ($LASTEXITCODE -ne 0) { throw 'SD06 merged UART reader/writer top compile FAIL' }
+    Write-Host 'SD06: compiling integrated UART/CMD17/CMD24 top with -Wall'
+    & iverilog -Wall -g2005 -s sd06_rw_bridge_top -o (Join-Path $dir 'sd06_rw_integrated.vvp') $spi $core $merged $reader $tx $rx
+    if ($LASTEXITCODE -ne 0) { throw "SD06 merged UART reader/writer top compile FAIL (iverilog exit $LASTEXITCODE); compiler diagnostics above" }
     Write-Host 'SD06_RW_TOP_COMPILE_PASS: compile only, NOT integrated simulation'
     # Testbench deliberately supplies a byte-SPI mock with the same module name.
     # Never include the production SPI module in this second compilation.
