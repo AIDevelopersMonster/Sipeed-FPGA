@@ -8,7 +8,7 @@ Status: DRAFT PR #23, hardware acceptance of the modified browser UI pending. Th
 - Add a two-option firmware selector to existing `web-loader/index.html`: the default verified PiKoSoL v0.2.0, and hardware-tested SD-08.
 - The original JTAG SRAM programming function, pinned YoWASP WASM, same-origin files, service worker and FT2232 device selection are unchanged.
 - Add FAT32 `SD 0`, `FS`, `DIR` buttons and short 8.3 `TYPE` entry to the existing Control Center. Use its existing real UART send queue.
-- No second website, no duplicate WebUSB engine, no extra UART connection, no SD writes, and absolutely no embedded Flash writes.
+- No second website, no duplicate WebUSB engine, no extra UART connection, and absolutely no embedded FPGA Flash writes. SD-08 remains read-only as a tested baseline; SD-card file writes are a separate, explicitly authorized follow-up experiment.
 
 ## Bitstream identity
 
@@ -46,3 +46,19 @@ The automated firmware download behaves differently depending on origin and bina
 - WebUSB USB/JTAG device permissions and Windows WinUSB drivers are a *separate* concern from downloading the .fs file over HTTP.
 
 The SD-08 profile may be selected with a verified local `.fs` already on disk. No persistent FPGA Flash actions were added. PicoSoc factory firmware identification remains a separate future investigation.
+
+## Experimental SD-card write policy (operator clarification, 2026-10-25)
+
+The operator has **two SD cards**, including a second card specifically unpacked for development. Their current contents have **no preservation value** and may be overwritten for SD write experiments. The previous assumption that SD-card contents must be protected was incorrect. Do not confuse **SD-card writes** (allowed on the expendable test card) with **FPGA configuration SPI Flash writes** (still outside this browser PR, pending recovery validation).
+
+Acceptance gates for a future isolated `SD-WRITE-01` experiment, without changing the hardware-tested SD-08 read-only bitstream:
+
+1. On the host PC, identify the removable card by capacity/device identity and verify that it is the expendable test card. Reformat FAT32 and place a known test file on it; user-visible confirmation is needed before any destructive host-side action. Never assume a drive letter.
+2. Start with an isolated SPI CMD24 single-sector write to a **known scratch LBA**, after recording the sector's original 512 bytes; read it back via CMD17 and require byte-for-byte comparison and CRC checks where implemented. Keep writes away from MBR, VBR, FAT and directory structures at this gate.
+3. Only after repeatable physical CMD24 pass, implement a narrow FAT32 create/overwrite path in a separate version: allocate clusters, update the appropriate FAT copies and directory entry with failure handling. Initial support may be restricted to short 8.3 names and one file, with an explicitly destructive test card. Verify on FPGA and by remounting on PC.
+
+**Stop rule:** at most three documented on-board tests. If the same problem persists, stop firmware rewrites and inspect power, SD wiring, signal timing, CRC and card compatibility. Do not assert any SD-card write hardware PASS until logs demonstrate CMD24 and readback. No write command should be exposed in the public Web Serial UI until that firmware exists and passes board verification.
+
+## Downloaded upstream reference files
+
+The operator downloaded `picotiny.fs` and `example-fw-flash.v` on 2026-10-25, and both passed comparison against the operator's pinned SHA-256 values. Their exact full hashes, provenance URL and on-board behavior have not been supplied in this repository. `picotiny.fs` is an FPGA configuration, while `example-fw-flash.v` is not a Gowin `.fs` bitstream and must not be offered to the existing JTAG SRAM loader. The vendor/seller's `PicoSoc` firmware must not be equated with PicoTiny without identifying evidence. The existing web selector remains limited to v0.2.0 and SD-08 until a third profile can be sourced, hash-pinned and tested.
