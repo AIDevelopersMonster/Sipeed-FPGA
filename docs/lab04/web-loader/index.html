@@ -16,7 +16,6 @@
     <header class="topbar">
       <a class="brand" href="../../"><span class="logo">P<span>:</span></span><span>PiKoSoL <small>WEBUSB LOADER</small></span></a>
       <nav aria-label="Навигация">
-        <a href="./release.html">Web Lab: прошивка + FAT32 ↗</a>
         <a href="../web-control/">Терминал Web Serial ↗</a>
         <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0" target="_blank" rel="noopener noreferrer">Релиз v0.2.0 ↗</a>
         <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
@@ -32,7 +31,7 @@
         </div>
         <aside class="card summary">
           <div class="kicker">DEVICE PROFILE / LOCKED</div>
-          <h2>PiKoSoL v0.2.0</h2>
+          <h2 id="profile-name">PiKoSoL v0.2.0</h2>
           <div class="pair"><span>Board</span><b>tangnano9k</b></div>
           <div class="pair"><span>Cable</span><b>ft2232</b></div>
           <div class="pair"><span>Target</span><b class="good">Volatile SRAM</b></div>
@@ -53,13 +52,19 @@
         <section class="card step">
           <div class="kicker">ШАГ 01 · BITSTREAM</div>
           <h2>Выберите прошивку</h2>
-          <p>Проверенная аппаратно <strong>PiKoSoL v0.2.0</strong> имеет фиксированную контрольную сумму SHA-256.</p>
+          <p>Выберите проверенный аппаратно образ v0.2.0 или SD-08. SHA-256 привязан к версии.</p>
+          <label for="firmware-profile" class="profile-label">Профиль PiKoSoL</label>
+          <select id="firmware-profile" class="profile-select">
+            <option value="v020">PiKoSoL v0.2.0 — HDMI / UART / GFX</option>
+            <option value="sd08">PiKoSoL SD-08 — FAT32 / DIR / TYPE</option>
+          </select>
+          <p id="profile-notes" class="small">Выберите версию прошивки.</p>
           <div class="row-buttons">
             <button id="load-github" class="button primary" type="button">↓ Получить .fs с GitHub Pages</button>
             <label for="input-file" class="button secondary file-label" role="button" tabindex="0">Выбрать .fs на компьютере</label>
             <input id="input-file" type="file" accept=".fs" hidden>
           </div>
-          <p class="small">Если автоматическая загрузка ещё не опубликована, <a id="release-download" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-v0.2.0/picorv32_lab04_hdmi_nano9k.fs">скачайте файл из GitHub Releases</a> и выберите его второй кнопкой.</p>
+          <p class="small">Если выбранная прошивка ещё не опубликована на GitHub Pages, <a id="release-download" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-v0.2.0/picorv32_lab04_hdmi_nano9k.fs">скачайте файл из GitHub Releases</a> и выберите его второй кнопкой.</p>
           <div class="selected-file"><div><small>ВЫБРАННЫЙ ФАЙЛ</small><strong id="firmware-name">Нет файла</strong></div><span id="firmware-size">—</span></div>
           <div class="hash"><small>SHA-256</small><code id="actual-sha">Файл ещё не выбран</code></div>
           <div id="hash-result" class="notice neutral" role="status">Контрольная сумма не проверена.</div>
