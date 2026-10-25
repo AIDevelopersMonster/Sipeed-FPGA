@@ -1,7 +1,7 @@
 // PiKoSoL PONG RGB - original lightweight game logic and 24-bit color renderer.
 // Hardware domain: same 25.2 MHz pixel clock for UART receiver and game.
 // Serial protocol: w/s/i/k=press; W/S/I/K=release; x=release all;
-//                  a=toggle right AI; r=restart; 1..4=select color palette.
+//                  a=toggle right AI; r=restart; 1..4=palette; 5..7=AI difficulty.
 // No Atari ROM, sprites or binary code are included.
 // SPDX-License-Identifier: MIT
 module pong_rgb_core (
@@ -27,10 +27,11 @@ module pong_rgb_core (
     wire frame_tick = accepted && s_axis_tuser[0];
 
     reg up1, down1, up2, down2, restart_pulse;
+    reg [1:0] ai_level; // 0=Easy, 1=Normal (default), 2=Hard
     always @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
             up1<=0; down1<=0; up2<=0; down2<=0;
-            ai_on<=1; palette<=0; restart_pulse<=0;
+            ai_on<=1; palette<=0; ai_level<=2'd1; restart_pulse<=0;
         end else begin
             restart_pulse <= 0;
             if (rx_valid) begin
@@ -52,6 +53,9 @@ module pong_rgb_core (
                     8'h32: palette <= 2'd1; // 2 Retro
                     8'h33: palette <= 2'd2; // 3 Matrix
                     8'h34: palette <= 2'd3; // 4 Sunset
+                    8'h35: ai_level <= 2'd0; // 5 Easy
+                    8'h36: ai_level <= 2'd1; // 6 Normal
+                    8'h37: ai_level <= 2'd2; // 7 Hard
                     default: ;
                 endcase
             end
@@ -61,6 +65,15 @@ module pong_rgb_core (
     reg [9:0] p1_y, p2_y, ball_x, ball_y;
     reg vx_left, vy_up;
     reg [3:0] score1, score2;
+    reg game_over, winner_right;
+    reg [5:0] blink_phase;
+    wire win_flash = !blink_phase[4];
+    wire [9:0] ai_step = (ai_level==2'd0) ? 10'd1 :
+                         (ai_level==2'd1) ? 10'd2 : 10'd3;
+    // AI returns to centre while the ball travels left. It reacts to an
+    // incoming ball only in the right half, preventing perfect tracking.
+    wire [9:0] ai_target_y = (!vx_left && ball_x>=10'd400) ?
+                              (ball_y+10'd4) : 10'd240;
     wire hit_p1 = ((ball_y + 10'd8) >= p1_y) && (ball_y < (p1_y + 10'd72));
     wire hit_p2 = ((ball_y + 10'd8) >= p2_y) && (ball_y < (p2_y + 10'd72));
     always @(posedge clk or negedge reset_n) begin
@@ -69,20 +82,25 @@ module pong_rgb_core (
             ball_x<=10'd316; ball_y<=10'd236;
             vx_left<=1; vy_up<=0;
             score1<=0; score2<=0;
+            game_over<=0; winner_right<=0; blink_phase<=0;
         end else if (restart_pulse) begin
             p1_y<=10'd204; p2_y<=10'd204;
             ball_x<=10'd316; ball_y<=10'd236;
             vx_left<=1; vy_up<=0;
             score1<=0; score2<=0;
+            game_over<=0; winner_right<=0; blink_phase<=0;
         end else if (frame_tick) begin
+            if (game_over) blink_phase <= blink_phase + 6'd1;
+            if (!game_over) begin
             // One game step per video frame: independent of UART byte rate.
             if (up1 && !down1 && p1_y>=10'd5) p1_y<=p1_y-10'd5;
             else if(down1 && !up1 && p1_y<=10'd403) p1_y<=p1_y+10'd5;
             if (ai_on) begin
-                if ((ball_y + 10'd4) < (p2_y + 10'd35) && p2_y>=10'd4)
-                    p2_y<=p2_y-10'd4;
-                else if ((ball_y + 10'd4) > (p2_y + 10'd36) && p2_y<=10'd404)
-                    p2_y<=p2_y+10'd4;
+                if (ai_target_y < (p2_y + 10'd35) && p2_y>=ai_step)
+                    p2_y<=p2_y-ai_step;
+                else if (ai_target_y > (p2_y + 10'd36) &&
+                         p2_y <= (10'd408-ai_step))
+                    p2_y<=p2_y+ai_step;
             end else if(up2 && !down2 && p2_y>=10'd5)
                 p2_y<=p2_y-10'd5;
             else if(down2 && !up2 && p2_y<=10'd403)
@@ -97,11 +115,15 @@ module pong_rgb_core (
                 vx_left<=1;
                 ball_x<=10'd600;
             end else if (vx_left && ball_x<=10'd7) begin
-                score2 <= (score2==4'd9) ? 4'd0 : score2+4'd1;
+                if (score2==4'd8) begin
+                    score2<=4'd9; game_over<=1; winner_right<=1;
+                end else score2<=score2+4'd1;
                 ball_x<=10'd316; ball_y<=10'd236;
                 vx_left<=0;
             end else if (!vx_left && ball_x>=10'd625) begin
-                score1 <= (score1==4'd9) ? 4'd0 : score1+4'd1;
+                if (score1==4'd8) begin
+                    score1<=4'd9; game_over<=1; winner_right<=0;
+                end else score1<=score1+4'd1;
                 ball_x<=10'd316; ball_y<=10'd236;
                 vx_left<=1;
             end else begin
@@ -120,6 +142,7 @@ module pong_rgb_core (
             end else begin
                 ball_y<=vy_up ? ball_y-10'd3 : ball_y+10'd3;
             end
+            end // !game_over
         end
     end
 
@@ -170,17 +193,26 @@ module pong_rgb_core (
     endfunction
     wire digit1 = (px>=10'd258 && px<10'd298 &&
                    py>=10'd20 && py<10'd78) &&
-                  digit_pixel(score1,px-10'd258,py-10'd20);
+                  digit_pixel(score1,px-10'd258,py-10'd20) &&
+                  (!game_over || winner_right || win_flash);
     wire digit2 = (px>=10'd342 && px<10'd382 &&
                    py>=10'd20 && py<10'd78) &&
-                  digit_pixel(score2,px-10'd342,py-10'd20);
-    wire draw1 = (px>=10'd18 && px<10'd30) && py>=p1_y && py<(p1_y+10'd72);
-    wire draw2 = (px>=10'd610 && px<10'd622) && py>=p2_y && py<(p2_y+10'd72);
-    wire draw_ball = px>=ball_x && px<(ball_x+10'd9) &&
+                  digit_pixel(score2,px-10'd342,py-10'd20) &&
+                  (!game_over || !winner_right || win_flash);
+    wire draw1 = (px>=10'd18 && px<10'd30) && py>=p1_y &&
+                 py<(p1_y+10'd72) && (!game_over || winner_right || win_flash);
+    wire draw2 = (px>=10'd610 && px<10'd622) && py>=p2_y &&
+                 py<(p2_y+10'd72) && (!game_over || !winner_right || win_flash);
+    wire draw_ball = !game_over && px>=ball_x && px<(ball_x+10'd9) &&
                      py>=ball_y && py<(ball_y+10'd9);
     wire draw_center = (px>=10'd319 && px<10'd322) && (py[4:0]<5'd15);
     wire draw_border = py<10'd4 || py>=10'd476;
     wire draw_stars = (px[6:0]==7'd38 && py[6:0]==7'd59);
+    // One/two/three top-right ticks make the selected AI level observable.
+    wire draw_ai_level = ai_on && py>=10'd12 && py<10'd20 &&
+        ((px>=10'd576 && px<10'd586) ||
+         (ai_level>=2'd1 && px>=10'd590 && px<10'd600) ||
+         (ai_level==2'd2 && px>=10'd604 && px<10'd614));
 
     // Palette values are BGR888 as expected by the SVO HDMI encoder.
     reg [23:0] bg_color, p1_color, p2_color, ball_color, line_color, score_color;
@@ -214,6 +246,7 @@ module pong_rgb_core (
         draw2             ? p2_color :
         (digit1 || digit2) ? score_color :
         (draw_center || draw_border) ? line_color :
+        draw_ai_level     ? p2_color :
         draw_stars        ? line_color :
         bg_color;
     wire _unused_svo_data = ^s_axis_tdata;
