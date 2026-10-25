@@ -112,3 +112,46 @@ graphics + RW can fit simultaneously on 9K.
 merged *write-disabled* RTL read-only against a real SD card, then qualify
 one explicitly approved LBA on a disposable fully backed-up SDHC card for
 write and independent CMD17 readback. No RW hardware PASS is claimed yet.
+
+## Hardware qualification: approved first gate (merged read-only)
+
+2026-10-25: Four Gowin EX3791 address-width warnings were addressed by
+explicit modulo-512 address calculations; the unsupported payload RAM-style
+hint was removed. Rebuild is **required**; the older PnR measurements are
+a baseline, not proof that the modified RTL remains equivalent.
+
+The first physical gate must **not** write any card. It builds the combined
+controller with both WRITE_FIRST_LBA and WRITE_LAST_LBA equal to zero. With
+these constants, the hardware writer is intentionally unavailable; this
+gate checks combined RTL CMD17 + UART and pin/timing compatibility.
+
+From the existing feature branch:
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git pull --ff-only
+$sd = '.\boards\tang-nano-9k\experiments\sd06-cmd24'
+& "$sd\hw_read_gate.ps1"
+```
+
+The default runs all offline tests, builds a fresh isolated bitstream and
+checks STA **without programming**. After reviewing the .fs path, exact
+SHA-256 and passed internal timing, an explicitly authorized SRAM-only test
+on a *read-only / preserved* SD card is:
+
+```powershell
+& "$sd\hw_read_gate.ps1" -Program -Port COM10 -Lba 0
+```
+
+This reruns the build (isolated new directory) and uses Gowin Programmer
+operation_index 2: **volatile SRAM**, not configuration flash. It then
+saves the returned 512-byte LBA 0 to the build directory, prints SHA-256
+and never overwrites an existing sector file. This test does **not**
+exercise CMD24. Do not load measurement-only files or any
+write-enabled bitstream.
+
+**Write gate is deliberately not published as an automated programming
+command.** Before ever releasing a write-enabled image, independently
+validate a disposable SDHC card's complete partition table, sector count,
+scratch-LBA ownership and backup, and verify physical CMD24/SPI timing.
+Do not select a random LBA on an existing FAT32 volume.
