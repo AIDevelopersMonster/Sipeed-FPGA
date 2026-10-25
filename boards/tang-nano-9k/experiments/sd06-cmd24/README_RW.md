@@ -6,7 +6,7 @@
 
 - SD-05 read-only bitstream: real hardware PASS on two FAT32 SDHC cards. A 131073-byte five-cluster file matched SHA-256.
 - SD-06B CMD24 byte-engine: offline Python and SPI-byte model PASS.
-- Merged PC UART / CMD17 / CMD24 / CMD17 verification prototype: SOURCE CREATED, **full integration simulation is prepared but NOT YET RUN, Gowin PnR/STA and hardware write NOT YET PASS**.
+- Merged PC UART / CMD17 / CMD24 / CMD17 verification: **offline PASS** (16 Python tests, integrated UART mock, CMD24 SPI mock). **Standalone full-RW Gowin PnR and internal STA PASS** on 9K; hardware CMD24 write is still NOT TESTED.
 - FPGA writes are **disabled by default** using compiled constant region 0..0. Do not program the merged prototype before complete qualification.
 
 ## Single PC interface
@@ -60,11 +60,55 @@ receiver/transmitter and the combined RTL top with isolated CMD17/CMD24 mock
 modules. The simulated transfer covers read, write with 512-byte preimage,
 verified readback, and denial of stale preimage, corrupt frame CRC, unapproved
 LBA, CMD24 rejection and corrupted readback. Existing Python and CMD24
-byte-level SPI tests remain included. The integration test has not yet been
-observed passing on the operator machine; do not interpret successful RTL
-compilation or older CMD24 model tests as end-to-end acceptance.
+byte-level SPI tests remain included. The integration test **passed on the operator machine on 2026-10-25**,
+including read/write/readback and all specified fail-closed cases. This is a
+mock SD-card test, not physical-media qualification.
 
 **Program status:** only the previously accepted SD-05 read-only bitstream is
 approved for hardware use. `build_rw.ps1` is an isolated *build-only*
 operation. New physical writes require explicit confirmation for a different
 backed-up sacrificial card, after the integrated test and PnR/STA have passed.
+
+## Verified full-RW Gowin 9K measurement — 2026-10-25
+
+**Evidence:** `SD_RW_9K_REPORTS.zip` from operator's isolated run
+`build/measurement_20261025_082230_205` with exact source SHA-256
+manifest `inputs.csv`, Gowin CLI log, PnR report and STA HTML.
+
+| Metric | PnR / STA observation |
+|---|---|
+| Device / tool | GW1NR-LV9QN88PC6/I5; Gowin V1.9.9 Beta-4 Education |
+| Full controller logic | **1937 / 8640 (23%)**; includes 1459 LUT, 94 ALU, 64 RAM16 |
+| Registers | **662 / 6693 (10%)**; 660 logic FF, 2 I/O FF |
+| BSRAM | **3 SDPB (12%)** |
+| CLS | **1180 / 4320 (28%)** |
+| Clock | single fabric `clk27` 27.000 MHz, period 37.037 ns |
+| Calculated max frequency | **57.230 MHz** (STA internal clock path) |
+| Worst setup slack | **+19.564 ns** |
+| Worst hold slack | **+0.443 ns** |
+| Worst recovery / removal | **+33.268 ns / +2.563 ns** |
+| Setup / hold violated endpoints | **0 / 0**; TNS **0 / 0** |
+| Paths / endpoints analyzed | **2874 / 2624** |
+| PLL / DSP | **0 / 0** |
+| Ports | **14** |
+
+**Meaning:** the standalone complete CMD17 + CMD24 + UART controller
+*fits Tang Nano 9K* and meets the internal 27 MHz timing constraint in the
+examined implementation. This measurement intentionally retains the full
+write datapath by using a synthetic constant LBA in a **measurement-only**
+wrapper. Its configuration files must **never** be used for programming a
+real FPGA; the script deletes programming outputs.
+
+**Important limitations and warnings:** the SDC constrains the 27 MHz input
+clock only; the SPI SCK-to-MISO external timing and UART input/output timing
+are not independently characterized. Gowin reported four bounded 11/10-to-9
+bit width truncations in the merged top and one RAM-style attribute warning
+in the writer. These warnings did not prevent synthesis/PnR but require
+careful RTL and inferred-RAM review before physical write approval.
+The standalone statistics **do not** establish whether PiKoSoL CPU + HDMI +
+graphics + RW can fit simultaneously on 9K.
+
+**Remaining hardware acceptance:** preserve qualified SD-05 image, validate
+merged *write-disabled* RTL read-only against a real SD card, then qualify
+one explicitly approved LBA on a disposable fully backed-up SDHC card for
+write and independent CMD17 readback. No RW hardware PASS is claimed yet.
