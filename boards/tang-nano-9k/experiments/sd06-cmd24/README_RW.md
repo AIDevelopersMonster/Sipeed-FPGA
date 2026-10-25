@@ -155,3 +155,63 @@ command.** Before ever releasing a write-enabled image, independently
 validate a disposable SDHC card's complete partition table, sector count,
 scratch-LBA ownership and backup, and verify physical CMD24/SPI timing.
 Do not select a random LBA on an existing FAT32 volume.
+
+## One-card CMD24 physical qualification: scratch file, no arbitrary LBA
+
+2026-10-25: unified RTL in WRITE-DISABLED configuration has passed **real SRAM
+program + real SDHC LBA 0 CMD17 + 512-byte SHA-256**:
+`3F74254E7991D8DF616EB040D0A5424FEAC7F4AF3ED2512FC7031DF216CE9980`.
+16 Python tests, integrated UART mock simulation and CMD24 SPI-byte mock PASS;
+Gowin read-only hardware build passed internal STA, SHA-256
+`98CED68AA1ED5DBCD91BA6670E137771CDED816254760D24223485E2D05EC2FF`.
+**Hardware CMD24 has never yet been tested.**
+
+Use **a disposable FAT32 SDHC card** on which all information may be
+destroyed, *not the confirmed SD-05 card with important data*.
+Prepare `SDRWTEST.BIN` (exactly one 512-byte file), copy to the root of
+that card using a PC card reader and safely eject:
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git pull --ff-only
+$sd = '.\boards\tang-nano-9k\experiments\sd06-cmd24'
+& "$sd\test.ps1"
+python "$sd\tools\scratch_gate.py" make --out .\SDRWTEST.BIN
+```
+
+With the card in Tang Nano 9K running the **verified write-disabled** firmware,
+locate the actual FAT32 file cluster and preserve its exact original sector:
+
+```powershell
+python "$sd\tools\scratch_gate.py" inspect --port COM10 --out-dir .\_reports\sd_rw_scratch
+```
+
+This reports an exact LBA, saves `manifest.json`, `preimage.bin`, and
+`newimage.bin`, and makes **no writes**. Do not proceed if it refuses
+a file or the card identity changed. Keep an independent full-media backup.
+
+To build a firmware image that allows **only that exact LBA**:
+
+```powershell
+& "$sd\build_scratch.ps1" -Manifest .\_reports\sd_rw_scratch\manifest.json -Backup .\_reports\sd_rw_scratch\preimage.bin
+```
+
+The script validates the manifest, creates an isolated wrapper with identical
+WRITE_FIRST_LBA / WRITE_LAST_LBA, runs Gowin PnR/STA and publishes the image SHA,
+**but never programs FPGA**. The original qualified read-only image remains
+untouched. Inspect the generated .fs/report and the backup before any physical
+operation. This operation is not included in the automated build gate.
+
+On a separately approved write-enabled image, the independent PC commands are
+`scratch_gate.py preflight --port COM10 --manifest ... --backup ...`,
+`scratch_gate.py write --port COM10 --manifest ... --backup ... --confirm WRITE-ONE-DISPOSABLE-SD-SCRATCH-SECTOR`,
+and for explicit subsequent recovery,
+`scratch_gate.py restore --port COM10 --manifest ... --backup ... --confirm WRITE-ONE-DISPOSABLE-SD-SCRATCH-SECTOR`.
+Both write and restore issue **at most one CMD24** without automatic retry,
+and require byte-exact CMD17 readback. If any operation fails, inspect the
+sector before doing anything else; an absent UART ACK is not proof that the
+card was not written.
+
+All commands work on raw 512-byte sectors. No FAT32 directory metadata or FAT
+allocation entries are written by the FPGA. The file content is intentionally
+changed only for a disposable card and returned by explicit restore.
