@@ -1,0 +1,53 @@
+name: Publish hardware-verified SD-08 FAT32 image to PiKoSoL Pages
+# Hardware-verified binary MUST first be supplied by the operator as a release asset.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-sd08:
+    if: github.event_name == 'workflow_dispatch' || github.event.release.tag_name == 'pikosol-sd08-fat32-ro'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Verify and stage the exact SD-08 bitstream
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dest="docs/lab04/web-loader/firmware"
+          file="sd08_pikosol_fat32_readonly.fs"
+          mkdir -p "$dest"
+          gh release download pikosol-sd08-fat32-ro \
+            --repo AIDevelopersMonster/Sipeed-FPGA \
+            --pattern "$file" --dir "$dest" --clobber
+          test -s "$dest/$file"
+          printf '%s  %s\n' '37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b' "$dest/$file" | sha256sum --check
+          awk '$2 != "sd08_pikosol_fat32_readonly.fs" { print }' "$dest/SHA256SUMS.txt" > "$dest/SHA256SUMS.new"
+          printf '%s  %s\n' '37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b' "$file" >> "$dest/SHA256SUMS.new"
+          mv "$dest/SHA256SUMS.new" "$dest/SHA256SUMS.txt"
+      - name: Publish pinned image to same-origin Pages folder
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="docs/lab04/web-loader/firmware"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f "$dest/sd08_pikosol_fat32_readonly.fs"
+          git add "$dest/SHA256SUMS.txt"
+          if git diff --cached --quiet; then
+            echo "Already published: SD-08 SHA-256 matches."
+          else
+            git commit -m "build(pikosol): publish hardware-verified SD-08 FAT32 image"
+            git push origin HEAD:main
+          fi
