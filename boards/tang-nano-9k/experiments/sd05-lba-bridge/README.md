@@ -54,3 +54,33 @@ python .\boards\tang-nano-9k\experiments\sd05-lba-bridge\tools\sdtool.py --port 
 
 This command is not suitable for the **SD-04** bitstream, which emits a
 one-shot HEX frame and cannot understand the SD-05 binary requests.
+
+## SD-05.1 — host FAT32 file browser (experimental, read-only)
+
+The same SD-05 FPGA bitstream is reused unchanged. On the PC,
+`tools/fat32_host.py` adds MBR/BPB validation, FAT32 cluster chain traversal,
+long file names with checksum validation and 8.3 fallback, bounded directory
+listing and file copy from SD **to a new PC file only**. The Python CLI
+never sends CMD24, never opens a raw host disk, and never modifies the SD card.
+Safety defaults: 4096 unique sector reads/session, 128 directory sectors,
+2 MiB maximum file copy; the copy target must not exist.
+
+From repo root:
+```powershell
+git pull --ff-only
+python -m unittest discover -s .\boards\tang-nano-9k\experiments\sd05-lba-bridge\tests -p "test_*.py" -v
+$fat = '.\boards\tang-nano-9k\experiments\sd05-lba-bridge\tools\fat32_host.py'
+python $fat --port COM10 info
+python $fat --port COM10 ls /
+```
+
+**Do not run `get` until the directory listing identifies an intended
+regular file.** Later, for one small existing file:
+```powershell
+python $fat --port COM10 get '/EXAMPLE.TXT' '.\sd05_example_copy.txt'
+```
+
+**Acceptance scope:** only source code and synthetic tests have been published;
+no hardware listing or file-copy PASS is claimed before operator logs. This
+does not certify arbitrary FAT32 variants, damaged media recovery, file
+allocation/write operations, or memory-mapped FPGA filesystem hardware.
