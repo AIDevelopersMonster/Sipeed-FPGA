@@ -15,16 +15,16 @@ const PROFILES=Object.freeze({
   sd08:Object.freeze({name:"PiKoSoL SD-08 · FAT32",sha:"37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b",url:"./firmware/sd08_pikosol_fat32_readonly.fs",filename:"sd08_pikosol_fat32_readonly.fs",release:"https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-sd08-fat32-ro/sd08_pikosol_fat32_readonly.fs",notes:"25.10.2026 HARDWARE PASS: FS, DIR, TYPE PIKO.TXT. Только FAT32 8.3 read-only. Автозагрузка станет доступна после публикации файла."})
 });
 let activeProfile=PROFILES.v020;
-let device=null, firmware=null, loadedSha="", isVerified=false, busy=false, engine=null;
+let device=null, firmware=null, loadedSha="", isVerified=false, localUnverified=false, busy=false, engine=null;
 const logEl=$("log");
 function log(message){const date=new Date();logEl.textContent+="["+date.toLocaleTimeString("ru-RU")+"] "+message+"\n";if(logEl.textContent.length>90000)logEl.textContent=logEl.textContent.slice(-80000);logEl.scrollTop=logEl.scrollHeight;}
 function status(msg,type="neutral"){$("operation-status").textContent=msg;$("operation-status").className="notice "+type;}
 function hashResult(msg,type="neutral"){$("hash-result").textContent=msg;$("hash-result").className="notice "+type;}
 function metric(id,text,pass=null){const e=$(id);e.textContent=text;e.className=pass===true?"pass":pass===false?"fail":"";}
-function ready(){ $("program").disabled=busy||!firmware||!device||(!isVerified&&!$("custom-confirm").checked);$("load-github").disabled=busy;$("connect-jtag").disabled=busy;$("input-file").disabled=busy;$("firmware-profile").disabled=busy;}
+function ready(){ $("program").disabled=busy||!firmware||!device||(!isVerified&&!localUnverified&&!$("custom-confirm").checked);$("load-github").disabled=busy;$("connect-jtag").disabled=busy;$("input-file").disabled=busy;$("firmware-profile").disabled=busy;}
 function selectFirmwareProfile(){
   activeProfile=PROFILES[$("firmware-profile").value]||PROFILES.v020;
-  firmware=null;loadedSha="";isVerified=false;
+  firmware=null;loadedSha="";isVerified=false;localUnverified=false;
   $("input-file").value="";$("firmware-name").textContent="Нет файла";
   $("firmware-size").textContent="—";$("actual-sha").textContent="Файл ещё не выбран";
   $("profile-name").textContent=activeProfile.name;$("profile-notes").textContent=activeProfile.notes;
@@ -33,23 +33,24 @@ function selectFirmwareProfile(){
   hashResult("Контрольная сумма не проверена.");ready();
 }
 function hex(array){return [...new Uint8Array(array)].map(x=>x.toString(16).padStart(2,"0")).join("")}
-async function acceptFile(bytes,name){
+async function acceptFile(bytes,name,source="github"){
   const buffer=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);
   if(!name.toLowerCase().endsWith(".fs"))throw new Error("Нужен файл Gowin .fs");
   if(buffer.length<10000||buffer.length>12*1024*1024)throw new Error("Размер .fs вне безопасного диапазона");
   if(!crypto.subtle)throw new Error("SHA-256 требует безопасного HTTPS-соединения");
   const digest=hex(await crypto.subtle.digest("SHA-256",buffer));
-  firmware=buffer;loadedSha=digest;isVerified=digest.toLowerCase()===activeProfile.sha;
+  firmware=buffer;loadedSha=digest;isVerified=source==="github"&&digest.toLowerCase()===activeProfile.sha;localUnverified=source==="local";
   $("firmware-name").textContent=name;$("firmware-size").textContent=(buffer.length/1024/1024).toFixed(2)+" MiB";
   $("actual-sha").textContent=digest.toUpperCase();
-  $("custom-confirm").checked=false;$("custom-confirm").disabled=isVerified;
-  if(isVerified){hashResult("✓ SHA-256 совпадает с аппаратно проверенной "+activeProfile.name,"ok");status("Прошивка прошла SHA-256 проверку. Выберите JTAG Debugger.","neutral");log("Файл "+name+": SHA-256 PASS ("+buffer.length+" B) · "+activeProfile.name)}
+  $("custom-confirm").checked=false;$("custom-confirm").disabled=isVerified||localUnverified;
+  if(localUnverified){hashResult("SHA-256 вычислен. Эталон для локального файла не указан; подлинность НЕ проверена. Загрузка в SRAM разрешена.","neutral");status("Локальный .fs загружен в браузер. Выберите JTAG Debugger и программируйте SRAM.","neutral");log("Локальный файл "+name+": SHA-256="+digest+" (без эталона, не сверялся с другим профилем)")}
+  else if(isVerified){hashResult("✓ SHA-256 совпадает с аппаратно проверенной "+activeProfile.name,"ok");status("Прошивка прошла SHA-256 проверку. Выберите JTAG Debugger.","neutral");log("Файл "+name+": SHA-256 PASS ("+buffer.length+" B) · "+activeProfile.name)}
   else{hashResult("⚠ SHA-256 отличается от выбранного профиля "+activeProfile.name+". Пользовательский bitstream требует отдельного подтверждения.","error");status("Непроверенная прошивка; подтвердите использование чужого .fs отдельно.","error");log("Файл "+name+": SHA-256 mismatch "+digest)}
   ready()
 }
 $("input-file").addEventListener("change",async e=>{
   const file=e.target.files?.[0];if(!file)return;
-  try{await acceptFile(new Uint8Array(await file.arrayBuffer()),file.name)}catch(err){firmware=null;ready();status(err.message,"error")}
+  try{await acceptFile(new Uint8Array(await file.arrayBuffer()),file.name,"local")}catch(err){firmware=null;ready();status(err.message,"error")}
 });
 $("custom-confirm").addEventListener("change",ready);
 $("firmware-profile").addEventListener("change",selectFirmwareProfile);
@@ -93,7 +94,7 @@ async function resolveEngine(){
   return engine;
 }
 async function program(){
-  if(busy||!firmware||!device||(!isVerified&&!$("custom-confirm").checked))return;
+  if(busy||!firmware||!device||(!isVerified&&!localUnverified&&!$("custom-confirm").checked))return;
   if(!navigator.usb){status("Нет WebUSB.","error");return;}
   if(!window.crossOriginIsolated){status("Нет изоляции SharedArrayBuffer (COOP/COEP); обновите страницу после установки service worker. На GitHub Pages первый запуск может автоматически перезагрузиться.","error");log("crossOriginIsolated=false; abort");return;}
   busy=true;ready();
