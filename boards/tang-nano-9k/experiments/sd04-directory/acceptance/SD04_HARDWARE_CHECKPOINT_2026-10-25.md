@@ -1,8 +1,6 @@
 # SD-04 — physical checkpoint (25 October 2026)
 
-**Result: operator-confirmed SRAM programming and plausible real FAT32 ROOT
-directory read over UART. Full 512-byte frame and independent host-sector
-comparison still pending.**
+**Result: operator-confirmed SRAM programming, real FAT32 ROOT content, and strict FULL 512-byte UART frame PASS. Independent host-sector comparison remains pending.**
 
 ## Exact build
 
@@ -40,8 +38,8 @@ comparison still pending.**
 | Gowin build and internal STA | PASS, operator report |
 | SRAM programming | PASS, programmer exit 0 |
 | Actual ROOT-sector content | Plausible directory entry seen |
-| Exact 1024-character UART frame | PENDING controlled COM capture |
-| SHA-256 of complete ROOT sector | PENDING |
+| Exact 1024-character UART frame | **PASS**, pyserial controlled capture COM10 |
+| SHA-256 of complete ROOT sector | **PASS** computed from captured 512 bytes |
 | Bytewise comparison with PC block device | PENDING |
 | Arbitrary-LBA command/reply | NOT IMPLEMENTED |
 | Writing CMD24 / Python file creation | NOT IMPLEMENTED |
@@ -53,4 +51,35 @@ ignored local `build/` directory.
 
 **No new bitstream**, RTL logic changes, SD-card write, or integration into
 PiKoSoL is implied by this checkpoint. Freeze the current known-good SD-04
-physical candidate until the capture gate is satisfied.
+physical candidate while preserving the already satisfied UART capture gate.
+
+
+## Controlled UART full-frame acceptance — operator terminal log
+
+- Date: **25 October 2026**, local capture name `capture_20261025_054947`.
+- Port **COM10**, 115200 8N1. Operator opened `sd04_capture.py`
+  before pressing board S2 reset.
+- Strict parser returned `SD04_FRAME_PASS: 1024 HEX characters, 512 bytes, CRLF`.
+- Hash of **captured sector bytes**, not the bitstream:
+  `A545DFF293AE619D471BB8E97311DF4004D2FF01AF0DFA2EA2205469E45BEF7F`.
+- Capture files (local ignored artifacts, **not** uploaded to GitHub):
+  `build/capture_20261025_054947/root.hex` and `root.bin`.
+- Decoded entry:
+  `SD04_ENTRY: 02 SYSTEM~1 ATTR=16 CLUS=00000003 SIZE=0`.
+
+```text
+SD04_PORT_OPEN: COM10 115200 8N1
+NOW PRESS BOARD S2 RESET while this command is running.
+SD04_FRAME_PASS: 1024 HEX characters, 512 bytes, CRLF
+SD04_SECTOR_SHA256: A545DFF293AE619D471BB8E97311DF4004D2FF01AF0DFA2EA2205469E45BEF7F
+SD04_ENTRY: 02 SYSTEM~1 ATTR=16 CLUS=00000003 SIZE=0
+SD04_NOTE: UART frame has no LBA/CRC metadata; host comparison remains pending
+```
+
+**Final scope:** SD-04 **hardware UART ROOT-sector read PASS** for one
+microSD card on one Tang Nano 9K and the specified bitstream. No data or
+firmware changes were made to SD-01/02/03 or PiKoSoL.
+Independent host physical LBA comparison, externally constrained SD MISO timing,
+multi-card compatibility and autonomous FAT chain traversal are **not**
+proved. Preserve the current qualified bitstream unchanged. Development of
+arbitrary-LBA control begins in an isolated SD-05 experiment.
