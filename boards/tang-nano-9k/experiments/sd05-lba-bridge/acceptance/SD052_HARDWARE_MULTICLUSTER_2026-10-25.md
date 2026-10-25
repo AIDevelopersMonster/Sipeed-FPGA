@@ -1,6 +1,6 @@
 # SD-05.2 — physical multi-cluster FAT32 file read, 25 October 2026
 
-**VERDICT: HARDWARE MULTI-CLUSTER READ PASS on a second SDHC/FAT32 microSD card, using the unchanged accepted Tang Nano 9K SD-05 CMD17 bitstream and Python FAT32 reader. FAT fragmentation status not yet verified.**
+**FINAL VERDICT: HARDWARE MULTI-CLUSTER READ PASS on the second SDHC/FAT32 microSD. FAT chain is PHYSICALLY CONTIGUOUS (6,7,8,9,10; zero discontinuities), NOT a fragmented-chain hardware test. Verified through the unchanged Tang Nano 9K SD-05 read-only bitstream.**
 
 ## Operator sequence
 
@@ -50,3 +50,17 @@ The 131073-byte file occupies **5 FAT32 clusters** of 32 KiB; four complete clus
 - **Preservation:** original SD-01/02/03, SD-04, SD-05 and PiKoSoL artifacts remain unchanged.
 
 **Next optional gate:** read only FAT entries for `/SD052.BIN` and print the five cluster numbers; if every successor equals its predecessor + 1, this test was contiguous, not a fragmented-chain hardware PASS. No modifications to the test card are necessary.
+
+
+## Final read-only FAT chain check — operator terminal transcript
+
+```text
+python .\boards\tang-nano-9k\experiments\sd05-lba-bridge\tools\fat_chain_audit.py --port COM10 --path /SD052.BIN
+SD052_CHAIN: FILE='/SD052.BIN' SIZE=131073 SPC=64 CLUSTERS=5 DISCONTINUITIES=0
+SD052_CLUSTER_SEQUENCE: 6,7,8,9,10
+SD052_CHAIN_PASS
+```
+
+**Interpretation:** the complete FAT sequence was read through the tested FPGA and has four consecutive links, hence no fragmentation. The 131073-byte file crossed five 32768-byte clusters and was copied back with exact expected SHA-256 `3C7B9082211B55C9FA5697A673EECE6E9B1802C0E1BA4AAB101FDE73FA673846`.
+
+**Completed scope:** SD-05.2 contiguous multi-cluster file read hardware PASS. Fragmented FAT traversal PASS only in synthetic offline tests (13/13), **not on physical media**. No need to alter the accepted card or bitstream to complete this stage. Next work is a new isolated SD-06 development branch; CMD24 remains disabled until explicit disposable-card authorization.
