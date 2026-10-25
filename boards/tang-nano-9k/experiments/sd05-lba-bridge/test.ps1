@@ -17,5 +17,13 @@ try {
     )
     & iverilog -g2005 -s sd05_lba_bridge_top -o (Join-Path $work 'top.vvp') @deps
     if ($LASTEXITCODE -ne 0) {throw 'SD05 RTL compile FAIL'}
-    Write-Host 'SD05_OFFLINE_GATE_PASS: Python protocol tests + top RTL compilation only'
+        & iverilog -g2005 -s tb_sd05_uart_bridge -o (Join-Path $work 'uart_tb.vvp') @deps (Join-Path $here 'tests/tb_sd05_uart_bridge.v')
+    if ($LASTEXITCODE -ne 0) {throw 'SD05 UART bridge testbench compile FAIL'}
+    $sim = & vvp (Join-Path $work 'uart_tb.vvp') 2>&1
+    $simrc = $LASTEXITCODE
+    $sim | ForEach-Object {Write-Host $_}
+    if ($simrc -ne 0 -or -not ($sim -match 'SD05_UART_BRIDGE_TB_PASS')) {
+        throw 'SD05 UART bridge integration simulation FAIL'
+    }
+    Write-Host 'SD05_OFFLINE_GATE_PASS: Python + RTL + UART end-to-end simulation'
 } finally {Remove-Item -LiteralPath $work -Force -Recurse -ErrorAction SilentlyContinue}
