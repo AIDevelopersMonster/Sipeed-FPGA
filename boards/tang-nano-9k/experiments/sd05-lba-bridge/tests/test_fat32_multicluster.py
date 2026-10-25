@@ -115,7 +115,9 @@ class MultiClusterTests(unittest.TestCase):
 
     def test_directory_across_sector_boundary(self):
         disk, _ = make_disk(directory_on_second_sector=True)
-        fs = FAT32Volume(lambda lba: disk[lba], max_sectors=10)
+        # Includes 67 file sectors plus MBR, VBR, ROOT (2 sectors), FAT.
+        # Keep the deliberately low read budget in the safety-limit test.
+        fs = FAT32Volume(lambda lba: disk[lba], max_sectors=90)
         self.assertEqual(fs.listdir()[0].alias, "CHAIN.BIN")
         self.assertEqual(fs.file_bytes("CHAIN.BIN"), self.expected)
 
