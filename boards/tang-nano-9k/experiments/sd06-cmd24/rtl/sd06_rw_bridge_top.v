@@ -80,6 +80,9 @@ module sd06_rw_bridge_top #(
     reg mux_write;
     wire wr_sck,wr_mosi,wr_cs_n,wr_busy,wr_done,wr_payload_ready;
     wire [7:0] wr_error;
+    // Explicit declaration BEFORE writer instantiation; never infer an implicit net.
+    wire write_allow=(WRITE_FIRST_LBA!=0 && WRITE_LAST_LBA>=WRITE_FIRST_LBA
+                     && lba>=WRITE_FIRST_LBA && lba<=WRITE_LAST_LBA);
     // Only the writer has an independent reset during aborted packets.
     wire writer_reset_n=reset_n && !wr_clear;
     sd06_cmd24_engine #(.HALF_PERIOD(HALF_PERIOD)) u_writer(
@@ -95,8 +98,6 @@ module sd06_rw_bridge_top #(
     assign sd_sck=mux_write ? wr_sck : rd_sck;
     assign sd_mosi=mux_write ? wr_mosi : rd_mosi;
     assign sd_cs_n=mux_write ? wr_cs_n : rd_cs_n;
-    wire write_allow=(WRITE_FIRST_LBA!=0 && WRITE_LAST_LBA>=WRITE_FIRST_LBA
-                     && lba>=WRITE_FIRST_LBA && lba<=WRITE_LAST_LBA);
     wire _unused=rd_busy ^ wr_busy;
 
     function [15:0] crc_next;
