@@ -24,3 +24,27 @@ SD-05 read-only bitstream and FAT32 Python reader remain frozen.
 - SD06-E: evaluate whether FAT32 mutation semantics are actually needed; raw sector write alone is not safe creation of FAT32 files.
 
 **Status:** all milestones pending. No CMD24 activation is authorized by this document.
+
+## SD-06B source checkout — no ZIP needed
+
+The standalone Verilog `rtl/sd06_cmd24_engine.v`, the byte-SPI mock
+`tests/tb_sd06_cmd24.v`, and `test.ps1` are now committed on this branch.
+The PowerShell runner checks required source files before invoking any tests.
+It compiles the engine with the real `lab05_spi_byte` interface in one step
+and separately compiles the engine with the mock byte-SPI testbench. It does
+not create an FPGA top, configuration, bitstream or live SD interface.
+
+```powershell
+cd C:\GitHub\Sipeed-FPGA-LAB05
+git branch --show-current
+git pull --ff-only
+Test-Path .\boards\tang-nano-9k\experiments\sd06-cmd24\rtl\sd06_cmd24_engine.v
+Test-Path .\boards\tang-nano-9k\experiments\sd06-cmd24\tests\tb_sd06_cmd24.v
+.\boards\tang-nano-9k\experiments\sd06-cmd24\test.ps1
+```
+
+These tests require the local `iverilog`/`vvp` tools and Python.
+**No offline Verilog simulation PASS is claimed until the operator runs
+and supplies the test output.** Python write-protocol unit tests are
+separate from RTL coverage. A successful mock test is NOT SDHC CMD24
+write authorization.
