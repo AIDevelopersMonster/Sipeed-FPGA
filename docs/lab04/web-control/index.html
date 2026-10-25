@@ -17,7 +17,6 @@
         <div class="brand-name">PiKoSoL <span>CONTROL CENTER</span></div>
       </div>
       <div class="top-links">
-        <a href="../web-loader/release.html">Web Lab SD-08 ↗</a>
         <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases" target="_blank" rel="noopener noreferrer">Прошивки ↗</a>
         <a href="../web-loader/">Прошивка FPGA / WebUSB ↗</a>
@@ -29,7 +28,7 @@
         <div>
           <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> Sipeed FPGA · LAB-04.4 · Web Serial</div>
           <h1>Управляйте <span>RISC-V</span><br>из браузера.</h1>
-          <p>Реальный USB-UART терминал и интерактивная панель управления <strong>PiKoSoL v0.2.0</strong> на Tang Nano 9K. Все команды выполняет PicoRV32 внутри FPGA, а не браузерная модель.</p>
+          <p>Реальный USB-UART терминал и интерактивная панель управления <strong>PiKoSoL v0.2.0 / SD-08</strong> на Tang Nano 9K. Все команды выполняет PicoRV32 внутри FPGA, а не браузерная модель.</p>
           <div class="chip-row"><span>RV32I</span><span>640×480 HDMI</span><span>115200 · 8N1</span><span>FT2232 · Interface B</span></div>
         </div>
         <aside class="connection-box" aria-label="Управление соединением">
@@ -140,6 +139,24 @@
               <button class="button outline requires-link" id="btn-keys" data-cmd="KEYS" type="button" disabled>⌨ KEYS</button>
             </div>
             <p class="micro">Сначала <strong>GFX</strong>, затем <strong>KEYS</strong> для управления без Enter. Клавиша <kbd>T</kbd> возвращает в TERM.</p>
+          </section>
+          <section class="card sd-card" aria-labelledby="sd-title">
+            <div class="card-caption">03 · SD-08 / FAT32 / READ-ONLY</div>
+            <h2 id="sd-title">Файлы SD-карты</h2>
+            <p class="support-text">Для PiKoSoL SD-08. Команды выполняет реальный PicoRV32, ответы отображаются в существующем терминале. Базовая v0.2.0 не поддерживает FAT32.</p>
+            <div class="pill-list">
+              <button class="pill requires-link" data-cmd="SD 0" type="button" disabled>SD 0</button>
+              <button class="pill requires-link" data-cmd="FS" type="button" disabled>FS</button>
+              <button class="pill requires-link" data-cmd="DIR" type="button" disabled>DIR</button>
+            </div>
+            <form id="sd-type-form" class="sd-type-form">
+              <label for="sd-filename">Имя файла 8.3 (корневой каталог)</label>
+              <div class="sd-type-row">
+                <input id="sd-filename" type="text" value="PIKO.TXT" maxlength="12" autocomplete="off" spellcheck="false">
+                <button id="sd-type-submit" class="button primary requires-link" type="submit" disabled>TYPE →</button>
+              </div>
+            </form>
+            <p class="micro">Используйте <code>FS</code> вместо <code>SD INFO</code> (известное ограничение SD-08). Запись на SD аппаратно запрещена.</p>
           </section>
         </div>
       </div>
