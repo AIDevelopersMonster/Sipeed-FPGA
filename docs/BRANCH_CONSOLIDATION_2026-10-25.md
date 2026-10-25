@@ -36,5 +36,5 @@
 
 ## Future work
 
-Develop only on `main`; preserve working functionality before each change. SD-08 binary publishing, vendor PicoSoc/PicoTiny recovery and local-file WebUSB acceptance are separate experiments and must not be represented as already hardware-verified if not tested.
+Keep `main` as the curated working branch. Use short-lived feature branches when isolation is justified, with a stated purpose, acceptance criteria and closure plan. Preserve working functionality before each change. SD-08 binary publishing, vendor PicoSoc/PicoTiny recovery and local-file WebUSB acceptance are separate experiments and must not be represented as already hardware-verified if not tested.
 

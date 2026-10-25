@@ -1,78 +1,45 @@
-# Sipeed FPGA — CPU/SoC research line
+# Sipeed FPGA — PiKoSoL и проверенные лаборатории
 
-**Current milestone (23 October 2026): PiKoSoL LAB-04.4 — WebUSB + Web Serial, HARDWARE PASS (operator-confirmed).**
+**Tang Nano 9K · RISC-V PicoRV32 · HDMI · UART · SPI / microSD · WebUSB**
 
-[**GitHub Pages: Start**](https://aidevelopersmonster.github.io/Sipeed-FPGA/) · [**1. Program FPGA / WebUSB**](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/) · [**2. Control CPU / Web Serial**](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/) · [**Release PiKoSoL v0.2.0**](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0)
+Здесь собраны **работающие результаты, исходники и воспроизводимые учебные примеры**. Отметка **BOARD PASS** относится только к конкретному испытанному стенду и версии, а не к любой новой сборке.
 
-Tang Nano 9K / Gowin GW1NR-9C with CHUWI Intel N100 / Windows 11: first-party GitHub Pages fetch of SHA-256-verified `.fs`; WebUSB SRAM programming over FT2232 JTAG A (WinUSB); true PicoRV32 UART terminal over Web Serial FT2232 B (115200 8N1), control of hardware LEDs, HDMI TERM and GFX. Hardware results were reported by the operator; CI verified delivery of the bundled WebAssembly runtime and firmware. This is **not** an exhaustive cross-platform certification. Firmware/RTL not changed for the web controls.
+## Начните здесь: PiKoSoL v0.2.0
 
-[**LAB-04.4 acceptance report (RU)**](docs/lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md) · [LAB-04.3.2 CPU/HDMI](docs/lab04/README.md) · [WebUSB guide](docs/lab04/web-loader/README.md) · [Web Serial guide](docs/lab04/web-control/README.md).
+**[1. Прошить FPGA через браузер](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/)** · **[2. Открыть Web Serial](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/)** · **[Релиз и прошивка v0.2.0](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0)**
 
-## Publication / Публикация
+1. Подключите Tang Nano 9K. В Chrome/Edge откройте загрузчик и выберите **PiKoSoL v0.2.0**.
+2. Получите файл с GitHub, выберите **JTAG Debugger (FT2232, канал A)** и загрузите его **в SRAM**. Проверьте HDMI.
+3. Откройте Web Serial, подключите **COM-порт (FT2232, канал B, 115200 8N1)** и используйте команды **HELP, INFO, LED, TERM, GFX**.
 
-The bilingual (RU/EN) technical article describing PiKoSoL architecture, WebUSB SRAM programming, Web Serial control, engineering tools and hardware acceptance is available on Zenodo:
+**BOARD PASS, 23.10.2026:** подтверждены WebUSB, настоящая FPGA, PicoRV32, UART, LED и HDMI. [Возможности PiKoSoL](docs/lab04/README.md) · [Протокол аппаратной приёмки](docs/lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md). Браузерный программатор не записывает конфигурационную Flash.
 
-**[PiKoSoL technical article — DOI: 10.5281/zenodo.23593101](https://doi.org/10.5281/zenodo.23593101)**
+## Что можно использовать
 
-This publication describes the experimental platform. It is separate from the [firmware v0.2.0 release](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0) and does not change the FPGA bitstream.
+| Результат | Содержимое | Статус |
+| --- | --- | --- |
+| **[PiKoSoL v0.2.0](docs/lab04/README.md)** | Готовая прошивка, PicoRV32, HDMI, UART, WebUSB и Web Serial | **BOARD PASS**, публичный релиз |
+| **[LAB-02: HTML ↔ FPGA ↔ LED](docs/lab02/README.md)** | RU/EN инструкции, исходники, реальное управление LED из HTML | **BOARD PASS** |
+| **[LED1 — декодер RISC-V](docs/interactive/picorv32-led1/README.md)** | Автономная HTML-модель, 4 инструкции и 19 шагов | Готовая учебная модель, не цикл-точный RTL |
+| **[SD-02 — чтение microSD](boards/tang-nano-9k/experiments/sd-multilba/README.md)** | Четыре LBA, CRC16, UART, исходники и тесты | **BOARD PASS**, только чтение |
+| **[SD-06 — секторная запись](boards/tang-nano-9k/experiments/sd06-cmd24/README.md)** | CMD17/CMD24, проверка записи и восстановление сектора | **Ограниченный BOARD PASS**: одна тестовая SD и один разрешённый LBA |
+| **[SPI и microSD — учебные материалы](docs/education/README.md)** | PDF, Markdown, RTL и методика проверки | Опубликованные учебные материалы |
 
-**Historical progress follows; the LAB-02 status below is no longer the newest milestone.**
+## Что не готово как продукт
 
+- **SD-08 (FAT32 read-only):** на плате получены FS, DIR и TYPE PIKO.TXT, но проверенный бинарный файл **не опубликован для автоматической загрузки**. [Статус SD-08](docs/lab04/web-loader/README_SD08_WEB_LAB.md).
+- **PicoTiny / заводская PicoSoc:** пример PicoTiny не является подтверждённой копией заводской прошивки; восстановление Flash не проверено.
+- **Остальные RTL-эксперименты:** [каталог Tang Nano 9K](boards/tang-nano-9k/experiments/README.md) и [LAB-03](docs/lab03/README.md). Наличие исходников само по себе не означает BOARD PASS.
+- **Другие CPU:** [NEORV32](02-NEORV32/README.md), [LiteX/VexRiscv](03-LiteX-VexRiscv/README.md), [Rocket](04-Rocket/README.md) — исследовательские направления, не аппаратные релизы.
 
-**Current status: PicoRV32 LAB-02 — BOARD_PASS + HTML_HARDWARE_PASS on Tang Nano 9K (20 October 2026).** Earlier P1 is preserved in Git history. Firmware model, RTL simulation, Gowin PnR/STA at 27 MHz, SRAM programming, UART `PICO` and LED animation were confirmed. The four-instruction interactive demonstration below is a separate conceptual example.
+## Документация и разработка
 
-One repository; four deliberately independent implementations. Platforms are **Sipeed Tang Nano 9K** and **Tang Primer 25K**. This is **not** the DDF training repository and **not** an Intel MAX 10 project.
+[Статья PiKoSoL RU/EN — DOI](https://doi.org/10.5281/zenodo.23593101) · [SPI — DOI](https://doi.org/10.5281/zenodo.23608792) · [SD — DOI](https://doi.org/10.5281/zenodo.23608853)
 
-| Stage | Folder | CPU/SoC | First target | Current state |
-|---|---|---|---|---|
-| 01 | [`01-PicoRV32`](01-PicoRV32/README.md) | PicoRV32 (RV32I) | Tang Nano 9K | LAB-04.4 WEBUSB + WEBSERIAL hardware pass (operator); LAB-04.3.2 CPU/HDMI hardware pass; LAB-02 completed 2026-10-20 |
-| 02 | [`02-NEORV32`](02-NEORV32/README.md) | NEORV32 (VHDL) | Tang Nano 9K | Research baseline / integration specification |
-| 03 | [`03-LiteX-VexRiscv`](03-LiteX-VexRiscv/README.md) | LiteX with VexRiscv | Tang Primer 25K | Research baseline / integration specification |
-| 04 | [`04-Rocket`](04-Rocket/README.md) | Rocket RV32IC minimal configuration | Tang Primer 25K | Feasibility study, NOT a confirmed fit |
+Сборка, STA, тесты и аппаратные протоколы описаны в каждой лаборатории. Не переносите результаты испытания одного bitstream на другой. Не записывайте Flash без проверенного пути восстановления.
 
-## Interactive educational demonstration / Интерактивная демонстрация
-
-[**PicoRV32: how one machine instruction turns on LED L1 — HTML RU/EN**](docs/interactive/picorv32-led1/README.md) · 19 steps, local/offline browser, registers, decoder, MMIO and active-low LED output. Separate educational model; not a cycle-accurate Verilog simulator.
-
-## LAB-02: verified board + educational HTML (Windows PowerShell 7)
-
-[**Laboratory 02 — Russian/English methodical guides, PDF and hardware-linked HTML**](docs/lab02/README.md).
-
-The current ROM is the 118-instruction UART controller (`READY`, `L=n`). The earlier 33-instruction `PICO` firmware and the original P1 protocol are preserved in Git history. Run `test_lab02.ps1`, not the earlier P1-specific `test.ps1`, against LAB-02 HEAD.
-
-```powershell
-cd C:\GitHub\Sipeed-FPGA
-& .\tools\preflight.ps1
-& .\01-PicoRV32\tools\test_lab02.ps1 -ModelOnly
-& .\01-PicoRV32\tools\fetch_picorv32.ps1
-& .\01-PicoRV32\tools\test_lab02.ps1
-& .\01-PicoRV32\tools\build_gowin.ps1
-```
-
-The full RTL test requires Icarus Verilog (`iverilog` + `vvp`) and a network-connected fetch of the ISC-licensed PicoRV32 source at an exact commit. The Gowin command uses installed `C:\Gowin\Gowin_V1.9.9Beta-4_Education` by default. The independent Windows-based simulation, Gowin build and physical test **passed on 19 October 2026**; record the toolchain and specific build with each new experiment.
-
-The project intentionally does not auto-program any device. To program **volatile SRAM only** (not configuration flash) after checking the `.fs` and logs:
-
-```powershell
-$prog = 'C:\Gowin\Gowin_V1.9.9Beta-4_Education\Programmer\bin\programmer_cli.exe'
-$fs = (Resolve-Path '.\01-PicoRV32\impl\pnr\picorv32_nano9k.fs').Path
-& $prog --device GW1NR-9C --operation_index 2 --fsFile $fs --cable-index 1
-$LASTEXITCODE   # expected 0 with the validated FT2CH cable
-```
-
-## Scientific engineering policy
-
-- Independent RTL/ISA specification and common MMIO semantics (`common/`).
-- Native buses remain CPU-specific; adapt them at the boundary, do not falsify their equivalence.
-- Record tool versions, commits, clock constraints, resource reports, and measured board evidence.
-- Compare common ISA baseline (RV32I) where practical; record optional features separately.
-- **No invented FPGA LUT, FF, BRAM, Fmax, power or cycle measurements.**
-- Third-party IP lives in ignored vendor directories, pinned by [`sources.lock.json`](sources.lock.json). License obligations of each upstream project apply.
-
-More: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/TEST_PROTOCOL.md`](docs/TEST_PROTOCOL.md), [`docs/ROADMAP.md`](docs/ROADMAP.md).
+**Правило Git:** main — понятная посетителю проверенная основа. Изолированные ветки допустимы, когда у них есть конкретная задача, критерий завершения и план закрытия. [История консолидации](docs/BRANCH_CONSOLIDATION_2026-10-25.md).
 
 ---
 
-## Кратко по-русски
-
-Цель — сравнить четыре способа построения RISC-V-систем на FPGA. Для каждой реализации своя папка, исходники, модель проверки, отчёты по ресурсам и собственная периферия. Общие спецификация, карта регистров и протокол испытаний находятся в `common/` и `docs/`. Первым создаётся минимальный PicoRV32 SoC на Tang Nano 9K с UART, светодиодами и аппаратным счётчиком. Физическая проверка выполнена 19 октября 2026 года: SRAM, UART `PICO` и LED-анимация — PASS.
+**English quick start.** [Program Tang Nano 9K via WebUSB](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/) with the verified PiKoSoL v0.2.0 image (**volatile SRAM only**), then [open Web Serial](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/). [Download v0.2.0](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0). The table distinguishes board-tested projects, educational demos and unfinished work. **SD-08 auto-download and factory recovery are not released.**
