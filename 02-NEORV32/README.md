@@ -1,11 +1,46 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1B SIM PASS; LAB-06.1C Gowin PnR PASS + предварительный STA PASS для RF ARCHSEL=2; полный аудит ресурсов/IO/STA и BOARD ещё не проведены.**
+**Статус на 26.10.2026: LAB-06.1B SIM PASS; LAB-06.1C PnR+STA PRELIM PASS и ресурсы подтверждены, НО старый .fs НЕ ДОПУЩЕН к SRAM: pin52 BankVccio=1.2 при LVCMOS33. Исправлен CST; ждём новый FIT/STA и BankVccio audit. BOARD NOT RUN.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка — 26.10.2026, после 14:28: полный отчёт ресурсов + выявлен CLOCK BankVccio mismatch
+
+**Независимый операторский read-only аудит оригинального FIT прошёл проверки SHA/исходников/пинов/STA, но обнаружено новое существенное замечание по итоговому PnR отчёту. Уровень проверки повышен, предыдущий «preboard audit PASS» НЕ является разрешением SRAM programming.**
+
+- Был проверен исходный PnR job: `02-NEORV32/_build/fit_20261026_142800_809_767b05`, битстрим `lab061_neorv32_nano9k.fs`, SHA-256 `6BD42615371AFA901C21DADA9AA0B011A9822E9191EEB157C0465D9660932553`.
+- `LAB061_INPUT_SNAPSHOT_SHA_PASS`: 57 файлов + ROM + Verilog; `LAB061_PINS_27MHZ_PASS`: 10 назначенных выводов и однодоменная SDC; `LAB061_STA_SCREEN_PRELIM_PASS`: 5466 путей, setup/hold violation=0; setup +14.936 ns / hold +0.405 ns / recovery +34.707 ns / removal +1.528 ns.
+- **Resource PnR**: Logic **3228 / 8640 (38%)**; LUT 3052, ALU 122, ROM16 0; Registers **1923 / 6693 (29%)**, Logic FF 1921 / 6480, IO FF 2 / 213; BSRAM **20%**, DSP **0%**, PLL **0/2**; IO=10. Это точные числа операторского отчёта, не оценка.
+- Напряжения PnR: UART bank2 3.3 V, reset и LEDs bank3 1.8 V — согласуются с назначениями. **Но clock input `clk_i` pin52 bank1: `IO Type LVCMOS33` и `BankVccio=1.2`!** Для платы Tang Nano 9K 27MHz oscillator на pin52 ожидается 3.3 V. Смотрите эталонный `01-PicoRV32/constraints/tang_nano_9k.cst` и документацию по Tang Nano 9K: [Sipeed wiki](https://github.com/sipeed/sipeed_wiki/blob/main/docs/hardware/zh/tang/Tang-Nano-9K/examples/lushaylabs/1_installation_getting_started/installation_getting_started.md), [схема и BANK_VCCIO example](https://www.weigu.lu/other_projects/fpga/fpga_tang_nano_9k/index.html). Старый PiKoSoL аппаратно работал с pin52 / LVCMOS33, но это **не объясняет** напряжение банка в данном отчёте. Вывод pin52 только вход; остальные 9 сигналов согласованы.
+- В новом коммите исправлена **только** строка в `02-NEORV32/constraints/lab061_nano9k.cst`: `IO_PORT "clk_i" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;`. CPU/firmware/IMEM/VHDL wrapper **не менялись**, повторная SIM не нужна.
+- `tools/audit_fit_lab061.ps1` доработан: он проверяет уже фактическую колонку `BankVccio` для **всех 10** назначенных портов. Старый отчёт с pin52 BankVccio=1.2 должен теперь получить `LAB061_PNR_BANK_VCCIO_FAIL`. Новая прошивка **не будет допущена к плате**, пока PnR report не подтвердит pin52 BankVccio=3.3.
+
+### Единственная следующая операция — новый FIT с исправленным CST (SRAM запрещена до PASS)
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- `
+    02-NEORV32/README.md `
+    02-NEORV32/constraints/lab061_nano9k.cst `
+    02-NEORV32/tools/audit_fit_lab061.ps1
+
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\02-NEORV32\tools\fit_lab061.ps1 `
+    -SimJob '.\02-NEORV32\_build\run_20261026_142450_892'
+```
+
+Сохранить новый `LAB061_FIT_JOB` и новый `LAB061_BITSTREAM_SHA256`. Потом с **новым** SHA-256:
+```powershell
+.\02-NEORV32\tools\audit_fit_lab061.ps1 `
+  -FitJob 'НОВЫЙ_ПУТЬ_ИЗ_LAB061_FIT_JOB' `
+  -ExpectedSHA256 'НОВЫЙ_SHA256_ИЗ_LAB061_BITSTREAM_SHA256'
+```
+
+Только `LAB061_PNR_BANK_VCCIO_PASS` плюс `LAB061_INTERNAL_PREBOARD_AUDIT_PASS` позволяют планировать осторожный SRAM-only smoke (без Flash/SD). Если Gowin откажет явному BANK_VCCIO=3.3, не удалять ограничение и не программировать старый `.fs`; сохранить первую ошибку и обсудить отдельно. Обязательное отдельное замечание: UART RX асинхронен, reset внешний; это не означает, что все внешние временные параметры охвачены SDC.
 
 ## Контрольная точка — 26.10.2026, 14:28: ARCHSEL=2 Gowin PnR PASS / STA PRELIM PASS
 
