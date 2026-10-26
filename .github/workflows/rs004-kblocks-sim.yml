@@ -1,0 +1,36 @@
+name: RS-004 K-BLOCKS RTL simulation
+
+on:
+  pull_request:
+    paths:
+      - 'games/kblocks-rgb/**'
+      - '.github/workflows/rs004-kblocks-sim.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'games/kblocks-rgb/**'
+      - '.github/workflows/rs004-kblocks-sim.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  iverilog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq iverilog
+      - name: Compile and run self-checking core testbench
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/rs004-sim
+          iverilog -g2012 -Wall -s tb_kblocks_rgb_core \
+            -o /tmp/rs004-sim/kblocks_tb \
+            games/kblocks-rgb/rtl/kblocks_rgb_core.v \
+            games/kblocks-rgb/tests/tb_kblocks_rgb_core.v
+          vvp /tmp/rs004-sim/kblocks_tb | tee /tmp/rs004-sim/result.txt
+          grep -q 'RS004_KBLOCKS_TB_PASS' /tmp/rs004-sim/result.txt
