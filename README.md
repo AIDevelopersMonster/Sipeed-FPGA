@@ -14,10 +14,17 @@
 
 **BOARD PASS, 23.10.2026:** подтверждены WebUSB, настоящая FPGA, PicoRV32, UART, LED и HDMI. [Возможности PiKoSoL](docs/lab04/README.md) · [Протокол аппаратной приёмки](docs/lab04/LAB044_ACCEPTANCE_2026-10-23_RU.md). Браузерный программатор не записывает конфигурационную Flash.
 
+## PONG RGB v1.2 — аппаратная игра на Tang Nano 9K
+
+**Оператор подтвердил работу на плате 26.10.2026.** Pong реализован в Verilog без CPU PicoRV32, выводит игру по HDMI, управляется клавиатурой через Web Serial (UART, 115200 8N1). Исходники и страница управления опубликованы; бинарный `.fs` пока доступен только локально и **не размещён для автоматической загрузки**. Программирование — **только SRAM**.
+
+**[Открыть управление Pong](https://aidevelopersmonster.github.io/Sipeed-FPGA/pong-rgb/)** · **[Исходники, сборка, лицензии](games/pong-rgb/README.md)** · [WebUSB загрузчик](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/)
+
 ## Что можно использовать
 
 | Результат | Содержимое | Статус |
 | --- | --- | --- |
+| **[PONG RGB v1.2](games/pong-rgb/README.md)** | HDMI Pong, Web Serial, Verilog без CPU | **Оператор: BOARD PASS**; исходники опубликованы, `.fs` локально |
 | **[PiKoSoL v0.2.0](docs/lab04/README.md)** | Готовая прошивка, PicoRV32, HDMI, UART, WebUSB и Web Serial | **BOARD PASS**, публичный релиз |
 | **[LAB-02: HTML ↔ FPGA ↔ LED](docs/lab02/README.md)** | RU/EN инструкции, исходники, реальное управление LED из HTML | **BOARD PASS** |
 | **[LED1 — декодер RISC-V](docs/interactive/picorv32-led1/README.md)** | Автономная HTML-модель, 4 инструкции и 19 шагов | Готовая учебная модель, не цикл-точный RTL |
