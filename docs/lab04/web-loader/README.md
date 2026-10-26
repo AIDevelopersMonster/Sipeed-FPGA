@@ -39,3 +39,14 @@
 This checklist is operator evidence for one tested configuration; not every error path has been independently exercised.
 
 Original project: https://github.com/trabucayre/openFPGALoader_webUSB (Apache-2.0), https://github.com/YoWASP/openFPGALoader-web (ISC).
+
+
+## KonSol RetroStation BREAKOUT RGB v0.1.0 — local WebUSB profile (26 October 2026)
+
+The loader has a fourth profile **BREAKOUT RGB** for **Tang Nano 9K**, pinned to the operator-tested build SHA-256 `4CF80DBD008B0D41D4316BF63DB952190C03940A4FFB1FFC00CAB09210AE8789`.
+
+**Current distribution rule:** the `.fs` is **not committed to the Pages firmware directory** and has **no downloadable release asset yet**. Select the **BREAKOUT RGB** profile, then use *Upload local .fs from computer* and select the exact local candidate `pikosol_breakout_rgb_nano9k.fs`. The loader verifies the hash against the pinned profile and rejects other binaries in this profile. The *Get from GitHub Pages* button is deliberately disabled in this profile until the independently verified asset is hosted. The existing three profiles and SRAM-only JTAG commands are unchanged.
+
+**Important:** A successful HTML edit or GitHub Pages deployment is not browser hardware acceptance. Test the fourth profile with the exact known SHA in Chrome/Edge on the real board before documenting WebUSB BOARD PASS.
+
+Sources, keyboard, proof and reproducible build: [`games/breakout-rgb/`](../../../games/breakout-rgb/). The original `PONG` browser keyboard does not expose Breakout's start command.
