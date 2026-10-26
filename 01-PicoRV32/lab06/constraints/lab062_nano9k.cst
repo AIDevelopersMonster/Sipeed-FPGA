@@ -1,0 +1,23 @@
+// LAB-06.2B PicoRV32 minimal SoC - identical pins and bank I/O standards
+// to BOARD-accepted NEORV32 LAB-06.1, after explicit pin52 VCCIO fix.
+// 27 MHz clock, SRAM-only candidate; never program without preboard audit.
+IO_LOC "clk_i" 52;
+IO_PORT "clk_i" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+IO_LOC "rstn_i" 3;
+IO_PORT "rstn_i" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+IO_LOC "uart0_txd_o" 17;
+IO_PORT "uart0_txd_o" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "uart0_rxd_i" 18;
+IO_PORT "uart0_rxd_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "led_n_o[0]" 10;
+IO_LOC "led_n_o[1]" 11;
+IO_LOC "led_n_o[2]" 13;
+IO_LOC "led_n_o[3]" 14;
+IO_LOC "led_n_o[4]" 15;
+IO_LOC "led_n_o[5]" 16;
+IO_PORT "led_n_o[0]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[1]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[2]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[3]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[4]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[5]" IO_TYPE=LVCMOS18;
