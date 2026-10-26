@@ -1,11 +1,41 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1A SOURCE PIN PASS (operator); MSYS2 UCRT64 найден; GHDL / RISC-V GCC / Make / host GCC отсутствуют; SIM/FIT/STA/BOARD NOT RUN.**
+**Статус на 26.10.2026: LAB-06.1A TOOLCHAIN READY (operator); LAB-06.1B исходники подготовлены, SIM/FIT/STA/BOARD NOT RUN.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка 26.10.2026, 13:07 — TOOLCHAIN READY; LAB-06.1B source candidate
+
+**Оператор подтвердил: LAB06_UCRT64_TOOLCHAIN_READY + LAB06_SOURCE_PREFLIGHT_PASS.** GHDL 6.0.0, RISC-V GCC 16.1.0, GNU Make, host GCC, Icarus и Gowin CLI доступны на Windows. MSYS2 завершил обновление; конфликт gcc-libs устранён. Исходники CPU неизменно pinned: `b2620454ebb2407e81a6a1965ef52e2a860b0432`.
+
+**ПОДГОТОВЛЕНО НА GITHUB:** настоящий NEORV32 VHDL wrapper (`BOOT_MODE_SELECT=2`, ROM 16 KiB, RAM 2 KiB, встроенный UART, 6 GPIO), минимальная freestanding RV32I программа, линкер, GHDL VHDL тестбенч (физический UART 8N1 + GPIO), PowerShell-скрипт с изолированным каталогом сборки. Все исходники под `02-NEORV32/{firmware,rtl,tests,tools,constraints}`, применимы только с закреплённым upstream.
+
+**ПРОГРАММА И СИМУЛЯЦИЯ ЕЩЁ НЕ ЗАПУЩЕНЫ НА WINDOWS**. Синтез, STA, FPGA и SD также NOT RUN; не объявлять PASS на основании коммита. Использование оригинального upstream `imem_image` вместо собранного образа запрещено; `run_lab061.ps1` подменяет его в отдельной GHDL file-list, не изменяя `_deps/neorv32`.
+
+### Точная следующая команда — LAB-06.1B SIM
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- `
+  02-NEORV32/README.md `
+  02-NEORV32/.gitignore `
+  02-NEORV32/firmware `
+  02-NEORV32/rtl `
+  02-NEORV32/tests `
+  02-NEORV32/constraints `
+  02-NEORV32/tools/run_lab061.ps1
+
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\02-NEORV32\tools\run_lab061.ps1 -Mode Sim
+```
+
+Ожидаемая **цель**, пока НЕ достигнутый результат: `LAB061_FIRMWARE_IMAGE_BUILT`, `LAB061_GHDL_ELAB_OK`, `LAB061_NEORV32_UART_GPIO_TB_PASS`, `LAB061_SIM_PASS`. Скрипт сохраняет `_build/run_*/{build.log,ghdl_import.log,ghdl_make.log,ghdl_sim.log,receipt.json}` и SHA256. **При ошибке не переписывать автоматически CPU:** смотреть конкретный tail лога, входные адреса памяти и UART.
+
+Прежде чем переходить к Gowin, необходимо реальное `SIM PASS` на операторском Windows. **Это первая из двух-трёх ограниченных проверок до платы; Flash не затрагивается.** После SIM PASS обновить этот README с точными логами, затем готовить Gowin FIT/STA.
 
 ## Контрольная точка 26.10.2026, 12:50 — MSYS2 toolchain blocked (NO PACKAGES CHANGED)
 
