@@ -1,5 +1,7 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
+**Где исходный VHDL-код CPU?** [Карта исходников NEORV32 и проверка, что собран настоящий RISC-V процессор](CPU_SOURCE_MAP.md). Оригинальные VHDL-модули находятся локально в игнорируемом `_deps/neorv32/rtl/core` и доступны по ссылкам на pinned upstream commit; в нашем репозитории хранится собственная обвязка, скрипты сборки и протоколы.
+
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
 **Статус на 26.10.2026: LAB-06.1 BOARD HARDWARE PASS (scope: SRAM boot, real `NEORV32 READY` UART, three illuminated LEDs confirmed by operator with photo); SIM/PnR/STA PRELIM/10-pin BankVccio PASS. Exact individual LED bit pattern not independently resolved from photo; comparative benchmarks NOT RUN. Flash/SD NOT TOUCHED.**
 
