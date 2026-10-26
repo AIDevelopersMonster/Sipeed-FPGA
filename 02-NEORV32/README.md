@@ -1,11 +1,42 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1B SIM PASS для CPU_RF_ARCH_SEL=2 подтверждён оператором; второй Gowin FIT/STA NOT RUN; BOARD NOT RUN. Первая попытка ARCHSEL=0 завершилась PA2122.**
+**Статус на 26.10.2026: LAB-06.1B SIM PASS; LAB-06.1C Gowin PnR PASS + предварительный STA PASS для RF ARCHSEL=2; полный аудит ресурсов/IO/STA и BOARD ещё не проведены.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка — 26.10.2026, 14:28: ARCHSEL=2 Gowin PnR PASS / STA PRELIM PASS
+
+**Оператор предоставил результат второй попытки LAB-06.1C (на физической FPGA пока НЕ запускали):**
+
+- FIT job: `02-NEORV32/_build/fit_20261026_142800_809_767b05`.
+- SIM evidence (RF ARCHSEL=2): `02-NEORV32/_build/run_20261026_142450_892/receipt.json`.
+- ROM image SHA256: `7BEA7D440BCE6C559E3DA6E44ACEA7BE8044C4418D3E7913AB9B6AA51E16A535`.
+- GHDL→Verilog SHA256: `4A0084C2F4EE4DE455D42EA2C0B91AD5324CE59E54D75C24D71443DAE0E0A7FA`.
+- **PnR produced** `lab061_neorv32_nano9k.fs`; exact SHA256 **`6BD42615371AFA901C21DADA9AA0B011A9822E9191EEB157C0465D9660932553`**.
+- Preliminary STA: **5466 paths/endpoints**, setup violations **0**, hold violations **0**; displayed minimum slacks setup **+14.936 ns**, hold **+0.405 ns**, recovery **+34.707 ns**, removal **+1.528 ns**.
+- `LAB061_STA_SCREEN_PRELIM_PASS`; `LAB061_FIT_STA_PRELIM_PASS`; `LAB061_BOARD_NOT_RUN`.
+- **The previous `PA2122` on RF ARCHSEL=0 is resolved for the new candidate.** No board pass is claimed, and no resource totals have yet been transcribed from the actual `.rpt.txt`.
+
+### NEXT — read-only resource/pin/STA audit before hardware
+
+A new **`02-NEORV32/tools/audit_fit_lab061.ps1`** checks exact bitstream/SIM SHA256 provenance, staged inputs, 10 CST pin numbers/types (cross-checked against PicoRV32), the single 27 MHz SDC, reruns the STA screen, and prints resources from the Gowin PnR text report. It does **not** modify FPGA, Flash, or SD and does not perform another build.
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- 02-NEORV32/README.md 02-NEORV32/tools/audit_fit_lab061.ps1
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\02-NEORV32\tools\audit_fit_lab061.ps1 `
+  -FitJob '.\02-NEORV32\_build\fit_20261026_142800_809_767b05' `
+  -ExpectedSHA256 '6BD42615371AFA901C21DADA9AA0B011A9822E9191EEB157C0465D9660932553'
+```
+
+If the PowerShell command returns `LAB061_INTERNAL_PREBOARD_AUDIT_PASS`, **still** verify resource fit, all critical warnings, external reset and asynchronous UART RX constraints before SRAM programming. If any audit check fails, keep the exact job and report which check stopped. Avoid another PnR unless a specific issue requires correction. Maximum 2–3 documented physical tests after authorization.
+
+**Comparison note:** architecture `CPU_RF_ARCH_SEL=2` consumes FF-based register file instead of the default BRAM inference; report real LUT/FF/BSRAM rather than estimates, and keep native-SoC and CPU-core comparisons separate.
 
 ## Контрольная точка — 26.10.2026, 14:24: ARCHSEL=2 повторная SIM PASS
 
