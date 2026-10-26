@@ -30,6 +30,10 @@ begin
       RISCV_ISA_C => false,
       RISCV_ISA_M => false,
       RISCV_ISA_Zicntr => false,
+      -- Gowin GW1NR-9C PA2122 workaround: ARCHSEL=0 maps to DPB with
+      -- unsupported WRITE_MODE0=2'b10. ARCHSEL=2 uses resettable FFs.
+      -- New hardware configuration: re-run GHDL SIM before Gowin PnR.
+      CPU_RF_ARCH_SEL => 2,
       IMEM_EN => true,
       IMEM_SIZE => 16*1024,
       DMEM_EN => true,

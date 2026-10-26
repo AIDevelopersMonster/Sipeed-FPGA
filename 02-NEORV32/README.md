@@ -1,11 +1,48 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1B SIM PASS (operator, 15 UART bytes/2 GPIO states); LAB-06.1C FIT/STA NOT RUN; BOARD NOT RUN.**
+**Статус на 26.10.2026: SIM PASS только RF ARCHSEL=0; первая Gowin FIT FAIL PA2122 (regfile DPB); ARCHSEL=2 подготовлен, повторная SIM/FIT NOT RUN; STA/BOARD NOT RUN.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка — 26.10.2026, 14:02: Gowin PA2122 → RF ARCHSEL=2
+
+**Факт по операторскому логу:** LAB-06.1C first PnR/FIT попытка дошла до завершения GowinSynthesis (100%), после чего Gowin при чтении технологического netlist отверг две памяти регистрового файла. Это **не** исчерпание LUT/FF/BSRAM и **не** ошибка firmware/импорта GHDL.
+
+- SIM PASS (первоначальный default RF=0): `_build/run_20261026_132020_122/receipt.json`, 15 UART bytes и 2 GPIO patterns, 1.451385286 ms.
+- FIT job первой попытки: `02-NEORV32/_build/fit_20261026_140218_893_f69896`.
+- IMEM image SHA256: `7BEA7D440BCE6C559E3DA6E44ACEA7BE8044C4418D3E7913AB9B6AA51E16A535`.
+- GHDL→Verilog **PASS**, output SHA256: `6A8E4A8CB94476ED91A37A0A24601802C1718584E9F3060787148A5F2B7EB79D`.
+- GowinSynthesis **completed**, subsequent parser **FAIL**: `ERROR (PA2122): regfile_regfile_0_0_s / regfile_regfile_0_1_s (DPB) WRITE_MODE0=2'b10 not supported; use 2'b00 or 2'b01`.
+- **No successful PnR, no STA, no FPGA programming**. The first SIM PASS certifies only the old RF architecture, not the next candidate.
+
+**One targeted fix in our VHDL wrapper, not in pinned NEORV32:** `CPU_RF_ARCH_SEL => 2`. NEORV32 upstream `rtl/core/neorv32_cpu_regfile.vhd` defines four alternatives: 0 synchronous SRAM (old incompatible DPB mapping), 1 asynchronous-read SRAM (possible reserve), 2 resettable FF registers (selected now), 3 ASIC latches (do not use on this FPGA). FF use may increase; obtain actual numbers rather than estimates. *Firmware/ROM binary/clock/MMIO are unchanged*. This is a **new hardware configuration**, so rerun SIM before FIT.
+
+### Next exact PowerShell steps — second controlled NEORV32 candidate
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- 02-NEORV32/README.md 02-NEORV32/rtl/lab061_neorv32_top.vhd
+.\02-NEORV32\tools\activate_ucrt64.ps1
+
+# MUST receive a new LAB061_SIM_PASS before fitting the changed CPU architecture:
+.\02-NEORV32\tools\run_lab061.ps1 -Mode Sim
+
+# Only after the new SIM PASS, select the latest NEW sim evidence:
+$SimJob = (Get-ChildItem '.\02-NEORV32\_build' -Directory -Filter 'run_*' |
+  Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+$receipt = Get-Content (Join-Path $SimJob 'receipt.json') -Raw | ConvertFrom-Json
+if ($receipt.Simulation -ne 'PASS') { throw 'SIM not PASS - do not run Gowin' }
+
+.\02-NEORV32\tools\fit_lab061.ps1 -SimJob $SimJob
+```
+
+**Critical:** The old `run_20261026_132020_122` receipt will be rejected by `fit_lab061.ps1` after wrapper change because input SHA256 differs. Do not bypass the integrity gate or patch Gowin-generated Verilog/netlists with hard-coded DPB WRITE_MODE values.
+
+**Outcome statuses to record next:** `LAB061_SIM_PASS` for ARCHSEL=2 (not yet observed), then `LAB061_GHDL_TO_VERILOG_PASS`, then Gowin PnR, real STA slacks and resource report. An STA screen PRELIM_PASS alone is not a board acceptance. If new fitting fails, retain the log, share the first ERROR and last 30 lines, and enforce the 1–2 day bring-up stop rule.
 
 ## Контрольная точка — 26.10.2026, 13:20: SIM PASS; FIT/STA NEXT
 

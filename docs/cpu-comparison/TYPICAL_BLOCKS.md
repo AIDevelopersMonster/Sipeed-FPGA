@@ -16,6 +16,12 @@ For internal CPU logic the third-party HDL is studied in its original repository
 | --- | --- | --- | --- | --- |
 | **ALU32** | 32-bit ADD, SUB, AND, OR, XOR, SLT/SLTU, SLL/SRL/SRA; known overflow behavior in RV32I | Iterative vs parallel shifter, flags, combinational depth, LUT/ALU footprint, implementation language | Identical signed/unsigned/shift corner-case vectors; synthesis for a standalone ALU | 06.3 |
 | **Register file** | `x0=0`, 32 × 32-bit registers for RV32I, named address ports | One vs two reads, synchronous/asynchronous read semantics, FF vs BSRAM, read latency | Reset/non-reset behavior, read-after-write, 2-port conflicts, `x0` immutability; report cycle penalty | 06.3 |
+
+### 2026-10-26: NEORV32 register file on Gowin GW1NR-9C
+
+The default NEORV32 `CPU_RF_ARCH_SEL=0` (synchronous SRAM) was SIM-PASS with the UART/GPIO workload but after complete Gowin synthesis **could not pass device mapping**: two inferred DPB instances used unsupported `WRITE_MODE0=2'b10` (Gowin `PA2122`). The project wrapper now selects `CPU_RF_ARCH_SEL=2` (resettable FF register file); this is a **candidate**, not yet SIM/FIT verified. Preserve the first failure as architectural portability evidence. Do not compare FPGA area/clock/BRAM between variants until each has a real equivalent measured report. Upstream NEORV32 source remains pinned and unchanged.
+
+
 | **Decoder / immediate generator** | RV32I R/I/S/B/U/J fields, branch targets, sign extension and illegal opcodes | Combinational vs staged decode, number of control signals, invalid-instruction handling | Fixed 32-bit machine words, incl. S-type `0x01D2A023` and B/J signed offsets | 06.3 |
 | **Sequencer / datapath** | Fetch–decode–execute–memory–retire with well-defined exception boundary | Pipeline, iterative states, branch penalty, optional extension handling | Independent trace: PC, instruction, result, memory transaction; count cycles | 06.2/06.3 |
 | **Load/store bus** | 32-bit little-endian byte/halfword/word read and write | `mem_valid/mem_ready` vs NEORV32 internal/XBUS; byte strobes; error and misalignment behavior | Randomized wait states, read/write agreement, unaligned-access behavior documented rather than assumed equal | 06.2 |
