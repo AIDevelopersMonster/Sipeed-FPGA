@@ -1,11 +1,50 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1A PREPARATION; ещё нет ни SIM PASS, ни Gowin FIT, ни BOARD PASS для NEORV32.**
+**Статус на 26.10.2026: LAB-06.1A SOURCE PIN PASS (operator); TOOLCHAIN PENDING; SIM/FIT/STA/BOARD NOT RUN.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка 26.10.2026 — SOURCE PIN PASS (оператор)
+
+**LAB-06.1A SOURCE PASS подтверждён дважды на Windows. NEORV32 SIM / Gowin FIT / STA / BOARD пока NOT RUN.**
+
+- Закреплённый исходный commit: `b2620454ebb2407e81a6a1965ef52e2a860b0432`; проверка `LAB06_SOURCE_PIN_PASS`.
+- BSD-3-Clause: `LAB06_UPSTREAM_LICENSE_PASS`; BOOT_MODE_SELECT=2 и IMEM/DMEM/UART/GPIO generics: `LAB06_BOOT_INTERFACE_PASS`.
+- Gowin CLI и Programmer обнаружены: `C:\Gowin\Gowin_V1.9.9Beta-4_Education`.
+- Первый preflight: `02-NEORV32/_reports/LAB06_PREFLIGHT_20261026_123200.json`; второй: `LAB06_PREFLIGHT_20261026_123231.json`. Квитанции остаются локальными, не в Git.
+- В текущем PATH не обнаружены GHDL, RISC-V GCC и Make; Icarus отсутствует, но для первого VHDL-теста не требуется. Это не доказывает отсутствие программ на диске.
+
+### Сейчас: активировать существующий MSYS2 UCRT64, без повторного clone
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- 02-NEORV32/README.md 02-NEORV32/tools/activate_ucrt64.ps1
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\02-NEORV32\tools\preflight.ps1
+```
+
+`activate_ucrt64.ps1` только добавляет существующие папки MSYS2 UCRT64 к PATH **текущего процесса** и показывает четыре необходимые команды: `ghdl`, `riscv64-unknown-elf-gcc`, `make` и `gcc`. Ничего не устанавливает и не программирует.
+
+При действительном отсутствии программ (путь MSYS2 по умолчанию `C:\msys64`), после полного обновления MSYS2:
+
+```powershell
+$Pac = 'C:\msys64\usr\bin\pacman.exe'
+& $Pac -Syu
+# Если MSYS2 потребует перезапустить все его терминалы, закончить обновление после перезапуска.
+& $Pac -S --needed mingw-w64-ucrt-x86_64-ghdl-mcode mingw-w64-ucrt-x86_64-riscv64-unknown-elf-gcc mingw-w64-ucrt-x86_64-gcc make
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\02-NEORV32\tools\preflight.ps1
+```
+
+Пакеты доступны в [MSYS2 GHDL-mcode](https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-ghdl-mcode), [RISC-V GCC](https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-riscv64-unknown-elf-gcc), [MSYS2 make](https://packages.msys2.org/packages/make). Для `riscv64-unknown-elf-gcc` используйте `-march=rv32i -mabi=ilp32`. Важное правило MSYS2: сначала полное `pacman -Syu`, не частичное обновление только баз пакетов.
+
+**Только после TOOLCHAIN READY:** создать отдельную minimal VHDL-обвязку NEORV32, сделать программу `NEORV32 READY` и GPIO6, сформировать IMEM image в изолированном build-tree, запустить GHDL SIM. `make image install` upstream меняет `rtl/core/neorv32_imem_image.vhd`: не модифицировать закреплённый upstream checkout без изолированной копии. Затем Gowin PnR/STA и до трёх испытаний FPGA, SRAM-only.
+
+**Handoff для нового диалога:** источник уже скачан и проверен; не запускайте `-FetchUpstream` повторно. Начать с `activate_ucrt64.ps1`, затем GHDL/GCC/Make, а не с другой архитектуры CPU.
 
 ## 0. Следующий диалог: что читать и делать
 
@@ -73,7 +112,7 @@ git pull --ff-only origin main
 
 | Gate | Что делаем | Что считать PASS | Состояние |
 | --- | --- | --- | --- |
-| **06.1A SOURCE** | Закреплённая VHDL версия, лицензия, инструменты, простая конфигурация | `LAB06_SOURCE_PIN_PASS`, список tool versions, осмысленный выбор компиляции | **NOT RUN LOCALLY** |
+| **06.1A SOURCE** | Закреплённая VHDL версия, лицензия, инструменты, простая конфигурация | `LAB06_SOURCE_PIN_PASS`, список tool versions, осмысленный выбор компиляции | **SOURCE PIN PASS (operator); tools pending** |
 | **06.1B SIM** | Образ `NEORV32 READY` + GPIO test, VHDL wrapper + bench, GHDL/управляемая симуляция | CPU **действительно выполняет инструкции**, UART выдаёт ожидаемые байты, GPIO меняется; в тестбенче есть FAIL-сценарии | **NOT RUN** |
 | **06.1C FIT/STA** | Gowin на GW1NR-9C, 27 MHz, pinout, ресурсы, CDC и все Slack | PnR завершён, ресурсный FIT, 0 нарушений setup/hold, положительные setup/hold/recovery/removal, никаких критических unconstrained paths | **NOT RUN** |
 | **06.1D BOARD** | Волатильная загрузка `.fs`, COM/LED, протокол | **2–3** испытания: (1) UART идентификатор, (2) GPIO LED, (3) короткая RX/TX проверка при наличии | **NOT RUN** |
@@ -108,7 +147,7 @@ git pull --ff-only origin main
 
 **Последний документированный шаг (26.10.2026):** выбран direct-IMEM путь, проверена upstream версия и BSD-3-Clause, создан CLI preflight и этот README. Эти действия **не** подтверждают доступность GHDL/Gowin на текущем компьютере и не создают компилируемый NEORV32 SoC.
 
-**NOW / NEXT:** на Windows выполнить `.\02-NEORV32\tools\preflight.ps1 -FetchUpstream` и сохранить вывод. Затем в отдельном изолированном каталоге `02-NEORV32/rtl/` создать минимальную VHDL обвязку и тестовую программу `NEORV32 READY`, аккуратно связать `IMEM image` с полученным ПО, собрать реальную симуляцию.
+**NOW / NEXT:** выполнить `.\02-NEORV32\tools\activate_ucrt64.ps1` и проверить/при необходимости установить недостающие инструменты; повторить preflight без `-FetchUpstream`. Затем в отдельном изолированном каталоге `02-NEORV32/rtl/` создать минимальную VHDL обвязку и тестовую программу `NEORV32 READY`, аккуратно связать `IMEM image` с полученным ПО, собрать реальную симуляцию.
 
 **После каждого этапа:** заменить `NOT RUN` на фактические результаты с датой, commit, версией Gowin, input SHA, .fs SHA, STA отчётом, тестовым UART логом. Отдельные отчёты в `02-NEORV32/acceptance/`; большие локальные отчёты в игнорируемой `02-NEORV32/_reports/`.
 
