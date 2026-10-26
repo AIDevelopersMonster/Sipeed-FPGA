@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="./style.css">
   <!-- GitHub Pages cannot add COOP/COEP HTTP headers; this service worker supplies them. -->
   <script src="./coi-serviceworker.js"></script>
-  <script type="module" src="./app.js?v=sd08-manifest-20261025-1"></script>
+  <script type="module" src="./app.js?v=pong-candidate-20261026-1"></script>
 </head>
 <body>
   <div class="shell">
@@ -52,11 +52,12 @@
         <section class="card step">
           <div class="kicker">ШАГ 01 · BITSTREAM</div>
           <h2>Выберите прошивку</h2>
-          <p>С GitHub — выберите v0.2.0 либо аппаратно проверенную SD-08 (FAT32). Для собственного .fs используйте кнопку загрузки с компьютера. Хеш проверяется только по соответствующему файлу.</p>
+          <p>Выберите v0.2.0, SD-08 либо PONG RGB. Для Pong v1.2 до выпуска публичного файла используйте локальный .fs с проверкой SHA-256; автозагрузка появится после публикации релиза. Хеш проверяется только по соответствующему файлу.</p>
           <label for="firmware-profile" class="profile-label">Профиль PiKoSoL</label>
           <select id="firmware-profile" class="profile-select">
             <option value="v020">PiKoSoL v0.2.0 — HDMI / UART / GFX</option>
             <option value="sd08">PiKoSoL SD-08 — FAT32 / DIR / TYPE</option>
+            <option value="pong">PiKoSoL PONG RGB v1.2 — HDMI / GAME / AI</option>
           </select>
           <p id="profile-notes" class="small">Выберите версию прошивки.</p>
           <div class="row-buttons">
