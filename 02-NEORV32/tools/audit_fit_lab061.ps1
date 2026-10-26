@@ -137,27 +137,42 @@ $expectedBankVccio = [ordered]@{
     'led_n_o[5]' = '1.8'
 }
 $pnrText = Get-Content -LiteralPath $reportPath -Raw
+# Gowin versions vary between LF, CRLF and CR report line endings.
+# Do not match output pins with a multiline anchored regex (not portable here).
+# Instead identify exact first-column values in the 16-column "Port Name"
+# table. Never match the separate bank table where the first column is "52/1".
+$pnrLines = [regex]::Split($pnrText, '\r\n|\n|\r')
 foreach ($port in $expectedPins.Keys) {
-    # Match the first PnR table's complete row from the start of the line.
-    # Do not pass a JS replacement string containing $' -- that is a special
-    # replacement token. The publishing script uses a callback instead.
-    $rowRegex = '(?m)^[ \t]*' + [regex]::Escape($port) + '[ \t]*\|[^\r\n]*$'
-    $pnrRows = [regex]::Matches($pnrText, $rowRegex)
-    if ($pnrRows.Count -ne 1) {
-        throw "LAB061_PNR_PORT_NOT_UNIQUE: $port (rows=$($pnrRows.Count))"
+    $found = @(
+        foreach ($line in $pnrLines) {
+            if (-not $line.Contains('|')) { continue }
+            $candidate = @($line.Split('|') | ForEach-Object { $_.Trim() })
+            if ($candidate.Count -ge 2 -and $candidate[0] -ceq $port) {
+                [PSCustomObject]@{ Cells = $candidate; Raw = $line }
+            }
+        }
+    )
+    if ($found.Count -ne 1) {
+        $near = @(
+            $pnrLines |
+                Where-Object { $_.Contains($port) } |
+                Select-Object -First 4
+        )
+        Write-Host "LAB061_PNR_PORT_DIAGNOSTIC: $port nearby=[$($near -join ' || ')]" -ForegroundColor Yellow
+        throw "LAB061_PNR_PORT_NOT_UNIQUE: $port (rows=$($found.Count)); DO NOT PROGRAM"
     }
-    $cell = @($pnrRows[0].Value.Split('|') | ForEach-Object { $_.Trim() })
+    $cell = @($found[0].Cells)
     # Gowin "Port Name | Diff Pair | Loc./Bank | ... | BankVccio":
     # 16 columns, zero-based indices: Loc=2, Constraint=3, IOType=6, VCCIO=15.
     if ($cell.Count -ne 16) {
-        throw "LAB061_PNR_PORT_FORMAT_UNKNOWN: $port columns=$($cell.Count)"
+        throw "LAB061_PNR_PORT_FORMAT_UNKNOWN: $port columns=$($cell.Count); DO NOT PROGRAM"
     }
     $portLoc = @($cell[2].Split('/'))
     if ($portLoc.Count -ne 2 -or
         $portLoc[0] -cne [string]$expectedPins[$port] -or
         $cell[3] -cne 'Y' -or
         $cell[6] -cne [string]$expectedTypes[$port]) {
-        throw "LAB061_PNR_PORT_MAPPING_FAIL: $port loc=$($cell[2]) constraint=$($cell[3]) type=$($cell[6])"
+        throw "LAB061_PNR_PORT_MAPPING_FAIL: $port loc=$($cell[2]) constraint=$($cell[3]) type=$($cell[6]); DO NOT PROGRAM"
     }
     if ($cell[15] -cne [string]$expectedBankVccio[$port]) {
         throw "LAB061_PNR_BANK_VCCIO_FAIL: $port pin=$($cell[2]) IOType=$($cell[6]) BankVccio=$($cell[15]) expected=$($expectedBankVccio[$port]); DO NOT PROGRAM"
