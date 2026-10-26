@@ -1,7 +1,7 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1A SOURCE PIN PASS (operator); TOOLCHAIN PENDING; SIM/FIT/STA/BOARD NOT RUN.**
+**Статус на 26.10.2026: LAB-06.1A SOURCE PIN PASS (operator); MSYS2 UCRT64 найден; GHDL / RISC-V GCC / Make / host GCC отсутствуют; SIM/FIT/STA/BOARD NOT RUN.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
@@ -14,10 +14,40 @@
 - Закреплённый исходный commit: `b2620454ebb2407e81a6a1965ef52e2a860b0432`; проверка `LAB06_SOURCE_PIN_PASS`.
 - BSD-3-Clause: `LAB06_UPSTREAM_LICENSE_PASS`; BOOT_MODE_SELECT=2 и IMEM/DMEM/UART/GPIO generics: `LAB06_BOOT_INTERFACE_PASS`.
 - Gowin CLI и Programmer обнаружены: `C:\Gowin\Gowin_V1.9.9Beta-4_Education`.
-- Первый preflight: `02-NEORV32/_reports/LAB06_PREFLIGHT_20261026_123200.json`; второй: `LAB06_PREFLIGHT_20261026_123231.json`. Квитанции остаются локальными, не в Git.
-- В текущем PATH не обнаружены GHDL, RISC-V GCC и Make; Icarus отсутствует, но для первого VHDL-теста не требуется. Это не доказывает отсутствие программ на диске.
+- Первый preflight: `02-NEORV32/_reports/LAB06_PREFLIGHT_20261026_123200.json`; второй: `LAB06_PREFLIGHT_20261026_123231.json`; третий после активации MSYS2: `LAB06_PREFLIGHT_20261026_124228.json`. Квитанции остаются локальными, не в Git.
+- После запуска `activate_ucrt64.ps1` подтвердилось: **MSYS2 `C:\msys64` доступен**; `iverilog.exe` и `vvp.exe` уже установлены в `C:\msys64\ucrt64\bin`, а Python найден там же. **Отсутствуют** `ghdl`, `riscv64-unknown-elf-gcc`, `make`, host `gcc`. Проверка инструментов: `LAB06_UCRT64_TOOLCHAIN_INCOMPLETE`. **Icarus устанавливать повторно нельзя/не нужно.**
 
-### Сейчас: активировать существующий MSYS2 UCRT64, без повторного clone
+### Новая ближайшая команда (после третьего preflight в 12:42)
+
+Пакеты подтверждены по официальному каталогу MSYS2; используем **GNU Make из MSYS** (его исполняемый файл называется `make.exe`, а UCRT64-пакет предоставляет `mingw32-make.exe`, не эквивалентное имя). **Сначала завершить полный system upgrade**, затем отдельно устанавливать пакеты:
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+$Pac = 'C:\msys64\usr\bin\pacman.exe'
+& $Pac -Syu
+if ($LASTEXITCODE -ne 0) { throw 'MSYS2 full update failed; do not install packages yet' }
+```
+
+Если MSYS2 обновляет core и просит закрыть процессы, выполнить требование, открыть новый PowerShell и **ещё раз** `& 'C:\msys64\usr\bin\pacman.exe' -Syu` до полного завершения обновления. Только затем:
+
+```powershell
+$Pac = 'C:\msys64\usr\bin\pacman.exe'
+& $Pac -S --needed `
+    mingw-w64-ucrt-x86_64-ghdl-mcode `
+    mingw-w64-ucrt-x86_64-riscv64-unknown-elf-gcc `
+    mingw-w64-ucrt-x86_64-gcc `
+    make
+if ($LASTEXITCODE -ne 0) { throw 'MSYS2 package installation failed' }
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\02-NEORV32\tools\preflight.ps1
+ghdl --version
+riscv64-unknown-elf-gcc --version
+make --version
+gcc --version
+```
+
+Следующий требуемый результат: `LAB06_UCRT64_TOOLCHAIN_READY` плюс `LAB06_SOURCE_PIN_PASS`. **Это ещё не результат симуляции.** Источники больше не клонировать. После этого создать минимальную VHDL-обвязку и образ IMEM в отдельном каталоге; только затем GHDL SIM.
+### Архив предыдущего шага: активация MSYS2 уже выполнена
 
 ```powershell
 Set-Location C:\GitHub\Sipeed-FPGA
@@ -66,7 +96,7 @@ git pull --ff-only origin main
 .\02-NEORV32\tools\preflight.ps1 -FetchUpstream
 ```
 
-**Первый входной результат:** `LAB06_SOURCE_PIN_PASS` и отчёт об инструментах, а не `NEORV32 READY`. Прислать вывод preflight. **Следующий инженерный шаг после него:** независимый VHDL-wrapper + образ IMEM, симуляция, затем только Gowin PnR/STA. Не запускать программатор до прохождения этих этапов.
+**Контрольный результат SOURCE PIN PASS уже получен трижды.** Не просите повторять clone. Сначала GHDL, RISC-V GCC, Make и host GCC по разделу «Новая ближайшая команда», затем первый реальный VHDL SIM. **Следующий инженерный шаг после него:** независимый VHDL-wrapper + образ IMEM, симуляция, затем только Gowin PnR/STA. Не запускать программатор до прохождения этих этапов.
 
 ### Прямой промпт для нового диалога
 
@@ -145,9 +175,9 @@ git pull --ff-only origin main
 
 ## 6. Состояние и следующий конкретный шаг / State ledger
 
-**Последний документированный шаг (26.10.2026):** выбран direct-IMEM путь, проверена upstream версия и BSD-3-Clause, создан CLI preflight и этот README. Эти действия **не** подтверждают доступность GHDL/Gowin на текущем компьютере и не создают компилируемый NEORV32 SoC.
+**Последний документированный шаг (26.10.2026, 12:42):** preflight SOURCE PIN PASS после успешной активации MSYS2 UCRT64. Icarus Verilog/VVP, Python и Gowin CLI найдены; GHDL, RISC-V GCC, Make, host GCC отсутствуют. Никакой симуляции, FIT, STA или программирования FPGA не выполнялось.
 
-**NOW / NEXT:** выполнить `.\02-NEORV32\tools\activate_ucrt64.ps1` и проверить/при необходимости установить недостающие инструменты; повторить preflight без `-FetchUpstream`. Затем в отдельном изолированном каталоге `02-NEORV32/rtl/` создать минимальную VHDL обвязку и тестовую программу `NEORV32 READY`, аккуратно связать `IMEM image` с полученным ПО, собрать реальную симуляцию.
+**NOW / NEXT:** выполнить полный `pacman -Syu` (при необходимости повторить после перезапуска), установить четыре указанных пакета `-S --needed`, затем `.\02-NEORV32\tools\activate_ucrt64.ps1` и `.\02-NEORV32\tools\preflight.ps1` без `-FetchUpstream`. Затем в отдельном изолированном каталоге `02-NEORV32/rtl/` создать минимальную VHDL обвязку и тестовую программу `NEORV32 READY`, аккуратно связать `IMEM image` с полученным ПО, собрать реальную симуляцию.
 
 **После каждого этапа:** заменить `NOT RUN` на фактические результаты с датой, commit, версией Gowin, input SHA, .fs SHA, STA отчётом, тестовым UART логом. Отдельные отчёты в `02-NEORV32/acceptance/`; большие локальные отчёты в игнорируемой `02-NEORV32/_reports/`.
 
