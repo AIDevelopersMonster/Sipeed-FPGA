@@ -1,40 +1,117 @@
-# 02 — NEORV32 / LAB-06: comparative RISC-V and standard blocks
+# LAB-06 / NEORV32 — Tang Nano 9K
 
-**Status: PROGRAMME PLAN ONLY — no NEORV32 local synthesis, simulation or BOARD PASS as of 2026-10-26.**
+**Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
+**Статус на 26.10.2026: LAB-06.1A PREPARATION; ещё нет ни SIM PASS, ни Gowin FIT, ни BOARD PASS для NEORV32.**
 
-**Target:** Sipeed Tang Nano 9K, GW1NR-9C (27 MHz). Upstream CPU/SoC: [`stnolting/neorv32`](https://github.com/stnolting/neorv32), pin from [`sources.lock.json`](../sources.lock.json). External board reference: [`jimmyw/tang_nano_9k_neorv32`](https://github.com/jimmyw/tang_nano_9k_neorv32). Source license **must be verified before vendor import**.
+> **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
-**Purpose / Назначение:** Create a second board-accepted RISC-V CPU; **mandatory** compare it to PicoRV32 by measured CPU-only and minimal-SoC configurations, plus comparative implementations of CPU internal building blocks and reusable peripherals.
+Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
 
-## Mandatory LAB-06 research package / Обязательный сравнительный пакет
+## 0. Следующий диалог: что читать и делать
 
-- **[CPU and architecture comparison](../docs/cpu-comparison/README.md)** — controlled RV32I baseline, CPU-only vs native-SoC vs shared-IP comparison, acceptance and stop criteria.
-- **[Internal CPU and peripheral blocks](../docs/cpu-comparison/TYPICAL_BLOCKS.md)** — ALU32, register file, decoder, load/store bus, UART8N1, GPIO6, timer32, SPI and later SD CMD17.
-- **[Measurement protocol](../docs/cpu-comparison/BENCHMARK_PROTOCOL.md)** — same Tang Nano 9K, clocks, memory, workload, compiler, resource/STA evidence, step-by-step reproducibility.
-- **[Blank measurement tables](../docs/cpu-comparison/RESULTS_TEMPLATE.md)** — no invented processor rankings or inferred pass statuses.
-- **[Common experimental MMIO](../common/mmio_v0_1.md)** — comparison ABI; does **not** claim identity with all existing PiKoSoL MMIO offsets.
+**Repository:** https://github.com/AIDevelopersMonster/Sipeed-FPGA  
+**THIS README:** https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/02-NEORV32/README.md  
+**Local Windows repository:** `C:\GitHub\Sipeed-FPGA`. PowerShell 7, Gowin CLI, Icarus/другие инструменты по фактической доступности.
 
-## Planned milestones / Вехи
+Начинать с:
 
-| ID | Implementation scope | Acceptance criterion |
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git status -sb
+git fetch origin
+# Если нет локальных незакоммиченных изменений, мешающих обновлению:
+git pull --ff-only origin main
+
+# Подтянуть точно закреплённые исходники NEORV32 в игнорируемую _deps/.
+# Скрипт НЕ собирает и НЕ программирует FPGA:
+.\02-NEORV32\tools\preflight.ps1 -FetchUpstream
+```
+
+**Первый входной результат:** `LAB06_SOURCE_PIN_PASS` и отчёт об инструментах, а не `NEORV32 READY`. Прислать вывод preflight. **Следующий инженерный шаг после него:** независимый VHDL-wrapper + образ IMEM, симуляция, затем только Gowin PnR/STA. Не запускать программатор до прохождения этих этапов.
+
+### Прямой промпт для нового диалога
+
+> Продолжи LAB-06 из `Sipeed-FPGA/02-NEORV32/README.md` на текущем `main`. Это единственный источник статуса и следующего шага; прочитай также `docs/cpu-comparison/README.md`, `TYPICAL_BLOCKS.md` и `BENCHMARK_PROTOCOL.md`. Используй существующие локальные `C:\GitHub\Sipeed-FPGA` и инструменты PowerShell 7. Наша первая задача — NEORV32 `BOOT_MODE_SELECT=2`, 27 MHz, IMEM ROM + DMEM, UART 115200, 6 LED, без внешней Flash. Сначала оцени пригодность закреплённой upstream версии, проверь preflight и инструменты, затем предложи минимальные тестируемые файлы для симуляции и Gowin. Не изменяй PiKoSoL/Pong/SD и не объявляй SIM, FIT, STA или BOARD PASS без фактических логов. Проводи 2–3 аппаратных испытания максимум и сохраняй SHA-256. После очередного этапа обнови этот README для следующего диалога.
+
+## 1. Выбранная техническая стартовая конфигурация
+
+| Параметр | LAB-06.1A — первое исполнение | Обоснование |
 | --- | --- | --- |
-| **LAB-06.1** | Minimal pinned NEORV32 RV32I, on-chip ROM/RAM, 115200 UART, six LEDs; no HDMI/SD/user Flash | SIM + Gowin FIT/STA + 2–3 board checks, real `NEORV32 READY` and GPIO behavior |
-| **LAB-06.2** | Matching minimal PicoRV32 CPU and SoC, not full PiKoSoL+HDMI | Same workloads, tool version, clock, ROM/RAM size where possible and separate CPU/SoC resources |
-| **LAB-06.3** | Study and compare ALU32 / regfile32×32 / RV32I decoder, plus standardized UART/GPIO/TIMER | Common deterministic tests and exact implementation/adapter overhead measurement |
-| **LAB-06.4** | SPI mode 0 and **read-only** CMD17 SD experiment | First common IP/bridge simulation, then measured FIT and read-only physical evidence |
-| **Later** | Native memory boot alternatives, debug, traps/interrupts, Zephyr, HDMI | Separate independently justified work packages |
+| FPGA | `Sipeed Tang Nano 9K / GW1NR-9C` | Тот же стенд, что PicoRV32 |
+| Входной CLK | `27 MHz`; фиксировать действительную частоту в отчёте | Сравнимая исходная частота |
+| CPU | **NEORV32** из закреплённого исходного commit (ниже) | Не подменять другим релизом |
+| Язык RTL | **Исходный VHDL** (`neorv32` library) | Gowin поддерживает VHDL; GHDL — для независимой симуляции |
+| Первая загрузка CPU | **Direct boot: `BOOT_MODE_SELECT=2`**, программа предзаписана в `IMEM` | Никакого UART bootloader и User Flash на первом шаге |
+| ISA baseline | RV32I; `RISCV_ISA_M=false`, `RISCV_ISA_C=false`, другие факультативные расширения отключены, если не требуются самим CPU | Контролируемая база для сравнения; CSR/привилегированные механизмы NEORV32 отдельно учесть |
+| ROM | `IMEM_EN=true`, целевой размер **16 KiB**, `IMEM` как ROM | Образ формируется до синтеза |
+| RAM | `DMEM_EN=true`, **2 KiB** — целевая пробная конфигурация | Если 2 KiB не поддерживаются текущим linker/runtime, зафиксировать и выполнить отдельно нормализованный тест; не выдавать разные размеры за одинаковые |
+| UART | Встроенный `IO_UART0_EN=true`, `115200 8N1` | Текст `NEORV32 READY` и затем обмен байтами |
+| GPIO | `IO_GPIO_NUM=6`, инверсия для активного нуля на физических LED | Перемещение маски по 6 светодиодам |
+| Optional | Debug/OCD off; XBUS off; SPI/SD/HDMI/Zephyr off; дополнительные таймеры только если минимально требуются runtime | Меньше риска и расход ресурсов |
+| FPGA programming | **Только volatile SRAM**, существующий локальный Gowin Programmer | Не писать конфигурационную Flash и User Flash |
+| Идентичность | SHA-256 upstream source + ROM image + input manifest + resulting `.fs` | Проверяемое аппаратное испытание |
 
-### Engineering restrictions / Ограничения
+**Выбор обоснован upstream:** в закреплённом `stnolting/neorv32` существует `rtl/test_setups/neorv32_test_setup_approm.vhd` с `BOOT_MODE_SELECT=2`, `IMEM_EN`, `DMEM_EN`; это ближайший безопасный шаблон. Мы создаём **свой** компактный wrapper с UART и шестью GPIO. Не копировать чужой полный Tang Nano 9K проект: его User Flash, внешняя память, Zephyr и интерфейсы более ранней версии CPU не относятся к этому испытанию. В частности, старые generics `MEM_INT_IMEM_EN/MEM_INT_DMEM_EN` не являются действующими именами в нашем pinned upstream; актуальные — `IMEM_EN/DMEM_EN`.
 
-- **Bring-up budget: 1–2 days.** If 2–3 documented board tests fail, stop rewriting RTL and diagnose physical clock/reset, FT2232 COM drivers, JTAG, pinout, memory and STA.
-- **Do not use Flash** in the initial NEORV32 experiments. External board tutorials that use Gowin embedded **user Flash** are reference material only. Program the FPGA **volatile SRAM** with the established local CLI toolchain when a safe exact-build candidate exists.
-- Separate architecture features from area/throughput claims: NEORV32 includes optional UART/GPIO/timer; the bare PicoRV32 CPU does not. Comparing a complete NEORV32 SoC to a bare PicoRV32 core would be invalid.
-- Do not redistribute upstream vendor tools, generated proprietary IP, or external board source without reviewing per-component licenses.
-- Keep PiKoSoL v0.2.0 and SD-06 qualified evidence unchanged. SD-07 CPU+HDMI+CMD17/CMD24 remains a **FIT-ONLY candidate**, not a precondition for the second CPU.
-- A board-level test must be bound to exact source commit, compiler, PnR/STA reports and bitstream SHA.
+**Проверенные board-pin ориентиры** из существующего PiKoSoL: `clk=52`, `reset_n=3`, `LED pins=10,11,13,14,15,16` (active low), `UART TX=17`, `UART RX=18`. Использовать `boards/tang-nano-9k/experiments/sd07-pikosol-mmio/constraints/sd07_cpu_hdmi_sd.cst` как **источник для проверки**, но не переносить HDMI/SD constraints в новый маленький SoC. Точные физические подключения и I/O voltages проверить перед PnR.
 
-## Directory contract / Будущая структура
+**Замечание по Clock/Reset:** даже если upstream VHDL компилируется, потребуются работающий reset, корректное направление UART на FT2232 B и точное соответствие частоты `CLOCK_FREQUENCY=27000000`. Успешная симуляция не доказывает это.
 
-Create directories **only when implementations exist**: `rtl/`, `firmware/`, `tests/`, `constraints/`, `reports/`. Put reusable blocks in a common peripheral library **only after** the actual matching hardware contract exists, rather than duplicating untested modules.
+## 2. Upstream, воспроизводимость, лицензия
 
-**English summary:** NEORV32 is the next CPU bring-up candidate on Tang Nano 9K. LAB-06 also measures processor architecture and implements/comparatively tests internal ALU/register-file/decoder and standardized UART/GPIO/timer/SPI peripherals. CPU-only, native-SoC and identical shared-IP configurations must be kept distinct. No benchmark or board PASS is yet claimed.
+- **Пин NEORV32:** https://github.com/stnolting/neorv32/tree/b2620454ebb2407e81a6a1965ef52e2a860b0432
+- Commit: `b2620454ebb2407e81a6a1965ef52e2a860b0432`; запись в [`sources.lock.json`](../sources.lock.json) `stage02_cpu`.
+- **Лицензия этого исходного commit: BSD-3-Clause**, проверена по `LICENSE` upstream; при копировании файлов сохранять заголовки и уведомления, не переносить весь vendor-каталог без необходимости.
+- Рабочая VHDL библиотека upstream называется `neorv32`, список исходников и порядок — `rtl/file_list_core.f`; GHDL-пример `sim/`, VHDL→Verilog fallback `rtl/verilog/`.
+- Образ прямой загрузки связан с `rtl/core/neorv32_imem_image.vhd`. Перед генерацией приложения проверить pipeline компиляции upstream `sw/example` и `sw/image_gen`, linker script и `BOOT_MODE_SELECT=2`.
+- Пример платы [`jimmyw/tang_nano_9k_neorv32`](https://github.com/jimmyw/tang_nano_9k_neorv32) — **архитектурная справка**, НЕ безопасная прошивка для нашей задачи: там `UFLASH`, отдельная прошивка памяти, и иные CPU generics.
+- **Нельзя включать `--user-flash`, `-f`, erase, SPI Flash или прошивку заводской конфигурации** ради простого сообщения UART.
+
+`.\02-NEORV32\tools\preflight.ps1 -FetchUpstream` проверяет source SHA, BSD-3-Clause, список необходимых файлов и наличие инструментов, но **не исполняет** VHDL/CPU и не подключается к FPGA.
+
+## 3. Минимальная последовательность проверок и критерии STOP
+
+| Gate | Что делаем | Что считать PASS | Состояние |
+| --- | --- | --- | --- |
+| **06.1A SOURCE** | Закреплённая VHDL версия, лицензия, инструменты, простая конфигурация | `LAB06_SOURCE_PIN_PASS`, список tool versions, осмысленный выбор компиляции | **NOT RUN LOCALLY** |
+| **06.1B SIM** | Образ `NEORV32 READY` + GPIO test, VHDL wrapper + bench, GHDL/управляемая симуляция | CPU **действительно выполняет инструкции**, UART выдаёт ожидаемые байты, GPIO меняется; в тестбенче есть FAIL-сценарии | **NOT RUN** |
+| **06.1C FIT/STA** | Gowin на GW1NR-9C, 27 MHz, pinout, ресурсы, CDC и все Slack | PnR завершён, ресурсный FIT, 0 нарушений setup/hold, положительные setup/hold/recovery/removal, никаких критических unconstrained paths | **NOT RUN** |
+| **06.1D BOARD** | Волатильная загрузка `.fs`, COM/LED, протокол | **2–3** испытания: (1) UART идентификатор, (2) GPIO LED, (3) короткая RX/TX проверка при наличии | **NOT RUN** |
+| **06.2 COMPARE** | Отдельный **минимальный** PicoRV32 с той же ISA/ресурсными условиями | Два паспортированных CPU/SoC и таблица объективных ресурсов/циклов | **NOT RUN** |
+
+**Срок bring-up: 1–2 дня на плату.** Если 2–3 разумных теста не работают, **останавливаемся**: смотреть pinout, USB/JTAG, питание, 27 MHz, reset, UART COM и STA. Не делать пятнадцать бессистемных прошивок и не ремонтировать плату ради теста.
+
+Если NEORV32 **не помещается** на 9K в точно выбранной конфигурации, сохраняем Gowin report и `NO_FIT`; не уменьшаем память/ISA незаметно и не выдаём другой вариант за сравнимый.
+
+## 4. Одинаковые тесты для PicoRV32 / NEORV32
+
+После первого BOARD PASS выполняем программу [сравнительного анализа](../docs/cpu-comparison/README.md):
+
+- **CPU-only:** RV32I и одинаковые алгоритмы ALU/сдвигов, `S/B/J` декодирования, загрузки/сохранения и ветвлений; отсчёт cycles при установленном режиме и таймингах памяти.
+- **Minimal SoC:** 27 MHz, сопоставимые IMEM/DMEM, UART 115200, шесть GPIO; отдельно фиксируем стоимость wrapper, памяти и native периферии.
+- **Common-IP:** одинаковые RTL GPIO6, UART8N1, TIMER32 через два CPU bus adapters. Только после успешного baseline — SPI и SD CMD17 **read-only**.
+- **Внутренние блоки:** независимые учебные ALU32, регистровый файл 32×32, RV32I Decoder; одинаковые test vectors, измерения LUT/FF/BRAM/частоты, без присвоения стороннего VHDL.
+
+[Типовые блоки](../docs/cpu-comparison/TYPICAL_BLOCKS.md) · [Протокол измерений](../docs/cpu-comparison/BENCHMARK_PROTOCOL.md) · [Таблицы результатов](../docs/cpu-comparison/RESULTS_TEMPLATE.md).
+
+**Никаких выводов о том, какой CPU быстрее/лучше, до измерений.** Существующий PiKoSoL PicoRV32+HDMI нельзя сравнивать напрямую с minimal NEORV32.
+
+## 5. Не делать / Protected results
+
+- Не переписывать работавшие PiKoSoL `v0.2.0`, HDMI, Pong/Breakout, опубликованные `.fs`, SD-06 CMD24 scratch и SD-08 FAT32 read-only.
+- Игры ведутся отдельно в проекте **KonSol RetroStation**; LAB-06 — только CPU/SoC и типовые блоки в `Sipeed-FPGA`.
+- SD-06 уже доказал **односекторную** запись с PC через UART и обратное восстановление, но **не** FAT32 file write; SD-07 CPU+HDMI+SD MMIO пока FIT-ONLY кандидат. Запись SD внутри CPU **не** является задачей LAB-06.1.
+- Не начинать LiteX/VexRiscv, Rocket, ОС или полноценную файловую систему до независимого минимального NEORV32.
+- Репозиторий `main` не должен получать неподтверждённые benchmark-PASS, бинарники с неизвестным SHA или чужой vendor-code без notices.
+
+## 6. Состояние и следующий конкретный шаг / State ledger
+
+**Последний документированный шаг (26.10.2026):** выбран direct-IMEM путь, проверена upstream версия и BSD-3-Clause, создан CLI preflight и этот README. Эти действия **не** подтверждают доступность GHDL/Gowin на текущем компьютере и не создают компилируемый NEORV32 SoC.
+
+**NOW / NEXT:** на Windows выполнить `.\02-NEORV32\tools\preflight.ps1 -FetchUpstream` и сохранить вывод. Затем в отдельном изолированном каталоге `02-NEORV32/rtl/` создать минимальную VHDL обвязку и тестовую программу `NEORV32 READY`, аккуратно связать `IMEM image` с полученным ПО, собрать реальную симуляцию.
+
+**После каждого этапа:** заменить `NOT RUN` на фактические результаты с датой, commit, версией Gowin, input SHA, .fs SHA, STA отчётом, тестовым UART логом. Отдельные отчёты в `02-NEORV32/acceptance/`; большие локальные отчёты в игнорируемой `02-NEORV32/_reports/`.
+
+## English: handoff summary
+
+LAB-06 is starting with a **pinned upstream VHDL NEORV32** on Tang Nano 9K, 27 MHz, **direct boot from an initialized on-chip IMEM image** (BOOT_MODE_SELECT=2). Enable minimal UART0 and six GPIO outputs, with optional processor features, external Flash, HDMI, SD and Zephyr disabled. Start with the supplied read-only preflight, then **simulation → Gowin PnR/STA → no more than three board checks**. No NEORV32 SIM/FIT/BOARD result exists yet. Later compare **matched PicoRV32 vs NEORV32 CPU-only, native-SoC and shared-IP** configurations, including independent ALU/register-file/decoder and standard GPIO/UART/timer/SPI block tests. Update this README as the canonical next-session checkpoint.
