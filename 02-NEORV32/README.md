@@ -1,11 +1,38 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: SIM PASS только RF ARCHSEL=0; первая Gowin FIT FAIL PA2122 (regfile DPB); ARCHSEL=2 подготовлен, повторная SIM/FIT NOT RUN; STA/BOARD NOT RUN.**
+**Статус на 26.10.2026: LAB-06.1B SIM PASS для CPU_RF_ARCH_SEL=2 подтверждён оператором; второй Gowin FIT/STA NOT RUN; BOARD NOT RUN. Первая попытка ARCHSEL=0 завершилась PA2122.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка — 26.10.2026, 14:24: ARCHSEL=2 повторная SIM PASS
+
+**Подтверждено оператором на Windows GHDL** после выбора `CPU_RF_ARCH_SEL => 2` в `rtl/lab061_neorv32_top.vhd`. Это отдельный успешный тест новой конфигурации CPU, а не перенос старого SIM PASS.
+
+- Job: `02-NEORV32/_build/run_20261026_142450_892`.
+- Протокол: `_build/run_20261026_142450_892/receipt.json`.
+- Источник: неизменный NEORV32 upstream commit `b2620454ebb2407e81a6a1965ef52e2a860b0432`.
+- RV32I binary **132 bytes**, SHA-256 `8B6E8AD272BB56584D37EEB37484FC778B2B2C796F3F0CA89ED5FE52D532A285`.
+- IMEM image SHA-256 `7BEA7D440BCE6C559E3DA6E44ACEA7BE8044C4418D3E7913AB9B6AA51E16A535`. Совпадает с прежним, поскольку изменилась конфигурация аппаратного регистрового файла, а не прошивка.
+- Вывод NEORV32: `CPU ISA: rv32ix_zicsr_zifencei`; `CPU tuning options: ... rf_arch=reg` — это именно выбранный `ARCHSEL=2`.
+- `LAB061_GHDL_ELAB_OK`; `LAB061_NEORV32_UART_GPIO_TB_PASS: 15 UART bytes, two GPIO patterns`; `LAB061_SIM_PASS` на времени 1451385286 ps (1.451385286 ms).
+- Предупреждения `NUMERIC_STD` о metavalues возникли при `@0ms` и на первом такте `@18518ps`; этот UART/GPIO-тестбенч пройден, но это не доказательство отсутствия всех проблем инициализации во всех конфигурациях.
+- **Gowin FIT/STA с ARCHSEL=2 ещё не запускались; FPGA SRAM/Flash/SD не тронуты.**
+
+### NEXT — второй Gowin FIT/STA только с новым SIM job
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+.\02-NEORV32\tools\activate_ucrt64.ps1
+$SimJob = '.\02-NEORV32\_build\run_20261026_142450_892'
+.\02-NEORV32\tools\fit_lab061.ps1 -SimJob $SimJob
+```
+
+`fit_lab061.ps1` должен проверить SIM receipt, SHA-256 IMEM и бинарника, SHA исходников VHDL и pinned upstream, затем запустить GHDL→Verilog→Gowin CLI. Не использовать предыдущий job `run_20261026_132020_122`: его VHDL SHA относится к ARCHSEL=0 и должен отвергаться проверкой целостности.
+
+**Следующий критерий:** получение фактического Gowin PnR и отчёта LUT/ALU/FF/BSRAM и STA setup/hold/recovery/removal. Если появляется новый ERROR — сохранить `_build/fit_*/gowin_cli.log` и показать первую ошибку. **Никаких аппаратных загрузок до полного STA/constraints audit.**
 
 ## Контрольная точка — 26.10.2026, 14:02: Gowin PA2122 → RF ARCHSEL=2
 
@@ -314,9 +341,9 @@ git pull --ff-only origin main
 
 ## 6. Состояние и следующий конкретный шаг / State ledger
 
-**Последний документированный шаг (26.10.2026, 12:42):** preflight SOURCE PIN PASS после успешной активации MSYS2 UCRT64. Icarus Verilog/VVP, Python и Gowin CLI найдены; GHDL, RISC-V GCC, Make, host GCC отсутствуют. Никакой симуляции, FIT, STA или программирования FPGA не выполнялось.
+**Последний документированный шаг (26.10.2026, 14:24):** оператор получил GHDL SIM PASS для `ARCHSEL=2` с подтверждёнными SHA-256 firmware/IMEM. Предыдущая PA2122 относится к ARCHSEL=0. Следующий gate — вторая Gowin FIT/STA, аппаратная плата не тронута. Старые preflight сохранены как история выше.
 
-**NOW / NEXT:** выполнить полный `pacman -Syu` (при необходимости повторить после перезапуска), установить четыре указанных пакета `-S --needed`, затем `.\02-NEORV32\tools\activate_ucrt64.ps1` и `.\02-NEORV32\tools\preflight.ps1` без `-FetchUpstream`. Затем в отдельном изолированном каталоге `02-NEORV32/rtl/` создать минимальную VHDL обвязку и тестовую программу `NEORV32 READY`, аккуратно связать `IMEM image` с полученным ПО, собрать реальную симуляцию.
+**NOW / NEXT:** toolchain готов, SIM PASS получен для ARCHSEL=2. Запустить `fit_lab061.ps1 -SimJob '.\02-NEORV32\_build\run_20261026_142450_892'`, затем изучить фактические ресурсы и STA. Программатор не запускать до полного аудита. Затем в отдельном изолированном каталоге `02-NEORV32/rtl/` создать минимальную VHDL обвязку и тестовую программу `NEORV32 READY`, аккуратно связать `IMEM image` с полученным ПО, собрать реальную симуляцию.
 
 **После каждого этапа:** заменить `NOT RUN` на фактические результаты с датой, commit, версией Gowin, input SHA, .fs SHA, STA отчётом, тестовым UART логом. Отдельные отчёты в `02-NEORV32/acceptance/`; большие локальные отчёты в игнорируемой `02-NEORV32/_reports/`.
 
