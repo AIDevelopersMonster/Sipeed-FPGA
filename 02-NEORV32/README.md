@@ -1,11 +1,51 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1B SIM PASS; LAB-06.1C новый PnR/STA PRELIM PASS после исправления CST, однако BankVccio нового FIT пока НЕ проверен. BOARD NOT RUN; SRAM не программировать до окончательного read-only аудита.**
+**Статус на 26.10.2026: LAB-06.1B real-CPU GHDL SIM PASS; LAB-06.1C Gowin PnR + preliminary STA PASS; exact new bitstream SHA, 57 input hashes, pinout and 10/10 actual BankVccio PASS. READY FOR CONTROLLED SRAM-ONLY SMOKE TEST; BOARD NOT RUN, Flash/SD NOT TOUCHED.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка — 26.10.2026, после 15:07: LAB-06.1C PREBOARD AUDIT PASS / SRAM SMOKE NEXT
+
+**Операторский Windows PowerShell лог подтверждает реальную целостность ровно того PnR-образа, который можно использовать для первого ограниченного аппаратного испытания.** Это не BOARD PASS: успешной загрузки на физическую FPGA и UART/LED наблюдений пока нет.
+
+- **Exact approved candidate for SRAM-only smoke:** `02-NEORV32/_build/fit_20261026_144630_744_c86f33/lab061_neorv32_nano9k.fs`.
+- **SHA256:** `3E1DC3EB6DC464E3992C733078A564680D5F279E4D89BAA8A47CB9002246FC5F`. Старый `6BD426...` запрещён для этого испытания.
+- `LAB061_BITSTREAM_SHA256_PASS`; `LAB061_INPUT_SNAPSHOT_SHA_PASS: 57 staged inputs + ROM + Verilog`.
+- `LAB061_PINS_27MHZ_PASS` — 10 pins + IO types and single-clock 27MHz SDC.
+- **`LAB061_PNR_BANK_VCCIO_PASS: 10/10 fitted pins`:** clock pin52 / Bank1 **3.3 V**, UART pin17/18 Bank2 **3.3 V**, reset pin3 и LED pins10/11/13/14/15/16 Bank3 **1.8 V**. Это значения *фактического* Gowin PnR report, а не только CST.
+- STA screen `5466` paths/endpoints, `setup_viol=0`, `hold_viol=0`; minimum displayed setup `+14.936 ns`, hold `+0.405 ns`, recovery `+34.707 ns`, removal `+1.528 ns`. **Preliminary internal STA only**; external UART RX and reset are not fully phase-constrained.
+- Gowin PnR resource summary: Logic **3228/8640 (38%)**, LUT **3052**, ALU **122**, Registers **1923/6693 (29%)** incl. Logic FF **1921**, IO FF **2**; BSRAM **20%**; DSP **0%**, PLL **0/2**; IO ports **10**.
+- `LAB061_INTERNAL_PREBOARD_AUDIT_PASS`. **`LAB061_BOARD: NOT RUN`.** No actual SRAM load or Flash/SD write has occurred.
+
+### One controlled on-board check — use the existing known programmer
+
+The existing, previously tested `01-PicoRV32/lab04/tools/program_lab04_sram.ps1` uses Gowin `--device GW1NR-9C --operation_index 2` (volatile **SRAM**, never configuration Flash). Its old `LAB04` output labels and HDMI wording are generic legacy naming; for **LAB-06** observe UART/LED, not HDMI. Never add a flash operation. First do hash + dry-run, then opt in with `-Program`:
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+$Fs = (Resolve-Path '.\02-NEORV32\_build\fit_20261026_144630_744_c86f33\lab061_neorv32_nano9k.fs').Path
+$ExpectedSHA = '3E1DC3EB6DC464E3992C733078A564680D5F279E4D89BAA8A47CB9002246FC5F'
+if ((Get-FileHash -LiteralPath $Fs -Algorithm SHA256).Hash -cne $ExpectedSHA) {
+    throw 'LAB061_CANDIDATE_SHA256_FAIL: do not program'
+}
+.\01-PicoRV32\lab04\tools\program_lab04_sram.ps1 -Bitstream $Fs
+# Check output says operation_index 2 / volatile SRAM / dry-run only.
+
+# After dry-run is correct, explicit SRAM programming (not Flash):
+.\01-PicoRV32\lab04\tools\program_lab04_sram.ps1 -Bitstream $Fs -Program
+```
+
+**Board acceptance checks (maximum 2–3 basic checks):**
+1. Programmer finds GW1NR-9C, operation 2 SRAM reaches 100%, exit 0. This is only a **PROGRAM COMMAND PASS**, not CPU hardware PASS.
+2. Open correct FT2232 **UART** COM port at 115200 8N1; press board button **S1 (reset pin3)** once *after port opens*. Expect exactly `NEORV32 READY` + CRLF once per reset. It is not periodically transmitted; if terminal opens after programming, press reset again to obtain the banner.
+3. After the brief banner, final GPIO output `0x2A` with active-low LED mapping: **LED bits 1,3,5 on; bits 0,2,4 off** (three alternating physical LEDs). First pattern `0x15` persists for around 1.5 ms and may not be visible.
+
+Use one documented attempt and one controlled reset/COM test. If no COM or USB cable cannot be opened, inspect driver/port before ANY firmware changes. If physical test fails after 2–3 clear attempts, record and stop, per project policy. No CLI writes to SD or configuration Flash. Preserve original PiKoSoL and Pong builds.
+
+**Next after the user returns:** record exact programmer output, COM port, UART capture, and actual LED state in `02-NEORV32/acceptance`. Do not promote CPU to HARDWARE PASS on the basis of programming exit 0 only.
 
 ## Контрольная точка — 26.10.2026, 15:07: текстовый аудитор останавливался до BankVccio
 
