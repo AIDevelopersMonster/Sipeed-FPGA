@@ -1,11 +1,32 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1B real-CPU GHDL SIM PASS; LAB-06.1C Gowin PnR + preliminary STA PASS; exact new bitstream SHA, 57 input hashes, pinout and 10/10 actual BankVccio PASS. READY FOR CONTROLLED SRAM-ONLY SMOKE TEST; BOARD NOT RUN, Flash/SD NOT TOUCHED.**
+**Статус на 26.10.2026: LAB-06.1D BOARD SRAM PROGRAM PASS + REAL UART BOOT PASS (`NEORV32 READY`); LED 0x2A visual confirmation PENDING. LAB-06.1B GHDL SIM PASS, LAB-06.1C Gowin PnR/STA PRELIM PASS and 10/10 fitted BankVccio PASS. Flash/SD NOT TOUCHED.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка — 26.10.2026: LAB-06.1D BOARD SRAM + UART BOOT PASS
+
+**Оператор подтвердил настоящий запуск NEORV32 на Sipeed Tang Nano 9K: терминал получил `NEORV32 READY`, а Gowin Programmer успешно записал точный битстрим в энергозависимую FPGA SRAM.** До этого были успешно пройдены реальный GHDL UART/GPIO SIM, Gowin PnR, preliminary STA и PnR-аудит электропитания 10/10 выводов. Это факт работы второго RV32I процессора на настоящем FPGA; **визуальная проверка LED ещё не представлена**, поэтому общий `LAB061_BOARD_ALL_TESTS_PASS` не объявлен.
+
+- Exact image: `02-NEORV32/_build/fit_20261026_144630_744_c86f33/lab061_neorv32_nano9k.fs`.
+- SHA-256 verified by operator programmer wrapper: `3E1DC3EB6DC464E3992C733078A564680D5F279E4D89BAA8A47CB9002246FC5F`.
+- Programmer: `Gowin USB Cable(FT2CH)/0/0/null@2.5MHz`; FPGA `GW1NR-9C(0x1100481B)`.
+- Programming command: existing `01-PicoRV32/lab04/tools/program_lab04_sram.ps1 -Bitstream $Fs -Program`; **operation_index 2 = SRAM Program**, 100%, process exit 0, **4.62 s**.
+- Hardware readback: `User Code 0x00003271`, `Status Code 0x0003F020`.
+- Real UART observed by operator: exactly `NEORV32 READY`. This is **UART BOOT HARDWARE PASS**, not simulated output. COM port identifier and whether this was captured after a physical S1 reset are **not specified**.
+- **LED observation PENDING.** Exact compiled firmware first writes logical GPIO `0x15` briefly, transmits banner, then sets `0x2A` indefinitely. With inverted LED outputs, expect 3 alternating visible LEDs: logical bits 1,3,5 ON and 0,2,4 OFF. Do not claim the pins were independently observed until operator confirms.
+- **Flash/SD were not touched:** explicit SRAM-only programmer command. The earlier LAB04-script text about verifying HDMI is a generic label and does not apply to LAB06.
+- Source pin: `b2620454ebb2407e81a6a1965ef52e2a860b0432`; CPU register file `CPU_RF_ARCH_SEL=2`, IMEM-ROM 16 KiB, DMEM 2 KiB, UART0, GPIO6, 27MHz.
+- Previous timing report: 5466 paths, setup/hold violations 0, displayed minimum slacks setup +14.936 ns, hold +0.405 ns, recovery +34.707 ns, removal +1.528 ns; external IO asynchronous timing not fully characterized.
+
+### Minimal next action (NO new build or SRAM rewrite)
+
+With the image still resident in FPGA SRAM, visually check the six board LEDs: **3 alternating LEDs lit** (mask `0x2A`; initial `0x15` lasts around 1.5 ms and is not intended to be visually observed). Optionally press S1 reset once while UART 115200 8N1 is open; a new `NEORV32 READY` should appear. Record actual LED pattern and reset behavior. If checks confirm, promote to `LAB061_BOARD_HARDWARE_PASS` and close LAB-06.1. If they fail, make no more than 2–3 documented physical tests, then stop. Do NOT mix Pong/PicoRV32 HDMI checks into LAB06.
+
+- Exact hardware receipt: [LAB061_BOARD_2026-10-26.md](acceptance/LAB061_BOARD_2026-10-26.md).
 
 ## Контрольная точка — 26.10.2026, после 15:07: LAB-06.1C PREBOARD AUDIT PASS / SRAM SMOKE NEXT
 
