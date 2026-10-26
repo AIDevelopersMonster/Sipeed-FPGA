@@ -13,7 +13,8 @@ const ENGINE_URL="./vendor/bundle.js";
 const PROFILES=Object.freeze({
   v020:Object.freeze({name:"PiKoSoL v0.2.0",sha:FW_SHA,url:FW_URL,filename:"picorv32_lab04_hdmi_nano9k.fs",release:RELEASE_URL,notes:"Аппаратно проверенная базовая версия: PicoRV32, HDMI, UART, GFX. Команд FAT32 нет."}),
   sd08:Object.freeze({name:"PiKoSoL SD-08 · FAT32",sha:"37ddb2fb7d20f7e4ad610dad4160dc98ed38e5197221b62644642d32c8c09f4b",url:"./firmware/sd08_pikosol_fat32_readonly.fs",filename:"sd08_pikosol_fat32_readonly.fs",release:"https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/download/pikosol-sd08-fat32-ro/sd08_pikosol_fat32_readonly.fs",notes:"25.10.2026 HARDWARE PASS: FS, DIR, TYPE PIKO.TXT. Только FAT32 8.3 read-only. Автозагрузка станет доступна после публикации файла."}),
-  pong:Object.freeze({name:"PiKoSoL PONG RGB v1.2 · Tang Nano 9K",sha:"978d9bcff7c1ef1350f88af2c603a00b7d3bb6325ea39019ca57cf5091639f96",url:"./firmware/pikosol_pong_rgb_nano9k.fs",filename:"pikosol_pong_rgb_nano9k.fs",release:"https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-pong-rgb-v1.2",notes:"Игра Pong, HDMI + Web Serial UART, отдельная аппаратная логика без CPU. Пока только локальная загрузка проверенного SHA256: автоматическая загрузка появится после релиза и подтверждения на плате."})
+  pong:Object.freeze({name:"PiKoSoL PONG RGB v1.2 · Tang Nano 9K",sha:"978d9bcff7c1ef1350f88af2c603a00b7d3bb6325ea39019ca57cf5091639f96",url:"./firmware/pikosol_pong_rgb_nano9k.fs",filename:"pikosol_pong_rgb_nano9k.fs",release:"https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-pong-rgb-v1.2",notes:"Аппаратно проверенная игра Pong, HDMI + Web Serial UART. Опубликованный релиз доступен и через GitHub Pages."}),
+  breakout:Object.freeze({name:"KonSol RetroStation BREAKOUT RGB v0.1.0 · Tang Nano 9K",sha:"4cf80dbd008b0d41d4316bf63db952190c03940a4ffb1ffc00cab09210ae8789",url:null,filename:"pikosol_breakout_rgb_nano9k.fs",release:"https://github.com/AIDevelopersMonster/Sipeed-FPGA/tree/main/games/breakout-rgb",localOnly:true,notes:"Оператор подтвердил игру и победу на Tang Nano 9K. Сейчас выберите ЛОКАЛЬНЫЙ .fs точно этой сборки с SHA-256 4CF80DBD...10AE8789. Программирование только в SRAM; GitHub Pages не содержит бинарник до отдельной публикации."})
 });
 let activeProfile=PROFILES.v020;
 let device=null, firmware=null, loadedSha="", isVerified=false, localUnverified=false, busy=false, engine=null;
@@ -22,7 +23,7 @@ function log(message){const date=new Date();logEl.textContent+="["+date.toLocale
 function status(msg,type="neutral"){$("operation-status").textContent=msg;$("operation-status").className="notice "+type;}
 function hashResult(msg,type="neutral"){$("hash-result").textContent=msg;$("hash-result").className="notice "+type;}
 function metric(id,text,pass=null){const e=$(id);e.textContent=text;e.className=pass===true?"pass":pass===false?"fail":"";}
-function ready(){ $("program").disabled=busy||!firmware||!device||(!isVerified&&!localUnverified&&!$("custom-confirm").checked);$("load-github").disabled=busy;$("connect-jtag").disabled=busy;$("input-file").disabled=busy;$("input-hash").disabled=busy;$("firmware-profile").disabled=busy;}
+function ready(){ $("program").disabled=busy||!firmware||!device||(!isVerified&&!localUnverified&&!$("custom-confirm").checked);$("load-github").disabled=busy||activeProfile.localOnly===true;$("connect-jtag").disabled=busy;$("input-file").disabled=busy;$("input-hash").disabled=busy;$("firmware-profile").disabled=busy;}
 function selectFirmwareProfile(){
   activeProfile=PROFILES[$("firmware-profile").value]||PROFILES.v020;
   firmware=null;loadedSha="";isVerified=false;localUnverified=false;
@@ -30,6 +31,8 @@ function selectFirmwareProfile(){
   $("firmware-size").textContent="—";$("actual-sha").textContent="Файл ещё не выбран";$("expected-sha").textContent="Не указан";$("hash-file-name").textContent="Эталон SHA-256: необязательно";
   $("profile-name").textContent=activeProfile.name;$("profile-notes").textContent=activeProfile.notes;
   $("release-download").href=activeProfile.release;
+  $("release-download").textContent=activeProfile.localOnly?"исходники Breakout (локальная загрузка .fs)":"скачайте файл из GitHub Releases";
+  $("load-github").textContent=activeProfile.localOnly?"Автозагрузка пока недоступна — выберите локальный .fs":"↓ Получить .fs с GitHub Pages";
   $("custom-confirm").checked=false;$("custom-confirm").disabled=true;
   hashResult("Контрольная сумма не проверена.");ready();
 }
@@ -55,7 +58,7 @@ async function acceptFile(bytes,name,source="github",expected=null){
   const known=Object.values(PROFILES).find(p=>p.sha===digest);
   const failed=source==="github"
     ? (!expected || digest!==expected || digest!==activeProfile.sha)
-    : (!!expected && digest!==expected);
+    : ((activeProfile.localOnly===true && digest!==activeProfile.sha) || (!!expected && digest!==expected));
   firmware=failed?null:buffer;loadedSha=digest;
   isVerified=!failed && (source==="github" || !!expected || !!known);
   localUnverified=!failed && source==="local" && !isVerified;
