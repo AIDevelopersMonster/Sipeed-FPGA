@@ -1,6 +1,6 @@
 # LAB-06.2A — PicoRV32 minimal native SoC, Tang Nano 9K
 
-**Status 2026-10-26: LAB-06.2A SIM PASS (validated exact SIM receipt); LAB-06.2B PnR PASS, Setup/Hold 0 violations, fitted pin and BankVccio 10/10 MATCH. Recovery/Removal = `Nothing to report!` (zero reported paths, NOT timing sign-off); full STA INCOMPLETE. Exact candidate released for ONE LOW-RISK SRAM-ONLY smoke test with documented asynchronous-reset caveat; BOARD NOT RUN, Flash/SD NOT TOUCHED.**
+**Status 2026-10-26: LAB-06.2A SIM PASS; LAB-06.2B PnR PASS, Setup/Hold 0 violations, fitted pins/BankVccio 10/10. SRAM dry-run and SHA PASS; one actual SRAM load attempt BLOCKED by `Cable open failed`, programmer exit 50 at 0.0 s; NO FPGA PROGRAMMING OCCURRED. UART/LED BOARD TEST NOT RUN; no Flash/SD writes. Recovery/Removal `Nothing to report!` (reset timing not qualified). Next: JTAG/USB driver/port diagnostic, NOT RTL or firmware changes.**
 
 A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (which is already BOARD BASIC PASS). Nothing under LAB-04, Pong, RetroStation or the accepted NEORV32 bitstream is modified.
 
@@ -10,6 +10,30 @@ A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (
 - FPGA I/O pinout will be matched to the accepted LAB-06.1 at later FIT stage.
 - First functional firmware: `PICORV32 READY\r\n` (16 bytes), GPIO `0x15` to `0x2A`. NEORV32 initial banner is 15 bytes, so **not a throughput comparison**.
 - This is a **native-SoC** trial, not a bare-CPU area comparison. The UART and MMIO are different hardware from NEORV32 native peripherals, and no equal-workload W01/W02/W03 benchmark has run.
+
+## LAB-06.2C — First SRAM attempt BLOCKED BY USB/JTAG CABLE, 2026-10-26
+
+Operator verified the exact `lab062_pico_nano9k.fs` SHA256 `31691075B56BB4167758AEB9D99CE8E7F4CE0BE84333D527FD2659606025F4A0` in PowerShell. The known-good SRAM programmer wrapper reported `LAB04_SRAM_DRY_RUN_ONLY` on the first invocation, so nothing was written. Explicit `-Program` invocation then reported:
+
+```text
+OPERATION: GW1NR-9C, operation_index 2, volatile SRAM (not Flash)
+Target Cable: Gowin USB Cable(FT2CH)/0/0/null@2.5MHz
+Target Device: GW1NR-9C(0x1100481B)
+Operation "SRAM Program" for device#1...
+Error: Cable open failed
+Cost 0.0 second(s)
+Gowin Programmer failed with exit code 50
+```
+
+**Interpretation:** JTAG cable/driver/access failure before FPGA programming, **not** a PicoRV32 firmware, RTL, PnR or bitstream hash failure. The device text in this CLI message is not proof that the USB hardware was opened successfully. Hardware UART/LED tests cannot yet begin, and there was no SRAM rewrite. Prior NEORV32 on this board **did** program successfully using FT2CH.
+
+**Two-step bounded diagnostic (Windows CLI, no Flash):**
+1. Close all COM/serial monitors, WebSerial/WebUSB tabs, Gowin Programmer GUI / other JTAG programs. If a PowerShell `$sp` serial object from the earlier terminal exists, close and dispose it. Inspect present FTDI/COM/JTAG devices using `Get-PnpDevice -PresentOnly`. If USB unplug/replug is needed, note SRAM contents will be lost.
+2. Run read-only programmer scan: `C:\Gowin\Gowin_V1.9.9Beta-4_Education\Programmer\bin\programmer_cli.exe --scan --cable-index 1`. Only if the actual physical FPGA is enumerated, repeat **one** SHA-verified SRAM-only `-Program`. If scan fails, stop instead of retry loops; examine FTDI interface A/B driver binding, cable, USB socket, and possible JTAG enable S2 per Sipeed guide. Changing FPGA RTL or remaking ROM has no demonstrated benefit.
+
+Official Sipeed FAQ explicitly lists `Cable open failed` as debugger detection / programmer problem: https://wiki.sipeed.com/hardware/en/tang/common-doc/questions.html
+
+**Status:** `LAB062_CABLE_OPEN_FAILED`; `LAB062_BOARD_NOT_CONFIGURED`; GPU/CPU performance comparison `NOT RUN`. STA async-reset caveat remains separate and unresolved.
 
 ## LAB-06.2B checkpoint — final read-only PnR diagnostics / bounded SRAM test decision (2026-10-26)
 

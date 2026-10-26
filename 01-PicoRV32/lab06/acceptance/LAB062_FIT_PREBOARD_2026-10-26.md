@@ -52,3 +52,22 @@ The constrained 27MHz data paths, exact SHA, and fitted I/O voltage/pin checks a
 - **Not claimed:** Recovery/Removal slack PASS, asynchronous reset sign-off, UART RX timing qualification, reset reliability, full CPU ISA compliance, equal-workload CPU speed.
 
 **Status at writing:** FPGA board NOT RUN, and no FPGA/Flash/SD action has been carried out by these audit scripts.
+
+## Hardware attempt — 2026-10-26: USB/JTAG cable open failure (no SRAM programming)
+
+This update supersedes the earlier "Board NOT RUN" time marker with an **attempt**, not a hardware pass. Operator performed a SHA-verified dry-run of `01-PicoRV32/lab04/tools/program_lab04_sram.ps1 -Bitstream $Fs`, which passed without touching FPGA. Operator then invoked `-Program` once (same SHA) and received:
+
+```text
+Target Cable: Gowin USB Cable(FT2CH)/0/0/null@2.5MHz
+Target Device: GW1NR-9C(0x1100481B)
+Operation "SRAM Program" for device#1...
+Error: Cable open failed
+Cost 0.0 second(s)
+Gowin Programmer failed with exit code 50
+```
+
+No progress bar or SRAM write occurred, and there was no Flash/SD action. This is a **USB/JTAG access failure**, not a fail of logic/CPU/STA/bitstream identity; physical CPU boot/UART/GPIO are still **NOT TESTED**. The reported device name can be the requested device target rather than proof of detection because the cable was not opened.
+
+Next only two bounded steps: (1) inspect/release FTDI COM/JTAG ownership; (2) read-only `programmer_cli.exe --scan --cable-index 1`, one retry of exact SRAM load only after a positive scan. If repeated, stop and diagnose driver A/B and cable/USB power before any firmware changes. Earlier NEORV32 SRAM programming on the same board succeeded. See [Sipeed cable-open FAQ](https://wiki.sipeed.com/hardware/en/tang/common-doc/questions.html).
+
+**Updated status:** PnR verified; hardware load **CABLE_OPEN_FAILED, NOT CONFIGURED**; no board UART/LED result; preliminary STA and async reset caveats unchanged.
