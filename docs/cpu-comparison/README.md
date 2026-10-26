@@ -1,10 +1,21 @@
 # LAB-06 — Comparative RISC-V and reusable CPU blocks / Сравнение процессоров и типовых блоков
 
-**Programme status: DESIGN / NOT MEASURED (2026-10-26).** No NEORV32 bitstream has been built or accepted in this project. PicoRV32/PiKoSoL existing releases remain frozen; none of their board data is automatically comparable with a new minimal NEORV32 configuration.
+**Programme status (2026-10-26): LAB-06.1 NEORV32 minimal native-SoC board bring-up PASS (SRAM, UART `NEORV32 READY`, three LEDs observed). Matched PicoRV32-vs-NEORV32 CPU/core and W01/W02/W03 benchmarks NOT MEASURED.** Existing PicoRV32/PiKoSoL and RetroStation results are not matched minimal SoC/core baselines; keep comparisons separate.
 
 **Goal / Цель:** bring up a **second independent RISC-V processor**, then create a fair and reproducible comparative analysis of **processor cores, complete minimal SoCs, internal CPU blocks and standard peripherals**. The CPU comparison is useful only if the hardware configuration, workloads and measurement methods are documented.
 
 Start with **PicoRV32 vs NEORV32 on one Sipeed Tang Nano 9K / GW1NR-9C**, 27 MHz board clock, SRAM-only FPGA programming. Later add LiteX/VexRiscv and Rocket only as new board-specific rows, never as unqualified 9K equivalents.
+
+## 2026-10-26 checkpoint: first NEORV32 native-SoC physical bring-up
+
+- NEORV32 upstream `b2620454ebb2407e81a6a1965ef52e2a860b0432`, architecture `CPU_RF_ARCH_SEL=2`, 27 MHz, ROM16KiB, RAM2KiB, UART0/GPIO6 on Tang Nano 9K.
+- SIM PASS, PnR/STA preliminary PASS, BankVccio 10/10 PASS, SRAM-only programming 100% PASS, hardware UART `NEORV32 READY` PASS, physical LED-on-count=3 operator-confirmed with photograph.
+- Exact approved image SHA256 `3E1DC3EB6DC464E3992C733078A564680D5F279E4D89BAA8A47CB9002246FC5F`.
+- Resource report (whole native mini-SoC, **not bare CPU**): logic 3228/8640 (38%), LUT 3052, ALU 122, FF 1921 logic + 2 I/O, BSRAM 20%.
+- Exact six-bit LED pattern by independently identified physical LED pins, full external timing signoff, and comparative instruction-cycle throughput **NOT** established.
+- Next study: `LAB-06.2` matched PicoRV32 minimal SoC with explicit memory footprint correction (current NEORV32 DMEM is 2KiB; planned protocol default had 1KiB target), then deterministic `W01/W02/W03` experiments. Do not claim winner based on incomparable PiKoSoL HDMI or game firmware.
+
+Full receipt: [NEORV32 physical board acceptance](../../02-NEORV32/acceptance/LAB061_BOARD_2026-10-26.md).
 
 ## 1. What exactly are we comparing? / Что сравниваем?
 
@@ -29,7 +40,7 @@ Start with **PicoRV32 vs NEORV32 on one Sipeed Tang Nano 9K / GW1NR-9C**, 27 MHz
 | Memory access | Native `mem_valid/mem_ready` protocol and memory adapter | Native NEORV32 system bus / optional XBUS with Wishbone-compatible attachment | Measure bridge cost and actual wait states |
 | Peripherals | External to bare CPU (PiKoSoL has project-specific UART/LED/HDMI) | Optional native UART/GPIO/SPI/timer and others | Compare native SoCs separately from identical external IP |
 | Program load | PiKoSoL uses an on-chip ROM/RAM and SRAM FPGA bitstream | First LAB-06 should use on-chip boot, without user-flash/Zephyr | Same board programming risk level: SRAM only |
-| Bench data | Existing PicoRV32 FULL SoC board evidence, not a matched minimal benchmark | **NOT RUN** in this project | New measurements required for **both** |
+| Bench data | Existing PicoRV32 FULL SoC board evidence, not a matched minimal benchmark | **LAB-06.1 native SoC smoke PASS** (UART boot, three LEDs) | **W01/W02/W03 NOT RUN**; new matched measurements required for both |
 
 **Sources:** [PicoRV32 upstream](https://github.com/YosysHQ/picorv32), [NEORV32 upstream](https://github.com/stnolting/neorv32), [NEORV32 user guide](https://stnolting.github.io/neorv32/ug/), [NEORV32 9K external reference](https://github.com/jimmyw/tang_nano_9k_neorv32), [this project's pinned sources](../../sources.lock.json).
 
@@ -64,4 +75,4 @@ Bring-up is limited to **1–2 days and 2–3 documented board tests**. For pers
 
 ## English quick summary
 
-LAB-06 adds **two orthogonal comparisons**: CPU core architecture vs complete SoC integration, plus a separate comparison of **identically specified ALU, register-file, decoder, UART, GPIO, timer, memory and SPI blocks**. Measurements are **NOT RUN** until a new exact-source, exact-bitstream, fixed-board benchmark exists for both PicoRV32 and NEORV32. SRAM-only programming; no SD write or on-chip user-Flash workflow in the first stage.
+LAB-06 adds **two orthogonal comparisons**: CPU core architecture vs complete SoC integration, plus a separate comparison of **identically specified ALU, register-file, decoder, UART, GPIO, timer, memory and SPI blocks**. LAB-06.1 NEORV32 basic physical boot/UART/three-LED observation PASS; **comparative performance measurements remain NOT RUN** until exact-source, exact-bitstream fixed-board benchmarks exist for both PicoRV32 and NEORV32. SRAM-only programming; no SD write or on-chip user-Flash workflow in the first stage.

@@ -1,11 +1,26 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1D BOARD SRAM PROGRAM PASS + REAL UART BOOT PASS (`NEORV32 READY`); LED 0x2A visual confirmation PENDING. LAB-06.1B GHDL SIM PASS, LAB-06.1C Gowin PnR/STA PRELIM PASS and 10/10 fitted BankVccio PASS. Flash/SD NOT TOUCHED.**
+**Статус на 26.10.2026: LAB-06.1 BOARD HARDWARE PASS (scope: SRAM boot, real `NEORV32 READY` UART, three illuminated LEDs confirmed by operator with photo); SIM/PnR/STA PRELIM/10-pin BankVccio PASS. Exact individual LED bit pattern not independently resolved from photo; comparative benchmarks NOT RUN. Flash/SD NOT TOUCHED.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка — 26.10.2026: LAB-06.1 CLOSED / BOARD HARDWARE PASS
+
+**Оператор подтвердил фото и отдельным сообщением: «Горят три светодиода».** Ранее на той же Tang Nano 9K и том же точном образе успешно получены `NEORV32 READY` с реального UART, `SRAM Program` 100%, exit 0, device `GW1NR-9C (0x1100481B)`. Таким образом **LAB-06.1 минимальный NEORV32 на физической плате завершён: `LAB061_BOARD_HARDWARE_PASS`**, с явно указанным объёмом приёмки (CPU boot/UART TX/LED count).
+
+- Pin source `b2620454ebb2407e81a6a1965ef52e2a860b0432`; `CPU_RF_ARCH_SEL=2` (resettable FF regfile); IMEM-ROM 16 KiB; DMEM 2 KiB; 27 MHz; 115200 8N1.
+- Exact `.fs`: `02-NEORV32/_build/fit_20261026_144630_744_c86f33/lab061_neorv32_nano9k.fs`.
+- SHA256: `3E1DC3EB6DC464E3992C733078A564680D5F279E4D89BAA8A47CB9002246FC5F`.
+- Verified gates: `LAB061_SIM_PASS` (15 UART bytes, 2 GPIO patterns); Gowin PnR+preliminary STA `PASS` (5466 paths, setup/hold violations 0, positive displayed setup/hold/recovery/removal slacks); `LAB061_PNR_BANK_VCCIO_PASS` (10 pins); programmer `SRAM Program 100%`; real board UART `NEORV32 READY`; operator confirms **3 LEDs lit** with accompanying photograph in project chat.
+- **Scope restriction:** photograph is optically blurred and does not independently establish the exact physical order of the six LED bits. The firmware is intended to leave GPIO `0x2A` asserted after UART; three ON matches the expected population count, but **full six-bit 0x2A hardware readback/individual LED mapping is NOT separately verified**. Do not label UART RX, interrupts, precise reset recovery, SD, HDMI or exhaustive STA/CDC as tested.
+- FPGA configuration remained **volatile SRAM only**, `operation_index 2`; no configuration Flash or SD operations.
+
+**NEXT — LAB-06.2** (no new 9K bring-up debugging): produce a matched PicoRV32 minimal baseline before publishing any quantitative CPU comparison. Preserve the fixed native-SoC NEORV32 configuration in the measurement matrix as `NATIVE_SOC / BOARD_BASIC_PASS`, not `CPU_CORE benchmark`. Common protocol targets 27 MHz, RV32I, 16 KiB program ROM and measured RAM sizes, UART 115200/6 LED; `W01/W02/W03` **NOT RUN**. Other projects (PiKoSoL HDMI and RetroStation) must not be compared to this tiny SoC as bare CPU cores.
+
+Detailed hardware acceptance: [LAB061_BOARD_2026-10-26.md](acceptance/LAB061_BOARD_2026-10-26.md).
 
 ## Контрольная точка — 26.10.2026: LAB-06.1D BOARD SRAM + UART BOOT PASS
 
@@ -506,12 +521,12 @@ git pull --ff-only origin main
 
 ## 6. Состояние и следующий конкретный шаг / State ledger
 
-**Последний документированный шаг (26.10.2026, 14:24):** оператор получил GHDL SIM PASS для `ARCHSEL=2` с подтверждёнными SHA-256 firmware/IMEM. Предыдущая PA2122 относится к ARCHSEL=0. Следующий gate — вторая Gowin FIT/STA, аппаратная плата не тронута. Старые preflight сохранены как история выше.
+**Последний документированный шаг (26.10.2026):** LAB-06.1 на реальной Tang Nano 9K подтверждён: SRAM Program 100%, UART `NEORV32 READY`, оператор подтвердил 3 горящих LED с фото. Исключения: точный шестиразрядный LED-паттерн не верифицирован независимым чтением, benchmark W01/W02/W03 пока не проводились. Архивное описание PA2122 и исправления CST см. контрольные точки выше.
 
-**NOW / NEXT:** toolchain готов, SIM PASS получен для ARCHSEL=2. Запустить `fit_lab061.ps1 -SimJob '.\02-NEORV32\_build\run_20261026_142450_892'`, затем изучить фактические ресурсы и STA. Программатор не запускать до полного аудита. Затем в отдельном изолированном каталоге `02-NEORV32/rtl/` создать минимальную VHDL обвязку и тестовую программу `NEORV32 READY`, аккуратно связать `IMEM image` с полученным ПО, собрать реальную симуляцию.
+**NOW / NEXT:** LAB-06.1 завершён (минимальный NEORV32 board UART+LED count PASS). Следующий этап LAB-06.2 — matched minimal PicoRV32 на той же Tang Nano 9K с воспроизводимыми мерами и затем W01/W02/W03. Существующие PiKoSoL/RetroStation HDMI/игры не являются эквивалентными CPU-only измерениями.
 
 **После каждого этапа:** заменить `NOT RUN` на фактические результаты с датой, commit, версией Gowin, input SHA, .fs SHA, STA отчётом, тестовым UART логом. Отдельные отчёты в `02-NEORV32/acceptance/`; большие локальные отчёты в игнорируемой `02-NEORV32/_reports/`.
 
 ## English: handoff summary
 
-LAB-06 is starting with a **pinned upstream VHDL NEORV32** on Tang Nano 9K, 27 MHz, **direct boot from an initialized on-chip IMEM image** (BOOT_MODE_SELECT=2). Enable minimal UART0 and six GPIO outputs, with optional processor features, external Flash, HDMI, SD and Zephyr disabled. Start with the supplied read-only preflight, then **simulation → Gowin PnR/STA → no more than three board checks**. As of 2026-10-26, LAB-06.1B GHDL UART/GPIO simulation PASS, LAB-06.1C Gowin PnR and preliminary STA PASS for the new voltage-constrained candidate. The new image awaits full fitted bank-voltage audit; FPGA BOARD is NOT RUN. Later compare **matched PicoRV32 vs NEORV32 CPU-only, native-SoC and shared-IP** configurations, including independent ALU/register-file/decoder and standard GPIO/UART/timer/SPI block tests. Update this README as the canonical next-session checkpoint.
+LAB-06 is starting with a **pinned upstream VHDL NEORV32** on Tang Nano 9K, 27 MHz, **direct boot from an initialized on-chip IMEM image** (BOOT_MODE_SELECT=2). Enable minimal UART0 and six GPIO outputs, with optional processor features, external Flash, HDMI, SD and Zephyr disabled. Start with the supplied read-only preflight, then **simulation → Gowin PnR/STA → no more than three board checks**. As of 2026-10-26, LAB-06.1B GHDL UART/GPIO simulation PASS, LAB-06.1C Gowin PnR and preliminary STA PASS for the new voltage-constrained candidate. The exact NEORV32 image passed 10/10 PnR pin VCCIO audit and hardware SRAM + UART boot + three-LED-count observation on the board. Per-bit LED mapping and matched CPU benchmarks remain pending. Later compare **matched PicoRV32 vs NEORV32 CPU-only, native-SoC and shared-IP** configurations, including independent ALU/register-file/decoder and standard GPIO/UART/timer/SPI block tests. Update this README as the canonical next-session checkpoint.
