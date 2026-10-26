@@ -26,6 +26,12 @@ UART RX is the already existing `01-PicoRV32/rtl/uart_rx_8n1.v`, clocked at 25.2
 
 **Test status:** User confirmed v1.0 on physical Tang Nano 9K: HDMI image, UART keyboard, paddle control, collisions, scoring, restart and no observed lockups. The v1.0 score wrapped 9 to 0 and AI was too strong. v1.1 physically revealed a repetitive trajectory because only the X direction reversed on paddle hits. v1.2 introduces paddle-contact-dependent vertical speed/direction, non-identical serves based on an 8-bit LFSR, and three visibly distinct AI movement/reaction settings. The AI setting is shown as a large digit 1, 2, or 3 near the upper-right. v1.2 has NOT passed Gowin STA or hardware testing. Do not publish as hardware-verified v1.1 until accepted. Acceptance: (1) first to 9, blink and R reset for either side, (2) test AI 5/6/7 and manual P2, (3) ensure HDMI/UART and palettes remain stable; review STA. Stop after these three board tests rather than refactoring stable video logic.
 
+## Publish and install as the third Tang Nano 9K image
+
+This project's original Verilog, Web Serial controls and build scripts may be published under MIT. Upstream SVO remains ISC, including its copyright notices. Gowin primitives and generated IP remain under Gowin vendor terms. Details: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+The shared WebUSB loader adds a third profile, **PiKoSoL PONG RGB v1.2**. The current operator-built SRAM bitstream is `pikosol_pong_rgb_nano9k.fs`, with SHA-256 `978D9BCFF7C1EF1350F88AF2C603A00B7D3BB6325EA39019CA57CF5091639F96` (local build `20261025_215247`). The operator's hardware acceptance and the applicable Gowin output-distribution conditions must be checked before labeling this binary **Hardware Verified** or uploading a public release asset. Until then select the local file in the browser loader and compare its SHA-256; the GitHub auto-download will not work because the remote `.fs` is not yet hosted. This is an independent game image, **not a drop-in RISC-V firmware**; each selected `.fs` replaces the entire FPGA SRAM configuration.
+
 ## Provenance and licenses
 
 - New `pong_uart_hdmi_top.v`, `pong_rgb_core.v`, build and browser controls: Copyright (c) 2026 AIDevelopersMonster, **MIT** (root LICENSE). Gameplay and pixel renderer are authored here, not copied from a commercial game or arcade ROM.
@@ -34,4 +40,4 @@ UART RX is the already existing `01-PicoRV32/rtl/uart_rx_8n1.v`, clocked at 25.2
 - Gowin PLL/CLKDIV/OSER10/ELVDS primitives are device/vendor IP and not covered by the project's MIT grant.
 - External comparisons (not code dependencies): [YanLiu-t Pong MIT](https://github.com/YanLiu-t/tang-nano-fpga-boards), [MatthewKing2 FPGA-Pong MIT](https://github.com/MatthewKing2/FPGA-Pong).
 
-The finished compiled image can only be offered after a successful real-board demonstration and review of the corresponding distribution rights/notice requirements.
+The compiled image may be offered after a successful v1.2 board acceptance and review of corresponding distribution rights/notice requirements; until then only the reproducible source candidate and pinned local SHA-256 are available.
