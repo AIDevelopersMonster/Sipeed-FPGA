@@ -39,6 +39,12 @@
 - **Остальные RTL-эксперименты:** [каталог Tang Nano 9K](boards/tang-nano-9k/experiments/README.md) и [LAB-03](docs/lab03/README.md). Наличие исходников само по себе не означает BOARD PASS.
 - **Другие CPU:** [NEORV32](02-NEORV32/README.md), [LiteX/VexRiscv](03-LiteX-VexRiscv/README.md), [Rocket](04-Rocket/README.md) — исследовательские направления, не аппаратные релизы.
 
+## LAB-06 — сравнение процессоров и типовых блоков
+
+**Следующий эксперимент: NEORV32 на Tang Nano 9K**, затем измеримое сравнение с PicoRV32 при одинаковых исходных условиях (RV32I, 27 МГц, сопоставимые ROM/RAM, UART и GPIO). Отдельно исследуются **ALU, регистровый файл, декодер инструкций, шинные адаптеры**, а также типовые **UART, GPIO, таймер, SPI и SD CMD17 (только чтение)**. Разделяем результаты **CPU core**, **native SoC** и **одинаковые внешние периферийные RTL-блоки**. Пока статус **PLAN / NOT MEASURED**, а не новый аппаратный релиз.
+
+[LAB-06: архитектура и программа сравнения](docs/cpu-comparison/README.md) · [Сравнение типовых блоков](docs/cpu-comparison/TYPICAL_BLOCKS.md) · [Протокол измерений](docs/cpu-comparison/BENCHMARK_PROTOCOL.md) · [Пустые таблицы результатов](docs/cpu-comparison/RESULTS_TEMPLATE.md)
+
 ## Документация и разработка
 
 [Статья PiKoSoL RU/EN — DOI](https://doi.org/10.5281/zenodo.23593101) · [SPI — DOI](https://doi.org/10.5281/zenodo.23608792) · [SD — DOI](https://doi.org/10.5281/zenodo.23608853)
