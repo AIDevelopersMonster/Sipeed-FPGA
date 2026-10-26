@@ -1,11 +1,40 @@
 # LAB-06 / NEORV32 — Tang Nano 9K
 
 **Единая точка продолжения / CANONICAL NEXT-SESSION HANDOFF**  
-**Статус на 26.10.2026: LAB-06.1A TOOLCHAIN READY (operator); LAB-06.1B исходники подготовлены, SIM/FIT/STA/BOARD NOT RUN.**
+**Статус на 26.10.2026: LAB-06.1B SIM PASS (operator, 15 UART bytes/2 GPIO states); LAB-06.1C FIT/STA NOT RUN; BOARD NOT RUN.**
 
 > **Начинаем с минимального NEORV32 и прошитой в IMEM программы; не с SD, HDMI, Zephyr и не с копирования чужой конфигурации User Flash.** Цель — получить реальный `NEORV32 READY` по UART и управление шестью LED на Sipeed Tang Nano 9K, после чего провести честное сравнение с PicoRV32.
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
+
+## Контрольная точка — 26.10.2026, 13:20: SIM PASS; FIT/STA NEXT
+
+**Подтверждено самим оператором на Windows/GHDL, не из исходников или предварительных оценок.**
+
+- `LAB061_NEORV32_UART_GPIO_TB_PASS: 15 UART bytes, two GPIO patterns`.
+- Simulation finished at **1451385286 ps = 1.451385286 ms**.
+- `LAB061_SIM_PASS: pinned real NEORV32 CPU executed RV32I binary; UART bytes and GPIO patterns matched`.
+- SIM receipt: `C:\GitHub\Sipeed-FPGA\02-NEORV32\_build\run_20261026_132020_122\receipt.json`. Проверенные SHA-256 записаны в нём и должны быть считаны оттуда, а не придуманы.
+- `LAB061_NO_BOARD_ACTION`: не было Gowin FIT/STA, загрузки SRAM или записи Flash/SD.
+- Source pin: `b2620454ebb2407e81a6a1965ef52e2a860b0432`; toolchain READY.
+
+**LAB-06.1C NEXT:** подготовлен новый `tools/fit_lab061.ps1` (в GitHub), в отдельном `_build/fit_*` он проверяет исходный SIM receipt, образ IMEM SHA, SHA исходников и immutable upstream, делает `GHDL synth --out=verilog`, Gowin CLI PnR и отдельный предварительный STA screen. **Скрипт не программирует FPGA и не пишет ни Flash, ни SD.** Поскольку запуск на Windows ещё не произведён, FIT/STA статус **NOT RUN** и новых PASS нет.
+
+### Команда продолжения — Gowin FIT/STA
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- `
+  02-NEORV32/README.md `
+  02-NEORV32/tools/fit_lab061.ps1 `
+  02-NEORV32/tools/check_sta_lab061.py
+
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\02-NEORV32\tools\fit_lab061.ps1 -SimJob '.\02-NEORV32\_build\run_20261026_132020_122'
+```
+
+**Важные риски первой PnR-попытки:** преобразование VHDL-2008 в Verilog через GHDL, вывод BRAM для ROM, синтез исходного NEORV32 на Gowin 1.9.9Beta-4 и STA. Если ошибка, прислать `LAB061_FIT_JOB` и последние строки `ghdl_synth.log` или `gowin_cli.log`. Не снижать частоту и не менять аппаратную конфигурацию в обход отчёта. `LAB061_STA_SCREEN_PRELIM_PASS` всё ещё не равно независимому полному STA/CDC аудиту или BOARD PASS.
 
 ## Контрольная точка 26.10.2026, 13:07 — TOOLCHAIN READY; LAB-06.1B source candidate
 
