@@ -1,6 +1,6 @@
 # LAB-06.2A — PicoRV32 minimal native SoC, Tang Nano 9K
 
-**Status: SOURCE PREPARED. SIM / FIT / STA / BOARD NOT RUN.**
+**Status: first SIM attempted 2026-10-26 and stopped on a TESTBENCH ASCII CR escape defect (byte 14); CPU firmware/ROM build PASS; patched testbench awaits re-run. FIT/STA/BOARD NOT RUN.**
 
 A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (which is already BOARD BASIC PASS). Nothing under LAB-04, Pong, RetroStation or the accepted NEORV32 bitstream is modified.
 
@@ -10,6 +10,31 @@ A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (
 - FPGA I/O pinout will be matched to the accepted LAB-06.1 at later FIT stage.
 - First functional firmware: `PICORV32 READY\r\n` (16 bytes), GPIO `0x15` to `0x2A`. NEORV32 initial banner is 15 bytes, so **not a throughput comparison**.
 - This is a **native-SoC** trial, not a bare-CPU area comparison. The UART and MMIO are different hardware from NEORV32 native peripherals, and no equal-workload W01/W02/W03 benchmark has run.
+
+## Control point 2026-10-26 17:19 — first PicoRV32 SIM blocked by testbench CR literal
+
+The operator ran `tools/run_lab062.ps1 -Mode Sim`. Output:
+
+- Source pin `ef203c2b0a3fb793280f5114941416c425c5b461` — PASS.
+- Job `01-PicoRV32/lab06/_build/run_20261026_171900_218`.
+- Actual RV32I binary `140 bytes`; SHA256 `6AB802C371F1100F40635019C4306B44DF04E572B51F0070DA4C9AA0808415F6`.
+- ROM `16384 bytes`; SHA256 `694CF644C770382518371DF4382013AAFEDB6CFEEFC87F6CA15A140BA2F2478B`.
+- Icarus/VVP ran the real pinned CPU and checked UART bytes `0..13`, then rejected byte `14`: `got=0d wanted=72`.
+- The **firmware emitted the correct CR byte `0x0D`** after `PICORV32 READY`, but the original Verilog testbench specified `"PICORV32 READY\r\n"`. Icarus treated Verilog `\r` as literal ASCII `r` (0x72). This is a **testbench oracle defect**, not evidence of a bad CPU/UART output. Byte `15` (LF) and final GPIO pattern were not yet checked.
+- Fix in **testbench only**: `localparam [LEN*8-1:0] EXPECT={"PICORV32 READY",8'h0D,8'h0A};`. Explicit 14 printable ASCII bytes + 0x0D + 0x0A = 16 UART bytes. No firmware, ROM, RTL, linker, Gowin or device change.
+- **SIM status still NOT PASS** until another real operator Icarus run completes all UART bytes and both LED patterns; original `vvp.log` should be retained in ignored `_build`. No programming or FPGA access.
+
+### Next exact command (PowerShell 7, no new board action)
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- 01-PicoRV32/lab06/tests/tb_lab062_pico.v 01-PicoRV32/lab06/README.md
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\01-PicoRV32\lab06\tools\run_lab062.ps1 -Mode Sim
+```
+
+Desired *future* `LAB062_PICORV32_UART_GPIO_TB_PASS` and `LAB062_SIM_PASS`. If the next failure is at **LED final state**, inspect the actual UART frame completion handshaking, not the testbench's CR/LF escape. All LAB-04, accepted NEORV32 and PicoRV32 upstream sources remain untouched.
 
 ## Next operation — only functional simulation
 

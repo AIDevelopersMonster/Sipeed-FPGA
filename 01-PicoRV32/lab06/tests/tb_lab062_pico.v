@@ -5,7 +5,8 @@ always #18.518 clk=~clk;
 wire tx;wire [5:0] leds;
 lab062_pico_soc dut(.clk_i(clk),.rstn_i(rstn),.uart0_rxd_i(rx),.uart0_txd_o(tx),.led_n_o(leds));
 localparam LEN=16;
-localparam [LEN*8-1:0] EXPECT="PICORV32 READY\r\n";
+// Use explicit ASCII control bytes: Icarus treats Verilog "\\r" as an ASCII letter r.
+localparam [LEN*8-1:0] EXPECT={"PICORV32 READY",8'h0D,8'h0A};
 integer i,b;
 reg [7:0] got,want;
 initial begin
