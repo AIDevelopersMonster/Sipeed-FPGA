@@ -1,43 +1,68 @@
-# PiKoSoL Pong RGB v1.2 — Tang Nano 9K (gameplay fix candidate)
+# PiKoSoL PONG RGB v1.2 — HDMI Pong on Tang Nano 9K
 
-An independently built color HDMI Pong game for Tang Nano 9K (GW1NR-9C). The gameplay and UART keyboard controller are original RTL; Sipeed/Clifford Wolf SVO video modules and Gowin IP remain external **unchanged**, fetched through the existing LAB-04 pinned source mechanism. **No game ROM, CPU, SD card, or external controller required.** No changes to PiKoSoL v0.2.0, SD-08, WebUSB, or the main branch. Hardware validation of the original game is documented by the operator (25 October 2026), The v1.1 image has been built and physically tried, revealing repetitive fixed-angle ball motion. The v1.2 gameplay change still requires rebuild, STA and physical validation.
+**Operator-reported BOARD PASS, 26 October 2026 · Open-source RTL and Web Serial keyboard · SRAM-only FPGA image.**
 
-## Connect and play
+A playable, independently authored color Pong for **Sipeed Tang Nano 9K (GW1NR-9C)**. The game logic and pixels are implemented directly in Verilog; **PicoRV32, ROM images, SD card and an external game controller are not required**. HDMI signaling reuses the pinned LAB-04 SimpleVOut components, and keyboard input reuses the existing UART receiver.
 
-1. Windows 10/11, PowerShell 7, existing LAB-04 Gowin CLI and SVO vendor sources. Run `./games/pong-rgb/build.ps1` from PowerShell and review the Gowin post-route STA results. If timing is invalid, **do not load the image**.
-2. After a clean build and timing acceptance, use the *existing* [PiKoSoL WebUSB SRAM loader](../../docs/lab04/web-loader/) and select the generated local `.fs`. **SRAM only; never use Flash**. Keep the previously tested v1.0/v1.1 files. v1.2 is source-only until new build and STA; do not reuse earlier hashes.
-3. On HDMI, the game should show left and right paddles, a ball, center line, two digits and a dark colored field.
-4. Open [Pong keyboard controller](web/index.html) on a secure origin, e.g. GitHub Pages after publishing the branch, in Chrome/Edge; connect the **USB Serial Port (COMx), FT2232 interface B** at 115200 8N1. Only one program may own COM.
-5. Player 1: **W/S**. Player 2: **I/K** when AI is disabled. **A** toggles AI. **R** restarts. **1–4** select palettes. **5–7** set AI Easy / Normal / Hard (default Normal). First to 9 wins: game freezes, the winner's score and paddle blink, and R starts a fresh match. Browser sends key-down and key-up byte pairs. Blurring the window or disconnecting sends a release-all command.
+**Start:** [Pong keyboard on GitHub Pages](https://aidevelopersmonster.github.io/Sipeed-FPGA/pong-rgb/) · [WebUSB SRAM loader](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/) · [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-## Simple serial protocol
+## Board test and limits / Проверка на плате
 
-| ASCII byte | Effect |
-|---|---|
-| `w`, `s`, `i`, `k` | corresponding key pressed |
-| `W`, `S`, `I`, `K` | corresponding key released |
-| `x` | release all moving keys |
-| `a` | toggle right-hand AI |
-| `r` | reset score/positions |
-| `1`, `2`, `3`, `4` | Neon / Retro / Matrix / Sunset |
-| `5`, `6`, `7` | Easy / Normal / Hard (AI paddle moves 1/2/4 pixels per frame and begins reacting at X=505/415/350 respectively) |
+- On **26 October 2026**, the operator confirmed that the latest Pong game works on physical Tang Nano 9K and supplied a photo of the running HDMI game (visible match score **7:2** and difficulty indicator). This is **operator evidence**, not an independent automated hardware certification.
+- Previous board tests found a repetitive ball trajectory in v1.1. v1.2 contains contact-height-dependent ricochets, varied serves and selectable AI difficulty.
+- The reported **v1.2 local-build candidate** is `pikosol_pong_rgb_nano9k.fs`, output from `20261025_215247`, SHA-256:
 
-UART RX is the already existing `01-PicoRV32/rtl/uart_rx_8n1.v`, clocked at 25.2 MHz so the entire keyboard-to-pixel path is in one domain. The rest of the same hardware pinout as LAB-04 is used (UART RX pin 18, HDMI pairs). No UART TX or separate in-game terminal: the browser **is** the keyboard terminal.
+  ```text
+  978D9BCFF7C1EF1350F88AF2C603A00B7D3BB6325EA39019CA57CF5091639F96
+  ```
 
-**Test status:** User confirmed v1.0 on physical Tang Nano 9K: HDMI image, UART keyboard, paddle control, collisions, scoring, restart and no observed lockups. The v1.0 score wrapped 9 to 0 and AI was too strong. v1.1 physically revealed a repetitive trajectory because only the X direction reversed on paddle hits. v1.2 introduces paddle-contact-dependent vertical speed/direction, non-identical serves based on an 8-bit LFSR, and three visibly distinct AI movement/reaction settings. The AI setting is shown as a large digit 1, 2, or 3 near the upper-right. v1.2 has NOT passed Gowin STA or hardware testing. Do not publish as hardware-verified v1.1 until accepted. Acceptance: (1) first to 9, blink and R reset for either side, (2) test AI 5/6/7 and manual P2, (3) ensure HDMI/UART and palettes remain stable; review STA. Stop after these three board tests rather than refactoring stable video logic.
+- A prior v1.2 timing report showed **zero setup and hold violations**, but it referred to a **different bitstream hash**. Do **not** transfer STA conclusions across builds. The post-route STA report bound to the exact hash above is **not included in this repository**, and the operator's photograph does not independently prove a binary hash.
+- **The Pong `.fs` is not currently hosted on GitHub.** Source code and browser keyboard **are published**; the WebUSB loader permits local `.fs` selection with SHA-256 verification. Do not advertise a GitHub binary download until the exact file is uploaded, its distribution terms checked and its hash published.
 
-## Publish and install as the third Tang Nano 9K image
+## Quick start / Как запустить
 
-This project's original Verilog, Web Serial controls and build scripts may be published under MIT. Upstream SVO remains ISC, including its copyright notices. Gowin primitives and generated IP remain under Gowin vendor terms. Details: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+1. Prepare a **Tang Nano 9K**, an HDMI monitor, a Windows 10/11 PC with PowerShell 7, Gowin CLI and the pinned LAB-04 video sources.
+2. From the repository root, prepare pinned video sources (if not already installed), then build:
 
-The shared WebUSB loader adds a third profile, **PiKoSoL PONG RGB v1.2**. The current operator-built SRAM bitstream is `pikosol_pong_rgb_nano9k.fs`, with SHA-256 `978D9BCFF7C1EF1350F88AF2C603A00B7D3BB6325EA39019CA57CF5091639F96` (local build `20261025_215247`). The operator's hardware acceptance and the applicable Gowin output-distribution conditions must be checked before labeling this binary **Hardware Verified** or uploading a public release asset. Until then select the local file in the browser loader and compare its SHA-256; the GitHub auto-download will not work because the remote `.fs` is not yet hosted. This is an independent game image, **not a drop-in RISC-V firmware**; each selected `.fs` replaces the entire FPGA SRAM configuration.
+   ```powershell
+   .\01-PicoRV32\lab04\tools\fetch_picotiny.ps1
+   .\games\pong-rgb\build.ps1
+   ```
 
-## Provenance and licenses
+   The build script checks the pinned SVO sources and prints the candidate `.fs` path and its **own** SHA-256. Inspect the **post-route STA**; do not flash any bitstream with timing failures.
+3. Open the [PiKoSoL WebUSB Loader](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/). Select the **PONG RGB v1.2** profile and choose a **local** `.fs` file. If the local file is the pinned operator build above, confirm that its SHA matches. Program **SRAM only**, via FT2232 JTAG channel A; **do not write the configuration Flash**.
+4. Check HDMI. Open the [Web Serial Pong keyboard](https://aidevelopersmonster.github.io/Sipeed-FPGA/pong-rgb/) in Chrome/Edge on HTTPS. Connect to **FT2232 USB Serial (channel B)** at **115200 8N1**, then click the game-control panel to give it keyboard focus.
 
-- New `pong_uart_hdmi_top.v`, `pong_rgb_core.v`, build and browser controls: Copyright (c) 2026 AIDevelopersMonster, **MIT** (root LICENSE). Gameplay and pixel renderer are authored here, not copied from a commercial game or arcade ROM.
-- Existing `01-PicoRV32/rtl/uart_rx_8n1.v`, `lab04_video_clocks.v`: existing repository **MIT**, unchanged.
-- SVO / Simple Video Out, Clifford Wolf (2014): permissive text requiring preservation of upstream notices; **do not remove upstream notices or relicense the SVO source**. Source is fetched at pinned revision `c3b795799f23de91982be52db4273a8eea100cdb` using LAB-04's existing process.
-- Gowin PLL/CLKDIV/OSER10/ELVDS primitives are device/vendor IP and not covered by the project's MIT grant.
-- External comparisons (not code dependencies): [YanLiu-t Pong MIT](https://github.com/YanLiu-t/tang-nano-fpga-boards), [MatthewKing2 FPGA-Pong MIT](https://github.com/MatthewKing2/FPGA-Pong).
+Selecting a different `.fs` fully replaces the **volatile FPGA configuration**. Pong is **an alternative FPGA image**, **not** firmware that runs inside the existing PiKoSoL RISC-V CPU.
 
-The compiled image may be offered after a successful v1.2 board acceptance and review of corresponding distribution rights/notice requirements; until then only the reproducible source candidate and pinned local SHA-256 are available.
+## Controls
+
+| Key | Action |
+| --- | --- |
+| **W / S** | Player 1 paddle up/down |
+| **I / K** | Player 2 paddle up/down (AI disabled) |
+| **A** | Enable/disable right-hand AI |
+| **1–4** | Color palettes: Neon / Retro / Matrix / Sunset |
+| **5 / 6 / 7** | AI Easy / Normal / Hard |
+| **R** | Restart match |
+
+The match ends at **9 points**; the winner and score blink. A large **1, 2 or 3** on the right of HDMI indicates the active AI difficulty. The browser sends lowercase ASCII for movement key-down, uppercase for key-up, and `x` to release all keys on focus loss.
+
+## Reproducing the build / Воспроизводимость
+
+- Sources: `rtl/pong_rgb_core.v`, `rtl/pong_uart_hdmi_top.v`.
+- Pin constraints: `constraints/pong_rgb.cst`, `constraints/pong_rgb.sdc`.
+- Reproducible build entry point: `build.ps1`, `build.tcl`. Requires a local Gowin EDA installation; the vendor tool is **not** redistributed.
+- Browser keyboard source: `web/index.html`; deployed GitHub Pages copy: `docs/pong-rgb/index.html`.
+- SVO sources are fetched at pinned commit `c3b795799f23de91982be52db4273a8eea100cdb`, not copied into this project's source directory.
+- The game uses **one 25.2 MHz pixel clock domain** for gameplay and synchronized UART receive. HDMI serialization uses the previously developed LAB-04 video clocking scheme.
+
+## Licensing
+
+Original project files: **MIT**, see [repository LICENSE](../../LICENSE). SimpleVOut (Clifford Wolf) remains under **ISC**, retaining upstream copyright notices; Gowin IP and tools remain under vendor terms. The independent gameplay implementation does **not** incorporate an arcade ROM or upstream `svo_pong.v`. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Before publicly distributing a compiled `.fs`, check the Gowin tool/IP distribution terms for the installed version, record its exact SHA-256, and attach the matching STA and acceptance evidence.
+
+---
+
+**Русское резюме.** Аппаратный Pong v1.2 на Tang Nano 9K оператор подтвердил 26.10.2026. Исходники игры, инструкции сборки и браузерное управление опубликованы. Движок игры — Verilog без процессора PicoRV32; интерфейс HDMI и ввод с клавиатуры работают через FPGA и UART. Для загрузки пока нужен **локальный `.fs`**: публичного бинарного файла Pong ещё нет. Запись допускается только в SRAM.
