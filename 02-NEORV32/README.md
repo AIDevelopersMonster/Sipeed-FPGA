@@ -7,6 +7,49 @@
 
 Это **главный README для следующего диалога**. При завершении каждого подтверждённого этапа обновляйте таблицу статусов ниже, имя прошивки, SHA-256, дату и точную следующую команду. Нельзя объявлять шаг выполненным только потому, что создан RTL или README.
 
+## Контрольная точка 26.10.2026, 12:50 — MSYS2 toolchain blocked (NO PACKAGES CHANGED)
+
+**Source: PASS. Toolchain: BLOCKED (dependency resolution). SIM/FIT/STA/BOARD: NOT RUN.**
+
+Operator executed `pacman -Syu` and confirmed MSYS2 core update that closed MSYS2 processes, but **did not run the second `pacman -Syu` required to complete the full system upgrade**. An immediate `pacman -S --needed ... ghdl-mcode ... gcc ... make` produced an old/new GCC library conflict:
+
+- Existing `mingw-w64-ucrt-x86_64-gcc-libs 16.2.0-3` provided the *virtual* `mingw-w64-ucrt-x86_64-cc-libs`.
+- New `mingw-w64-ucrt-x86_64-libgcc 16.2.0-6` conflicts with that old `gcc-libs`.
+- Fresh packages `mingw-w64-ucrt-x86_64-cc-libs 16.2.0-6` and `gcc-libs 16.2.0-6` must be handled **in the full system upgrade**. The first attempted install failed at `failed to prepare transaction (could not satisfy dependencies)`; **do not claim any packages removed/installed**.
+
+**Next safe action: complete the official MSYS2 full upgrade before installing additional packages**. Do NOT run `pacman -Rdd`, `--nodeps`, delete DLLs or reinstall MSYS2. PowerShell commands:
+
+```powershell
+$Pac = "C:\msys64\usr\bin\pacman.exe"
+& $Pac -Syu
+if ($LASTEXITCODE -ne 0) { throw "Full MSYS2 upgrade failed: inspect output before further changes" }
+```
+
+If MSYS2 closes processes once more, repeat `& $Pac -Syu` from a fresh console. The successful output should end with `there is nothing to do` on the subsequent full-upgrade check. Then install:
+
+```powershell
+& $Pac -S --needed `
+    mingw-w64-ucrt-x86_64-ghdl-mcode `
+    mingw-w64-ucrt-x86_64-riscv64-unknown-elf-gcc `
+    mingw-w64-ucrt-x86_64-gcc `
+    make
+if ($LASTEXITCODE -ne 0) { throw "Toolchain package install failed" }
+Set-Location C:\GitHub\Sipeed-FPGA
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\02-NEORV32\tools\preflight.ps1
+```
+
+If a dependency conflict recurs **during the full `-Syu`**, do not approve arbitrary removals: capture full output and these nonmutating diagnostics:
+
+```powershell
+& $Pac -Q mingw-w64-ucrt-x86_64-gcc-libs
+& $Pac -Si mingw-w64-ucrt-x86_64-gcc-libs
+& $Pac -Si mingw-w64-ucrt-x86_64-cc-libs
+& $Pac -Si mingw-w64-ucrt-x86_64-libgcc
+```
+
+Package verification: [MSYS2 update procedure](https://www.msys2.org/docs/updating/), [new gcc-libs](https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-gcc-libs), [new cc-libs](https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-cc-libs), [new libgcc](https://packages.msys2.org/packages/mingw-w64-ucrt-x86_64-libgcc). **No FPGA programming or CPU simulation attempted.**
+
 ## Контрольная точка 26.10.2026 — SOURCE PIN PASS (оператор)
 
 **LAB-06.1A SOURCE PASS подтверждён дважды на Windows. NEORV32 SIM / Gowin FIT / STA / BOARD пока NOT RUN.**
