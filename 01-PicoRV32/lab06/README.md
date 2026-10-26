@@ -1,6 +1,6 @@
 # LAB-06.2A — PicoRV32 minimal native SoC, Tang Nano 9K
 
-**Status 2026-10-26: LAB-06.2A real PicoRV32 SIM PASS (attested by verified SIM receipt); LAB-06.2B Gowin PnR PASS and exact bitstream produced. Internal Setup/Hold screen PASS, but Recovery/Removal NOT REPORTED (STA FAIL/INCOMPLETE). BankVccio of fitted ports NOT AUDITED. BOARD NOT RUN; DO NOT PROGRAM.**
+**Status 2026-10-26: LAB-06.2A SIM PASS (validated exact SIM receipt); LAB-06.2B PnR PASS, Setup/Hold 0 violations, fitted pin and BankVccio 10/10 MATCH. Recovery/Removal = `Nothing to report!` (zero reported paths, NOT timing sign-off); full STA INCOMPLETE. Exact candidate released for ONE LOW-RISK SRAM-ONLY smoke test with documented asynchronous-reset caveat; BOARD NOT RUN, Flash/SD NOT TOUCHED.**
 
 A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (which is already BOARD BASIC PASS). Nothing under LAB-04, Pong, RetroStation or the accepted NEORV32 bitstream is modified.
 
@@ -10,6 +10,36 @@ A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (
 - FPGA I/O pinout will be matched to the accepted LAB-06.1 at later FIT stage.
 - First functional firmware: `PICORV32 READY\r\n` (16 bytes), GPIO `0x15` to `0x2A`. NEORV32 initial banner is 15 bytes, so **not a throughput comparison**.
 - This is a **native-SoC** trial, not a bare-CPU area comparison. The UART and MMIO are different hardware from NEORV32 native peripherals, and no equal-workload W01/W02/W03 benchmark has run.
+
+## LAB-06.2B checkpoint — final read-only PnR diagnostics / bounded SRAM test decision (2026-10-26)
+
+**Observed operator output of `diagnose_fit_lab062.py` for exact existing candidate** `_build/fit_20261026_174759_839_3ed614`:
+
+- `LAB062_EXISTING_FIT_SHA256_PASS` for SHA256 `31691075B56BB4167758AEB9D99CE8E7F4CE0BE84333D527FD2659606025F4A0`. The previous fit already validated the real PicoRV32 SIM PASS receipt, checked the 16KiB ROM hash and all pinned RTL hashes.
+- Internal STA paths `1794`, endpoints `1530`; Setup violations `0`, Hold violations `0`; Setup slack `+16.325ns`, Hold slack `+0.427ns`.
+- Gowin reported clock period `37.037ns` / `27.000MHz`, **estimated Fmax `48.281MHz`** (PnR timing estimate only; not hardware-clock proof).
+- `Recovery Paths Table` and `Removal Paths Table` both contain the explicit `Nothing to report!`. In Gowin's documentation this means **no paths to analyze for those categories**, not an evaluated positive slack or zero violations. Because Pico has asynchronous reset `rstn_i`, **async reset deassertion timing remains NOT QUALIFIED**. No manual false-path exceptions were detected in the report. FULL STA SIGNOFF = **NO**. External UART RX/RESET timing not characterized by the clock-only SDC.
+- **Ten fitted I/O port rows match expected** pins, IO types, and VCCIO. Clock pin52 bank1 `LVCMOS33/3.3`; UART pin17/18 bank2 `LVCMOS33/3.3`; reset pin3 and LED pins10/11/13/14/15/16 bank3 `LVCMOS18/1.8`.
+- Resources: Logic `1500/8640 (18%)`, Registers `551/6693 (9%)`, BSRAM `54%` (`SDPB 2` listed); DSP `0`, PLL `0`, I/O `10`. **54% BSRAM cannot be assigned solely to CPU or ROM from the summary**. The actual ROM is 16KiB with NOP padding, binary 140B, RAM 2KiB; compare actual mapped primitives before concluding a core-level memory penalty.
+- **Decision (bounded smoke):** this exact SHA is eligible for a **single volatile-SRAM-only experimental load** using known-good Tang Nano 9K hardware and the existing LAB-04 programmer wrapper. This does **not** replace FULL STA sign-off: reset-release can occasionally fail near a clock edge. An initial power-on programming result is accepted only with real UART boot and actual LEDs. The operator should open the UART first and use S1 reset if the boot banner is missed. If reset/boot is unreliable after 2–3 documented checks, stop and inspect reset synchronization, clocks, COM/power, without arbitrary firmware rewrites. No Flash/SD writes.
+
+### Next exact commands (after reviewing this recorded caveat)
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+$Fs = (Resolve-Path '.\01-PicoRV32\lab06\_build\fit_20261026_174759_839_3ed614\lab062_pico_nano9k.fs').Path
+$SHA = '31691075B56BB4167758AEB9D99CE8E7F4CE0BE84333D527FD2659606025F4A0'
+if ((Get-FileHash -LiteralPath $Fs -Algorithm SHA256).Hash -cne $SHA) {
+    throw 'LAB062_BITSTREAM_SHA256_MISMATCH: DO NOT PROGRAM'
+}
+.\01-PicoRV32\lab04\tools\program_lab04_sram.ps1 -Bitstream $Fs
+# After reviewing the dry run: SRAM ONLY
+.\01-PicoRV32\lab04\tools\program_lab04_sram.ps1 -Bitstream $Fs -Program
+```
+
+Expected serial `PICORV32 READY` at `115200 8N1` once per reset and **three steady alternating LEDs** after UART. The LAB-04 programmer's old message about HDMI is irrelevant to this LAB-06 design.
+
+Canonical acceptance: [LAB062_FIT_PREBOARD_2026-10-26.md](acceptance/LAB062_FIT_PREBOARD_2026-10-26.md).
 
 ## LAB-06.2B checkpoint — 2026-10-26 17:47, PnR PASS / STA INCOMPLETE
 
