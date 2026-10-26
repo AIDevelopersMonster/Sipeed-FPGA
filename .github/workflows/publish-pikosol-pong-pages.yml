@@ -1,0 +1,72 @@
+name: Publish verified PONG RGB v1.2 image to PiKoSoL Pages
+
+# Release published before this workflow was added. The first push of this
+# workflow to main runs the publisher once; further runs are manual/release.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-pikosol-pong-pages.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pikosol-pong-firmware-pages
+  cancel-in-progress: false
+
+jobs:
+  publish-pong:
+    if: github.event_name != 'release' || github.event.release.tag_name == 'pikosol-pong-rgb-v1.2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Download exact release asset and verify bitstream
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dest="docs/lab04/web-loader/firmware"
+          file="pikosol_pong_rgb_nano9k.fs"
+          mkdir -p "$dest"
+          gh release download pikosol-pong-rgb-v1.2 \
+            --repo AIDevelopersMonster/Sipeed-FPGA \
+            --pattern "$file" --dir "$dest" --clobber
+          test -s "$dest/$file"
+          test "$(stat -c%s "$dest/$file")" -eq 2070601
+          printf '%s  %s\n' \
+            '978d9bcff7c1ef1350f88af2c603a00b7d3bb6325ea39019ca57cf5091639f96' \
+            "$dest/$file" | sha256sum --check
+          test -f "$dest/SHA256SUMS.txt"
+          awk '$2 != "pikosol_pong_rgb_nano9k.fs" { print }' \
+            "$dest/SHA256SUMS.txt" > "$dest/SHA256SUMS.new"
+          printf '%s  %s\n' \
+            '978d9bcff7c1ef1350f88af2c603a00b7d3bb6325ea39019ca57cf5091639f96' \
+            "$file" >> "$dest/SHA256SUMS.new"
+          mv "$dest/SHA256SUMS.new" "$dest/SHA256SUMS.txt"
+
+      - name: Add image to existing same-origin WebUSB firmware directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="docs/lab04/web-loader/firmware"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f "$dest/pikosol_pong_rgb_nano9k.fs"
+          git add "$dest/SHA256SUMS.txt"
+          if git diff --cached --quiet; then
+            echo "Verified Pong v1.2 bitstream already published on Pages."
+          else
+            git commit -m "build(pikosol): publish SHA256-verified Pong RGB v1.2 SRAM image"
+            git push origin HEAD:main
+          fi
