@@ -1,0 +1,24 @@
+// LAB-06.1 candidate (NOT yet Gowin FIT or hardware qualified).
+// Based on the separately documented PiKoSoL/Tang Nano 9K pins.
+// Verify IO bank voltages and exact board hardware before Gowin compilation.
+// Tang Nano 9K GW1NR-LV9QN88PC6/I5. No HDMI/SD/UserFlash pins.
+IO_LOC "clk_i" 52;
+IO_PORT "clk_i" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC "rstn_i" 3;
+IO_PORT "rstn_i" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+IO_LOC "uart0_txd_o" 17;
+IO_PORT "uart0_txd_o" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "uart0_rxd_i" 18;
+IO_PORT "uart0_rxd_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "led_n_o[0]" 10;
+IO_LOC "led_n_o[1]" 11;
+IO_LOC "led_n_o[2]" 13;
+IO_LOC "led_n_o[3]" 14;
+IO_LOC "led_n_o[4]" 15;
+IO_LOC "led_n_o[5]" 16;
+IO_PORT "led_n_o[0]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[1]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[2]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[3]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[4]" IO_TYPE=LVCMOS18;
+IO_PORT "led_n_o[5]" IO_TYPE=LVCMOS18;
