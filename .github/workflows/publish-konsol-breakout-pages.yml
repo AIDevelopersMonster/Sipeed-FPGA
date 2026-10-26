@@ -1,0 +1,66 @@
+name: Publish verified BREAKOUT RGB v0.1.0 image to PiKoSoL Pages
+
+# Download the operator-tested binary from a pinned GitHub Release, not from
+# a new synthesis run. Only the exact SHA-256 is allowed into GitHub Pages.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-konsol-breakout-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pikosol-breakout-firmware-pages
+  cancel-in-progress: false
+
+jobs:
+  publish-breakout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Download exact Breakout release asset and verify digest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dest='docs/lab04/web-loader/firmware'
+          file='pikosol_breakout_rgb_nano9k.fs'
+          expected='4cf80dbd008b0d41d4316bf63db952190c03940a4ffb1ffc00cab09210ae8789'
+          mkdir -p "$dest"
+          gh release download konsol-breakout-rgb-v0.1.0 \
+            --repo AIDevelopersMonster/Sipeed-FPGA \
+            --pattern "$file" --dir "$dest" --clobber
+          test -s "$dest/$file"
+          test "$(stat -c%s "$dest/$file")" -eq 2070601
+          printf '%s  %s\n' "$expected" "$dest/$file" | sha256sum --check
+          test -f "$dest/SHA256SUMS.txt"
+          awk '$2 != "pikosol_breakout_rgb_nano9k.fs" { print }' \
+            "$dest/SHA256SUMS.txt" > "$dest/SHA256SUMS.new"
+          printf '%s  %s\n' "$expected" "$file" >> "$dest/SHA256SUMS.new"
+          mv "$dest/SHA256SUMS.new" "$dest/SHA256SUMS.txt"
+
+      - name: Publish verified binary to the existing same-origin Pages directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest='docs/lab04/web-loader/firmware'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f "$dest/pikosol_breakout_rgb_nano9k.fs"
+          git add "$dest/SHA256SUMS.txt"
+          if git diff --cached --quiet; then
+            echo 'Verified Breakout RGB v0.1.0 image already published on Pages.'
+          else
+            git commit -m 'build(konsol): publish SHA256-verified Breakout RGB v0.1.0 SRAM image'
+            git push origin HEAD:main
+          fi
