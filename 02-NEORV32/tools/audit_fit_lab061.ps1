@@ -122,9 +122,8 @@ if ($sdc -cne 'create_clock -name clk_i -period 37.037 -waveform {0 18.518} [get
 }
 Write-Host 'LAB061_PINS_27MHZ_PASS: 10 expected pins, IO types and 27MHz single-clock SDC' -ForegroundColor Green
 
-# Check what the PnR actually realized, not merely what the CST requested.
-# This explicitly catches the first LAB-06 candidate where clk_i reported
-# IO_TYPE=LVCMOS33 but BankVccio=1.2 despite the Tang Nano 9K 3.3V oscillator.
+# Validate ELECTRICAL I/O information from the FINAL PnR report, not merely CST.
+# The first candidate incorrectly showed clk_i pin52 LVCMOS33 but BankVccio=1.2.
 $expectedBankVccio = [ordered]@{
     'clk_i' = '3.3'
     'rstn_i' = '1.8'
@@ -139,53 +138,32 @@ $expectedBankVccio = [ordered]@{
 }
 $pnrText = Get-Content -LiteralPath $reportPath -Raw
 foreach ($port in $expectedPins.Keys) {
-    $rowRegex = '(?m)^[ \t]*' + [regex]::Escape($port) + '[ \t]*\|[^\r\n]*
-
-if (-not (Select-String -LiteralPath $staLogPath -Pattern 'LAB061_STA_SCREEN_PRELIM_PASS' -Quiet)) {
-    throw 'LAB061_AUDIT_STA_MARKER_MISSING'
-}
-& python (Join-Path $lab 'tools\check_sta_lab061.py') $timingPath --log $logPath
-if ($LASTEXITCODE -ne 0) { throw 'LAB061_AUDIT_REPEAT_STA_FAIL' }
-
-Write-Host "LAB061_RESOURCE_REPORT: $reportPath"
-Write-Host 'LAB061_RESOURCE_EXCERPT_BEGIN'
-$matches = @(Get-Content -LiteralPath $reportPath |
-    Select-String -Pattern 'Logic|LUT|ALU|Register|FF|BSRAM|SDPB|DPB|DSP|PLL|I/O|IOB|Utilization|Resource')
-foreach ($match in ($matches | Select-Object -First 65)) {
-    Write-Host $match.Line
-}
-Write-Host 'LAB061_RESOURCE_EXCERPT_END'
-if ($matches.Count -eq 0) { throw 'LAB061_RESOURCE_REPORT_HAS_NO_RECOGNIZED_ROWS' }
-
-Write-Host "LAB061_INTERNAL_PREBOARD_AUDIT_PASS: $actual" -ForegroundColor Green
-Write-Host 'LAB061_EXTERNAL_IO_TIMING: NOT CHARACTERIZED (UART RX asynchronous, reset external)' -ForegroundColor Yellow
-Write-Host 'LAB061_BOARD: NOT RUN. No hardware action performed; full timing / reset review still required.'
-
+    # Match the first PnR table's complete row from the start of the line.
+    # Do not pass a JS replacement string containing $' -- that is a special
+    # replacement token. The publishing script uses a callback instead.
+    $rowRegex = '(?m)^[ \t]*' + [regex]::Escape($port) + '[ \t]*\|[^\r\n]*$'
     $pnrRows = [regex]::Matches($pnrText, $rowRegex)
     if ($pnrRows.Count -ne 1) {
         throw "LAB061_PNR_PORT_NOT_UNIQUE: $port (rows=$($pnrRows.Count))"
     }
     $cell = @($pnrRows[0].Value.Split('|') | ForEach-Object { $_.Trim() })
-    # First Gowin 'Port Name | Diff Pair | Loc./Bank | Constraint ... | BankVccio'
-    # table has exactly 16 cells, indexes: loc/bank=2, constrained=3,
-    # IO type=6, BankVccio=15. Fail closed on unexpected report format.
+    # Gowin "Port Name | Diff Pair | Loc./Bank | ... | BankVccio":
+    # 16 columns, zero-based indices: Loc=2, Constraint=3, IOType=6, VCCIO=15.
     if ($cell.Count -ne 16) {
-        throw "LAB061_PNR_PORT_FORMAT_UNKNOWN: $port cells=$($cell.Count)"
+        throw "LAB061_PNR_PORT_FORMAT_UNKNOWN: $port columns=$($cell.Count)"
     }
     $portLoc = @($cell[2].Split('/'))
     if ($portLoc.Count -ne 2 -or
         $portLoc[0] -cne [string]$expectedPins[$port] -or
         $cell[3] -cne 'Y' -or
         $cell[6] -cne [string]$expectedTypes[$port]) {
-        throw "LAB061_PNR_PORT_MAPPING_FAIL: $port loc=$($cell[2]) constrained=$($cell[3]) type=$($cell[6])"
+        throw "LAB061_PNR_PORT_MAPPING_FAIL: $port loc=$($cell[2]) constraint=$($cell[3]) type=$($cell[6])"
     }
     if ($cell[15] -cne [string]$expectedBankVccio[$port]) {
-        throw "LAB061_PNR_BANK_VCCIO_FAIL: $port at pin=$($cell[2]); IO_TYPE=$($cell[6]); BankVccio=$($cell[15]); expected=$($expectedBankVccio[$port]). DO NOT PROGRAM"
+        throw "LAB061_PNR_BANK_VCCIO_FAIL: $port pin=$($cell[2]) IOType=$($cell[6]) BankVccio=$($cell[15]) expected=$($expectedBankVccio[$port]); DO NOT PROGRAM"
     }
 }
-Write-Host 'LAB061_PNR_BANK_VCCIO_PASS: 10/10 fitted ports, real report bank voltages 3.3/1.8 verified' -ForegroundColor Green
-
-
+Write-Host 'LAB061_PNR_BANK_VCCIO_PASS: 10/10 fitted pins; report voltages verified' -ForegroundColor Green
 
 if (-not (Select-String -LiteralPath $staLogPath -Pattern 'LAB061_STA_SCREEN_PRELIM_PASS' -Quiet)) {
     throw 'LAB061_AUDIT_STA_MARKER_MISSING'
