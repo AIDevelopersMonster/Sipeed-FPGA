@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="./style.css">
   <!-- GitHub Pages cannot add COOP/COEP HTTP headers; this service worker supplies them. -->
   <script src="./coi-serviceworker.js"></script>
-  <script type="module" src="./app.js?v=breakout-local-20261026-1"></script>
+  <script type="module" src="./app.js?v=breakout-release-20261026-1"></script>
 </head>
 <body>
   <div class="shell">
@@ -52,13 +52,13 @@
         <section class="card step">
           <div class="kicker">ШАГ 01 · BITSTREAM</div>
           <h2>Выберите прошивку</h2>
-          <p>Выберите v0.2.0, SD-08, PONG RGB или BREAKOUT RGB. Для BREAKOUT v0.1.0 используйте локальный .fs с точной проверкой SHA-256; автоматическая загрузка появится только после отдельной публикации проверенного бинарника. Программирование только в SRAM.</p>
+          <p>Выберите v0.2.0, SD-08, PONG RGB или BREAKOUT RGB. Для BREAKOUT v0.1.0 опубликован проверенный релиз: кнопка GitHub Pages скачивает тот же бинарник с проверкой SHA-256. Если Pages ещё обновляются, выберите .fs локально. Программирование только в SRAM.</p>
           <label for="firmware-profile" class="profile-label">Профиль PiKoSoL</label>
           <select id="firmware-profile" class="profile-select">
             <option value="v020">PiKoSoL v0.2.0 — HDMI / UART / GFX</option>
             <option value="sd08">PiKoSoL SD-08 — FAT32 / DIR / TYPE</option>
             <option value="pong">PiKoSoL PONG RGB v1.2 — HDMI / GAME / AI</option>
-            <option value="breakout">KonSol BREAKOUT RGB v0.1.0 — HDMI / GAME / LOCAL .fs</option>
+            <option value="breakout">KonSol BREAKOUT RGB v0.1.0 — HDMI / GAME / RELEASE</option>
           </select>
           <p id="profile-notes" class="small">Выберите версию прошивки.</p>
           <div class="row-buttons">

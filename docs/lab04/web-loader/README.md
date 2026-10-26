@@ -50,3 +50,10 @@ The loader has a fourth profile **BREAKOUT RGB** for **Tang Nano 9K**, pinned to
 **Important:** A successful HTML edit or GitHub Pages deployment is not browser hardware acceptance. Test the fourth profile with the exact known SHA in Chrome/Edge on the real board before documenting WebUSB BOARD PASS.
 
 Sources, keyboard, proof and reproducible build: [`games/breakout-rgb/`](../../../games/breakout-rgb/). The original `PONG` browser keyboard does not expose Breakout's start command.
+
+
+## BREAKOUT RGB v0.1.0 — verified release + Pages publisher
+
+The exact 2,070,601-byte `.fs` asset is published at [Breakout v0.1.0 release](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/konsol-breakout-rgb-v0.1.0); verified SHA-256: `4CF80DBD008B0D41D4316BF63DB952190C03940A4FFB1FFC00CAB09210AE8789`.
+
+The [Breakout publisher workflow](../../../.github/workflows/publish-konsol-breakout-pages.yml) stages this immutable checked release asset into the existing same-origin Pages firmware folder and updates the SHA256SUMS manifest. The fourth browser profile can now request the file from GitHub Pages, requiring BOTH the manifest and pinned profile hash match. **Workflow publication and browser-level programming must be separately verified; no new WebUSB hardware PASS is claimed by this change.** A local exact-hash `.fs` remains supported as fallback.
