@@ -1,6 +1,6 @@
 # LAB-06 W01: final controlled RV32I comparison
 
-**STATE: SOURCE PREPARED; W01 CPU simulation NOT RUN, W01 PnR NOT RUN, W01 board NOT RUN.**
+**STATE 2026-10-27: W01 compile PASS twice, 62/62 machine instruction words identical, real PicoRV32 and NEORV32 CPU RTL SIM PASS; NEORV32 SIM cycles=38162; PicoRV32 cycle count in operator local log but not yet posted. W01 Gowin PnR NOT RUN; W01 board NOT RUN.**
 
 This isolated workload will compare the two CPUs once each on Tang Nano 9K without changing any accepted LAB-06.1 or LAB-06.2 source or bitstream.
 
@@ -47,3 +47,15 @@ git restore --source origin/main --worktree -- docs/cpu-comparison/w01
 Expected W01_REFERENCE_PASS and W01_COMMON_MACHINE_CODE_PASS.
 This **builds firmware only**; no CPU simulation, Gowin fitting or programming
 occurs. The two previously accepted CPU images remain unchanged.
+
+## W01 validation checkpoint, 2026-10-27
+
+Operator ran common compile twice, with independent digest `B26F8CA7`, both ELF images generated, byte-identical 62 instruction words PASS. Then operator ran `run_w01_sim.ps1`; it issued `W01_BOTH_CPU_SIM_PASS` with job `docs/cpu-comparison/w01/_build/sim_20261027_043846_199`. From GHDL log: `W01_NEO_SIM_PASS digest=B26F8CA7 cycles=38162 bytes=23`. The Pico simulation log and cycle count are not in the submitted excerpt; the script's `BOTH_CPU_SIM_PASS` marker requires both simulator PASS logs. The result is **simulation**, not hardware speed.
+
+Pico count can be read without any rebuild:
+
+```powershell
+Get-Content '.\docs\cpu-comparison\w01\_build\sim_20261027_043846_199\pico\sim.log' -Tail 15
+```
+
+A read-only Gowin PnR auditor is staged in `tools/audit_w01_pnr.py`, but **the W01 Gowin FIT runner is not yet accepted** and neither FPGA has been reconfigured for W01. Do not program images from the old counter-disabled LAB06.1/LAB06.2 builds with W01 firmware. Preserve previous physical board BASIC PASS results.
