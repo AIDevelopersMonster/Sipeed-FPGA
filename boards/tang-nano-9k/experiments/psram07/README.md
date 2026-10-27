@@ -115,3 +115,7 @@ Second local Icarus failure: `UART byte 0 got 35 expected 50`, after correcting 
 ## LAB-07.1 second Gowin PnR result (2026-10-27)
 
 After `LAB07_UART_TB_PASS`, the operator successfully ran lean-UART Gowin FIT. New job: `fit_20261027_120909_174`. Exact bitstream SHA-256: `98FAA94E4C53A52C59F2DD7AB206A78E953134E7C071BBCD01C996A7508C21F5`. Its STA and PSRAM internal-port assignment **have not yet been audited**. The original PnR candidate and SHA remain preserved. The read-only `inspect_psram07_fit.ps1` now accepts `-FitJob` and `-ExpectedSha`; original defaults retained. Zero Setup/Hold reported violations do not by themselves prove DDR timing closure or authorize hardware.
+
+## 27 October 2026 — published STA reader repair
+
+The previous `inspect_psram07_fit.ps1` commit (`0f57d51`) was malformed in the PowerShell parameter block: duplicate code was accidentally inserted during repository publication. The script never ran and did not alter the candidate bitstream. This commit restores the previously working inspector source and adds only validated, positional-independent `-ExpectedSha` parameter and a violation-count gate. A CI workflow checks the PowerShell AST parser before any future operator instructions. **External memory timing remains unverified; no FPGA/Flash programming is authorized.**

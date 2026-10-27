@@ -1,0 +1,33 @@
+name: LAB-07 PSRAM audit script syntax
+on:
+  push:
+    paths:
+      - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+      - '.github/workflows/lab07-powershell-audit-syntax.yml'
+  pull_request:
+    paths:
+      - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+      - '.github/workflows/lab07-powershell-audit-syntax.yml'
+  workflow_dispatch:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse Windows/PowerShell audit script without executing it
+        shell: pwsh
+        run: |
+          $path = 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+          $tokens = $null
+          $errors = $null
+          $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path -LiteralPath $path).Path, [ref]$tokens, [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          if ($ast.ParamBlock.Parameters.Count -ne 2) {
+            throw 'Expected two parameters: FitJob and ExpectedSha'
+          }
+          Write-Output 'LAB07_POWERSHELL_PARSER_PASS'
