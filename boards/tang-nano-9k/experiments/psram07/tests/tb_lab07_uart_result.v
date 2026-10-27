@@ -41,11 +41,16 @@ module tb_lab07_uart_result;
         expected={"PSRAM07:PASS",8'h0d,8'h0a};
         check_message(expected);
         repeat(25) @(posedge clk);
+        // Clear the preceding PASS status BEFORE resetting the UART.
+        // Otherwise after reset release the RTL detects state 4 again and
+        // starts an unsolicited PASS while this test expects FAIL.
         #1 resetn=0;
+        test_state=0;
         repeat(5) @(posedge clk);
         #1 resetn=1;
         repeat(3) @(posedge clk);
-        #1 test_state=8;
+        #1 if(tx !== 1'b1) $fatal(1,"UART must stay idle across reset");
+        test_state=8;
         expected={"PSRAM07:FAIL",8'h0d,8'h0a};
         check_message(expected);
         $display("LAB07_UART_TB_PASS");

@@ -1,0 +1,28 @@
+name: LAB-07 UART regression
+on:
+  push:
+    paths:
+      - 'boards/tang-nano-9k/experiments/psram07/tests/**'
+      - 'boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
+      - '.github/workflows/lab07-uart-regression.yml'
+  pull_request:
+    paths:
+      - 'boards/tang-nano-9k/experiments/psram07/tests/**'
+      - 'boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
+      - '.github/workflows/lab07-uart-regression.yml'
+  workflow_dispatch:
+jobs:
+  uart-result-rtl-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Verify PASS, reset idle, FAIL UART frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments/psram07
+          iverilog -g2012 -s tb_lab07_uart_result -o /tmp/lab07_uart.vvp "$d/rtl/lab07_uart_result.v" "$d/tests/tb_lab07_uart_result.v"
+          vvp /tmp/lab07_uart.vvp | tee /tmp/lab07_uart.log
+          grep -Fxq LAB07_UART_TB_PASS /tmp/lab07_uart.log
