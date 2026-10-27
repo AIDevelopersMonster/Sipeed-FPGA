@@ -111,3 +111,7 @@ The first `-Build -LeanUart` invocation stopped *before Gowin FIT*: the testbenc
 ## LAB-07.1 — UART testbench reset-sequence correction, 27 October 2026
 
 Second local Icarus failure: `UART byte 0 got 35 expected 50`, after correcting CR/LF. The testbench did not clear `test_state=4` (prior PASS) when resetting the UART. On reset deassertion, the diagnostic sender detected PASS again before the testbench requested FAIL (`test_state=8`), and the receive task sampled the middle of the unsolicited frame. Corrected solely in the TB: set `test_state=0` while asserting reset, check UART remains idle after deassertion, then set `test_state=8`. No PSRAM/PLL/DDR/RTL firmware changes. GitHub Actions now runs the exact Icarus UART test on pushes and pull requests that change this TB or UART RTL; a green workflow is evidence of only standalone UART simulation. The physical memory test remains blocked pending PnR STA and DDR-interface review.
+
+## LAB-07.1 second Gowin PnR result (2026-10-27)
+
+After `LAB07_UART_TB_PASS`, the operator successfully ran lean-UART Gowin FIT. New job: `fit_20261027_120909_174`. Exact bitstream SHA-256: `98FAA94E4C53A52C59F2DD7AB206A78E953134E7C071BBCD01C996A7508C21F5`. Its STA and PSRAM internal-port assignment **have not yet been audited**. The original PnR candidate and SHA remain preserved. The read-only `inspect_psram07_fit.ps1` now accepts `-FitJob` and `-ExpectedSha`; original defaults retained. Zero Setup/Hold reported violations do not by themselves prove DDR timing closure or authorize hardware.
