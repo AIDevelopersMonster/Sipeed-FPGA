@@ -1,0 +1,61 @@
+name: LAB-07.2 54MHz scripted preflight
+on:
+  push:
+    paths:
+      - 'boards/tang-nano-9k/experiments/psram07/tools/prepare_psram07.ps1'
+      - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+      - 'boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
+      - 'boards/tang-nano-9k/experiments/psram07/tests/tb_lab07_uart_result.v'
+      - '.github/workflows/lab07-clock54-preflight.yml'
+  pull_request:
+    paths:
+      - 'boards/tang-nano-9k/experiments/psram07/tools/prepare_psram07.ps1'
+      - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+      - 'boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
+      - 'boards/tang-nano-9k/experiments/psram07/tests/tb_lab07_uart_result.v'
+      - '.github/workflows/lab07-clock54-preflight.yml'
+  workflow_dispatch:
+jobs:
+  staged-source-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PS scripts without invoking Gowin
+        shell: pwsh
+        run: |
+          $folder = 'boards/tang-nano-9k/experiments/psram07/tools'
+          foreach ($name in @('prepare_psram07.ps1','inspect_psram07_fit.ps1')) {
+            $tokens = $null
+            $errors = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path -LiteralPath (Join-Path $folder $name)).Path,
+              [ref]$tokens, [ref]$errors
+            )
+            if ($errors.Count -gt 0) {
+              $errors | ForEach-Object { Write-Error ("$name " + $_.Message) }
+              exit 1
+            }
+            if (-not $ast.ParamBlock) { throw "Missing parameters: $name" }
+          }
+          $s = Get-Content -LiteralPath (Join-Path $folder 'prepare_psram07.ps1') -Raw
+          foreach ($marker in @(
+              'LAB07_CLOCK54_REQUIRES_BUILD_AND_LEAN_UART',
+              'LAB07_CLOCK54_PLL_FINGERPRINT_MISMATCH',
+              'LAB07_CLOCK54_TOP_FINGERPRINT_MISMATCH',
+              'LAB07_CLOCK54_STAGE_PASS',
+              'inspect_psram07_fit.ps1'
+          )) {
+              if (-not $s.Contains($marker)) { throw "Missing clock safety marker: $marker" }
+          }
+          Write-Output 'LAB07_CLOCK54_POWERSHELL_AST_PASS'
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Validate terminal UART PASS/FAIL and reset
+        shell: bash
+        run: |
+          set -euo pipefail
+          d=boards/tang-nano-9k/experiments/psram07
+          iverilog -g2012 -s tb_lab07_uart_result -o /tmp/lab07_uart.vvp "$d/rtl/lab07_uart_result.v" "$d/tests/tb_lab07_uart_result.v"
+          vvp /tmp/lab07_uart.vvp | tee /tmp/lab07_uart.log
+          grep -q LAB07_UART_TB_PASS /tmp/lab07_uart.log
+          echo LAB07_CLOCK54_UART_TB_PASS

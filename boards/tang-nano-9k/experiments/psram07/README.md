@@ -1,6 +1,6 @@
 # LAB-07 / Tang Nano 9K — PSRAM bring-up (memory, not another game)
 
-**Status 2026-10-27: CLOSED / PRE-BOARD STA FAIL.** Two Gowin candidates built; the lean-UART candidate improved 81MHz main-clock Fmax but still has one phase-crossing Setup violation (-0.570ns) on the PSRAM ODDR clock path. **No FPGA programming and no PSRAM read/write hardware verification.** Details: [AUDIT_20261027.md](AUDIT_20261027.md). LAB-06 CPU comparison is closed; KonSol RetroStation is developed separately in another project and is **outside LAB-07**.
+**Status 2026-10-27: 81MHz ATTEMPT CLOSED / PRE-BOARD STA FAIL. LAB-07.2: one authorized isolated 54MHz PnR verification only. No PSRAM hardware PASS.** Two Gowin candidates built; the lean-UART candidate improved 81MHz main-clock Fmax but still has one phase-crossing Setup violation (-0.570ns) on the PSRAM ODDR clock path. **No FPGA programming and no PSRAM read/write hardware verification.** Details: [AUDIT_20261027.md](AUDIT_20261027.md). LAB-06 CPU comparison is closed; KonSol RetroStation is developed separately in another project and is **outside LAB-07**.
 
 ## Engineering goal
 
@@ -119,3 +119,26 @@ After `LAB07_UART_TB_PASS`, the operator successfully ran lean-UART Gowin FIT. N
 ## 27 October 2026 — published STA reader repair
 
 The previous `inspect_psram07_fit.ps1` commit (`0f57d51`) was malformed in the PowerShell parameter block: duplicate code was accidentally inserted during repository publication. The script never ran and did not alter the candidate bitstream. This commit restores the previously working inspector source and adds only validated, positional-independent `-ExpectedSha` parameter and a violation-count gate. A CI workflow checks the PowerShell AST parser before any future operator instructions. **External memory timing remains unverified; no FPGA/Flash programming is authorized.**
+
+## LAB-07.2 — one 54MHz clock-only PnR candidate (authorized 27 October 2026)
+
+User approved **one final bounded 54MHz timing experiment** after the 81MHz 1-Setup violation (-0.570ns). This is a separate build, not a retroactive correction of the closed 81MHz attempt.
+
+**Pinned upstream:** `zf3/psram-tang-nano-9k@394ae14a68f112729f79f78cbfc62a95d874d632`, Apache-2.0 for controller source; Gowin-generated PLL file remains ignored in `_deps` / `_build` and is never committed.
+
+**Exactly two clock adjustments in an ignored copy** when `-Clock54 -Build -LeanUart` is used: PLL `FBDIV_SEL = 2` to `1` with `IDIV_SEL=0`, `ODIV_SEL=8`, `PSDA_SEL="0100"` unchanged, and top-level `FREQ = 81_000_000` to `54_000_000` to adjust the controller initialization timer and diagnostic UART divider. VCO target 54×8=432MHz (GW1NR-9 datasheet VCO range 400–1200MHz); generated clocks nominal 18.519ns, 90-degree phase shift ≈4.630ns. No change to DDR controller RTL, `LATENCY=3`, 1MiB test, reset pin or SDC 27MHz reference input.
+
+**PowerShell 7 (read this section before running; NO FPGA programming):**
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- boards/tang-nano-9k/experiments/psram07
+.\boards\tang-nano-9k\experiments\psram07\tools\prepare_psram07.ps1 -Build -LeanUart -Clock54
+```
+
+Expected `LAB07_CLOCK54_STAGE_PASS`, `LAB07_UART_TB_PASS`, and `LAB07_PNR_CANDIDATE_SHA` if successful. The new path begins `_build/fit54_`, preserving both 81MHz candidates and their SHA-256 receipts. After PnR, the script automatically invokes the **existing read-only** `inspect_psram07_fit.ps1` with the exact job path and generated SHA. Examine `LAB07_STA_COUNT`, `LAB07_STA_GATE`, `Clock Summary`, worst Setup path and Gowin DDR warnings.
+
+**Acceptance for this software-only experiment**: generated CLKOUT and CLKOUTP both actually **54 MHz**, CLKOUTP shifted 90°; zero reported Setup/Hold violated endpoints; nonnegative all relevant setup/hold slacks; and no unsupported path waivers. **Even these conditions do not qualify the memory I/O, DDR TX behavior, reset synchronization or access to the second die.** Existing warnings concerning undriven `TX` and special PSRAM ports remain unresolved. There is **no automatic flash or SRAM programmer**, and this experiment must not be repeated or expanded automatically if timing does not close.
+
+**Official PLL references:** Gowin UG286E Clock User Guide (frequency relations, PSDA=0100 => 90°), Gowin DS117 GW1NR Datasheet (VCO minimum 400MHz, GW1NR-9 maximum 1200MHz).

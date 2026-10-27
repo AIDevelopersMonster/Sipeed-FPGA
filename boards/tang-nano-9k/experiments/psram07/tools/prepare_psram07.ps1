@@ -10,12 +10,16 @@ EXPERIMENTAL: built .fs is never authorized for programming by this script.
 param(
     [switch]$Build,
     [switch]$LeanUart,
+    [switch]$Clock54,
     [string]$GowinRoot='C:\Gowin\Gowin_V1.9.9Beta-4_Education'
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 $PSNativeCommandUseErrorActionPreference=$false
 if($LeanUart -and -not $Build){throw 'LAB07_LEAN_UART_REQUIRES_BUILD'}
+if($Clock54 -and (-not $Build -or -not $LeanUart)){
+    throw 'LAB07_CLOCK54_REQUIRES_BUILD_AND_LEAN_UART'
+}
 
 if(-not (Get-Command git -ErrorAction SilentlyContinue)) {throw 'LAB07_GIT_MISSING'}
 $repo = ([string](& git -C $PSScriptRoot rev-parse --show-toplevel)).Trim()
@@ -69,7 +73,11 @@ if(-not $controller.Contains('module PsramController') -or
 }
 Write-Host "LAB07_REFERENCE_PIN_PASS: $pin" -ForegroundColor Green
 Write-Host 'LAB07_MEMORY_SCOPE: 64Mbit total PSRAM; demo addresses only FIRST DIE, FIRST 1MiB'
-Write-Host 'LAB07_CLOCK_PLAN: 27MHz input -> 81MHz PLL + 90-degree phase; DDR paths require dedicated STA review.'
+if($Clock54) {
+    Write-Host 'LAB07_CLOCK54_PLAN: 27MHz input -> 54MHz PLL + 90-degree phase; 432MHz VCO; DDR timing UNQUALIFIED.'
+} else {
+    Write-Host 'LAB07_CLOCK_PLAN: 27MHz input -> 81MHz PLL + 90-degree phase; DDR paths require dedicated STA review.'
+}
 Write-Host 'LAB07_RESET_PLAN: verified S1 pin3 (1.8V), NOT original upstream pin4.'
 Write-Host 'LAB07_UPSTREAM_LICENCE: Apache-2.0; Gowin generated PLL is vendor material, never committed.'
 # Cheap safety preflight: no build if actual board IO locations were edited.
@@ -93,13 +101,44 @@ if(-not $Build) {
 }
 $gowin = Join-Path $GowinRoot 'IDE\bin\gw_sh.exe'
 if(-not(Test-Path $gowin -PathType Leaf)){throw "LAB07_GOWIN_CLI_MISSING: $gowin"}
-$job = Join-Path $lab ('_build\fit_'+(Get-Date -Format 'yyyyMMdd_HHmmss_fff'))
+$fitStem = 'fit_'
+if($Clock54){$fitStem = 'fit54_'}
+$job = Join-Path $lab ('_build\' + $fitStem + (Get-Date -Format 'yyyyMMdd_HHmmss_fff'))
 $work = Join-Path $job 'work'
 $rtl = Join-Path $work 'rtl'
 $con = Join-Path $work 'constraints'
 New-Item -ItemType Directory -Force -Path $rtl,$con | Out-Null
 Copy-Item (Join-Path $dep 'src\psram_controller.v') (Join-Path $rtl 'psram_controller.v')
 Copy-Item (Join-Path $dep 'src\gowin_rpll\gowin_rpll.v') (Join-Path $rtl 'gowin_rpll.v')
+if($Clock54) {
+    # Edit ONLY the ignored working copy of the upstream vendor-generated PLL.
+    # GW1NR-9C rPLL: CLKOUT = 27 * (FBDIV_SEL+1)/(IDIV_SEL+1).
+    # FBDIV_SEL=1, IDIV_SEL=0 -> 54MHz; ODIV_SEL=8 -> VCO=432MHz.
+    # PSDA_SEL=0100 preserves CLKOUTP +90 degrees.
+    $pllPath = Join-Path $rtl 'gowin_rpll.v'
+    $pllStage = Get-Content -LiteralPath $pllPath -Raw
+    $requiredPll = @(
+        '(?m)^defparam rpll_inst.FCLKIN = "27";[ \t]*$',
+        '(?m)^defparam rpll_inst.FBDIV_SEL = 2;[ \t]*$',
+        '(?m)^defparam rpll_inst.IDIV_SEL = 0;[ \t]*$',
+        '(?m)^defparam rpll_inst.ODIV_SEL = 8;[ \t]*$',
+        '(?m)^defparam rpll_inst.PSDA_SEL = "0100";[ \t]*$'
+    )
+    foreach($required in $requiredPll) {
+        if([regex]::Matches($pllStage,$required).Count -ne 1){
+            throw "LAB07_CLOCK54_PLL_FINGERPRINT_MISMATCH: $required"
+        }
+    }
+    $pllStage = [regex]::Replace($pllStage,
+        '(?m)^defparam rpll_inst.FBDIV_SEL = 2;[ \t]*$',
+        'defparam rpll_inst.FBDIV_SEL = 1;')
+    if([regex]::Matches($pllStage,
+        '(?m)^defparam rpll_inst.FBDIV_SEL = 1;[ \t]*$').Count -ne 1){
+        throw 'LAB07_CLOCK54_PLL_PATCH_FAILED'
+    }
+    $pllStage | Set-Content -LiteralPath $pllPath -Encoding utf8
+}
+
 Copy-Item (Join-Path $dep 'src\uart_tx.v') (Join-Path $rtl 'uart_tx.v')
 if($LeanUart) {
     Copy-Item (Join-Path $lab 'rtl\lab07_uart_result.v') (Join-Path $rtl 'lab07_uart_result.v')
@@ -143,6 +182,27 @@ lab07_uart_result #(.CLOCK_HZ(FREQ),.BAUD(115200)) result_uart (
     $parity='assign dout_parity = dout[7] & dout[6] & dout[5] & dout[4] & dout[3] & dout[2] & dout[1] & dout[0];'
     if(-not $testSrc.Contains($parity)){throw 'LAB07_LEAN_UART_PARITY_PATCH_MISMATCH'}
     $testSrc=$testSrc.Replace($parity, '// unused parity of old diagnostic printer removed')
+}
+if($Clock54){
+    # Both the RAM-controller reset delay and UART divider derive FREQ
+    # from this top parameter. Keep LATENCY=3 and BYTES=1MiB unchanged.
+    $oldFreq = 'localparam FREQ = 81_000_000;'
+    if([regex]::Matches($testSrc, [regex]::Escape($oldFreq)).Count -ne 1 -or
+       [regex]::Matches($testSrc,
+         [regex]::Escape('localparam LATENCY = 3;')).Count -ne 1 -or
+       [regex]::Matches($testSrc,
+         [regex]::Escape('localparam [21:0] BYTES = 1024*1024;')).Count -ne 1){
+        throw 'LAB07_CLOCK54_TOP_FINGERPRINT_MISMATCH'
+    }
+    $testSrc = $testSrc.Replace($oldFreq, 'localparam FREQ = 54_000_000;')
+    $testSrc = $testSrc.Replace(
+        '// LAB07: explicit FREQ=81MHz, identical to original default.',
+        '// LAB07.2: explicit FREQ=54MHz for RAM controller and UART.')
+    if(-not $testSrc.Contains('localparam FREQ = 54_000_000;') -or
+       -not $testSrc.Contains('    .FREQ(FREQ),')){
+        throw 'LAB07_CLOCK54_TOP_PATCH_FAILED'
+    }
+    Write-Host 'LAB07_CLOCK54_STAGE_PASS: 54MHz RAM/UART, 90deg PLL, 432MHz VCO; 1MiB test unchanged.' -ForegroundColor Green
 }
 $testSrc | Set-Content -LiteralPath (Join-Path $rtl 'psram_test_top.v') -Encoding utf8
 Copy-Item (Join-Path $lab 'constraints\psram07_nano9k.cst') (Join-Path $con 'psram07_nano9k.cst')
@@ -234,9 +294,28 @@ if($LeanUart){
     $receipt['DiagnosticMode']='LEAN_TERMINAL_UART'
     $receipt['UartSim']='PASS'
 }
+if($Clock54){
+    $receipt['BuildVariant']='LAB07_54MHZ_ONE_PNR_CANDIDATE'
+    $receipt['ClockInputMHz']=27
+    $receipt['ClockOutputMHz']=54
+    $receipt['ClockVcoMHz']=432
+    $receipt['ClockPhaseDegrees']=90
+    $receipt['TimingClosure']='NOT_REVIEWED'
+    $receipt['Prior81MHzResult']='1_SETUP_VIOLATION_MINUS_0P570_NS'
+}
 $receipt | ConvertTo-Json -Depth 5 |
   Set-Content -LiteralPath (Join-Path $job 'receipt.json') -Encoding utf8
 Write-Host "LAB07_PNR_CANDIDATE_SHA: $sha" -ForegroundColor Green
 Write-Host "LAB07_GOWIN_LOG: $log"
 Write-Host "LAB07_FIT_RECEIPT: $(Join-Path $job 'receipt.json')"
-Write-Host 'LAB07_HARDWARE_BLOCKED: review PSRAM port binding, 81MHz clock/DDR STA, pins, and reset before SRAM-only programming.' -ForegroundColor Yellow
+if($Clock54) {
+    Write-Host 'LAB07_54_PNR_COMPLETE_NOT_HARDWARE_QUALIFIED: read-only STA audit follows.' -ForegroundColor Yellow
+    $inspector = Join-Path $PSScriptRoot 'inspect_psram07_fit.ps1'
+    if(-not(Test-Path -LiteralPath $inspector -PathType Leaf)){
+        throw 'LAB07_CLOCK54_INSPECTOR_NOT_FOUND'
+    }
+    & $inspector -FitJob $job -ExpectedSha $sha
+    Write-Host 'LAB07_54_HARDWARE_BLOCKED: zero Setup/Hold and full DDR/PSRAM interface evidence required before any SRAM-only test.' -ForegroundColor Yellow
+} else {
+    Write-Host 'LAB07_HARDWARE_BLOCKED: review PSRAM port binding, 81MHz clock/DDR STA, pins, and reset before SRAM-only programming.' -ForegroundColor Yellow
+}
