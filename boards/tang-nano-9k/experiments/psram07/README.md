@@ -1,6 +1,6 @@
 # LAB-07 / Tang Nano 9K — PSRAM bring-up (memory, not another game)
 
-**Status 2026-10-27: READ-ONLY PREPARATION AVAILABLE. No LAB-07 simulation, Gowin FIT or hardware run has yet been performed.** LAB-06 CPU comparison is closed; KonSol RetroStation is developed separately in another project and is **outside LAB-07**.
+**Status 2026-10-27: Gowin PnR CANDIDATE PRODUCED by operator (SHA-256 D3E38926012EC2C7E7762D69553446E1BBDC9B05038A68A24165E1C3F74EE21B); 81MHz clock/DDR PSRAM/pin/STA audit NOT YET COMPLETE. No LAB-07 simulation or physical hardware run.** LAB-06 CPU comparison is closed; KonSol RetroStation is developed separately in another project and is **outside LAB-07**.
 
 ## Engineering goal
 
@@ -66,3 +66,22 @@ This stages the pinned controller, unchanged PLL reference and UART/test source 
 On one Windows CHUWI setup, the board temporarily enumerated as `VID_FFFF&PID_FFFF` / COM28 instead of the expected `VID_0403&PID_6010` WebUSB profile after moving between PCs. The operator **recovered normal USB access by disconnecting BOTH USB and HDMI and removing residual power**, not by changing drivers or reflashing BL702. If the symptom recurs, first power down fully and reconnect USB before HDMI. This is an observed recovery, **not proof of the specific back-powering mechanism**. LAB-07 synthesis stage needs no USB/JTAG connection.
 
 The isolated Gowin candidate receipt uses `PlannedFirstDieSweepBytes` and `PhysicallyVerifiedExternalMemoryBytes=0` until a real board test is recorded; do not interpret a generated `.fs` as memory acceptance.
+
+
+## Operator's PnR result, 27 October 2026 (not a PSRAM PASS)
+
+First produced candidate:
+- build folder: `_build/fit_20261027_101531_279`;
+- bitstream SHA-256: `D3E38926012EC2C7E7762D69553446E1BBDC9B05038A68A24165E1C3F74EE21B`;
+- `LAB07_PNR_CANDIDATE_SHA` and `LAB07_HARDWARE_BLOCKED` both reported by local preparation script.
+
+**Exact read-only report extractor (PowerShell 7; no rebuild):**
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1
+.\boards\tang-nano-9k\experiments\psram07\tools\inspect_psram07_fit.ps1
+```
+
+Paste the summary (SHA, Gowin port table, Clock Summary, STA violation markers, Setup/Hold/Recovery/Removal, PSRAM/PLL log lines) for independent audit. This report **does not** automatically claim FPGA DDR closure or allow SRAM programming. If 81MHz derived clock timing or PSRAM special-port mapping cannot be established, **STOP** until those can be verified; do not flash the FPGA or BL702.
