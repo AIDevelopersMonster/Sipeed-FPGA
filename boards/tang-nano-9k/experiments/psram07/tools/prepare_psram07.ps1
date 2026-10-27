@@ -9,11 +9,13 @@ EXPERIMENTAL: built .fs is never authorized for programming by this script.
 [CmdletBinding()]
 param(
     [switch]$Build,
+    [switch]$LeanUart,
     [string]$GowinRoot='C:\Gowin\Gowin_V1.9.9Beta-4_Education'
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 $PSNativeCommandUseErrorActionPreference=$false
+if($LeanUart -and -not $Build){throw 'LAB07_LEAN_UART_REQUIRES_BUILD'}
 
 if(-not (Get-Command git -ErrorAction SilentlyContinue)) {throw 'LAB07_GIT_MISSING'}
 $repo = ([string](& git -C $PSScriptRoot rev-parse --show-toplevel)).Trim()
@@ -99,7 +101,11 @@ New-Item -ItemType Directory -Force -Path $rtl,$con | Out-Null
 Copy-Item (Join-Path $dep 'src\psram_controller.v') (Join-Path $rtl 'psram_controller.v')
 Copy-Item (Join-Path $dep 'src\gowin_rpll\gowin_rpll.v') (Join-Path $rtl 'gowin_rpll.v')
 Copy-Item (Join-Path $dep 'src\uart_tx.v') (Join-Path $rtl 'uart_tx.v')
-Copy-Item (Join-Path $dep 'src\print.v') (Join-Path $rtl 'print.v')
+if($LeanUart) {
+    Copy-Item (Join-Path $lab 'rtl\lab07_uart_result.v') (Join-Path $rtl 'lab07_uart_result.v')
+} else {
+    Copy-Item (Join-Path $dep 'src\print.v') (Join-Path $rtl 'print.v')
+}
 
 # Only 2 audited board-specific changes to reference test top:
 # 1) remove unused button port to avoid driving/claiming JTAG pin 4;
@@ -113,6 +119,31 @@ if([regex]::Matches($testSrc, [regex]::Escape($oldButton)).Count -ne 1 -or
 }
 $testSrc = $testSrc.Replace($oldButton, '    // LAB07: unused button removed; sys_resetn maps to physical S1, pin3.')
 $testSrc = $testSrc.Replace($oldLed, "assign led = ~{error, 1'b0, state}; // exactly 6 bits; led[5] = FAIL")
+if($LeanUart) {
+    $start = $testSrc.IndexOf('//Print Controll',[System.StringComparison]::Ordinal)
+    $end = $testSrc.LastIndexOf('endmodule',[System.StringComparison]::Ordinal)
+    if($start -lt 0 -or $end -le $start) {
+        throw 'LAB07_LEAN_UART_PATCH_SOURCE_MISMATCH'
+    }
+    $light = @'
+lab07_uart_result #(.CLOCK_HZ(FREQ),.BAUD(115200)) result_uart (
+    .clk(clk), .resetn(sys_resetn), .test_state(state), .uart_tx(uart_txp)
+);
+
+'@
+    $testSrc = $testSrc.Substring(0,$start) + $light + $testSrc.Substring($end)
+    if(-not $testSrc.Contains('    .LATENCY(LATENCY)') -or
+       -not $testSrc.Contains('defparam mem_clk_freq=FREQ;')) {
+        throw 'LAB07_LEAN_UART_FREQUENCY_PATCH_MISMATCH'
+    }
+    $testSrc = $testSrc.Replace('    .LATENCY(LATENCY)',
+        ('    .FREQ(FREQ),' + [char]10 + '    .LATENCY(LATENCY)'))
+    $testSrc = $testSrc.Replace('defparam mem_clk_freq=FREQ;',
+        '// LAB07: explicit FREQ=81MHz, identical to original default.')
+    $parity='assign dout_parity = dout[7] & dout[6] & dout[5] & dout[4] & dout[3] & dout[2] & dout[1] & dout[0];'
+    if(-not $testSrc.Contains($parity)){throw 'LAB07_LEAN_UART_PARITY_PATCH_MISMATCH'}
+    $testSrc=$testSrc.Replace($parity, '// unused parity of old diagnostic printer removed')
+}
 $testSrc | Set-Content -LiteralPath (Join-Path $rtl 'psram_test_top.v') -Encoding utf8
 Copy-Item (Join-Path $lab 'constraints\psram07_nano9k.cst') (Join-Path $con 'psram07_nano9k.cst')
 Copy-Item (Join-Path $lab 'constraints\psram07_nano9k.sdc') (Join-Path $con 'psram07_nano9k.sdc')
@@ -129,6 +160,30 @@ set_option -output_base_name psram07_nano9k
 set_option -synthesis_tool gowinsynthesis
 run all
 '@
+if($LeanUart) {
+    $tcl = $tcl.Replace('add_file rtl/psram_test_top.v',
+        ('add_file rtl/psram_test_top.v' + [char]10 + 'add_file rtl/lab07_uart_result.v'))
+    if(-not(Get-Command iverilog -ErrorAction SilentlyContinue) -or
+       -not(Get-Command vvp -ErrorAction SilentlyContinue)) {
+        throw 'LAB07_UART_SIM_TOOLS_MISSING: iverilog and vvp required in PATH'
+    }
+    $simDir=Join-Path $job 'uart_sim'
+    New-Item -ItemType Directory -Force -Path $simDir | Out-Null
+    $simExe=Join-Path $simDir 'tb_lab07_uart_result.vvp'
+    $simLog=Join-Path $simDir 'uart_sim.log'
+    & iverilog -g2012 -s tb_lab07_uart_result -o $simExe (Join-Path $rtl 'lab07_uart_result.v') (Join-Path $lab 'tests\tb_lab07_uart_result.v') *> $simLog
+    if($LASTEXITCODE -ne 0) {
+        Get-Content -LiteralPath $simLog -Tail 45
+        throw 'LAB07_UART_SIM_COMPILE_FAIL'
+    }
+    & vvp $simExe *>> $simLog
+    if($LASTEXITCODE -ne 0 -or
+       -not((Get-Content -LiteralPath $simLog -Raw).Contains('LAB07_UART_TB_PASS'))) {
+        Get-Content -LiteralPath $simLog -Tail 45
+        throw 'LAB07_UART_SIM_FAIL'
+    }
+    Write-Host 'LAB07_UART_TB_PASS: exact PASS/FAIL frames verified.' -ForegroundColor Green
+}
 $tcl | Set-Content -LiteralPath (Join-Path $work 'fit.tcl') -Encoding ascii
 $manifest = @(
     Get-ChildItem -LiteralPath $work -Recurse -File |
@@ -174,6 +229,10 @@ $receipt=[ordered]@{
     Hardware='NOT_RUN'
     Flash='NOT_TOUCHED'
     SD='NOT_TOUCHED'
+}
+if($LeanUart){
+    $receipt['DiagnosticMode']='LEAN_TERMINAL_UART'
+    $receipt['UartSim']='PASS'
 }
 $receipt | ConvertTo-Json -Depth 5 |
   Set-Content -LiteralPath (Join-Path $job 'receipt.json') -Encoding utf8

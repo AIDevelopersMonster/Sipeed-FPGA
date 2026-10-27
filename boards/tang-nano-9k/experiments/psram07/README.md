@@ -85,3 +85,21 @@ git restore --source origin/main --worktree -- boards/tang-nano-9k/experiments/p
 ```
 
 Paste the summary (SHA, Gowin port table, Clock Summary, STA violation markers, Setup/Hold/Recovery/Removal, PSRAM/PLL log lines) for independent audit. This report **does not** automatically claim FPGA DDR closure or allow SRAM programming. If 81MHz derived clock timing or PSRAM special-port mapping cannot be established, **STOP** until those can be verified; do not flash the FPGA or BL702.
+
+
+## LAB-07.1 — timing repair candidate (not yet tested)
+
+Original 81MHz PnR bitstream SHA `D3E38926012EC2C7E7762D69553446E1BBDC9B05038A68A24165E1C3F74EE21B` was **not allowed for SRAM**: 63 violated Setup endpoints; worst -1.921ns; actual Fmax 70.093MHz. Worst Setup paths were in `print_buffer_pointer`/`print_seq`, not necessarily in PSRAM controller. Hold violated endpoints: 0.
+
+An optional `-LeanUart` build replaces only the reference's 1024-bit dynamic-indexed UART printer in a new **ignored staged copy** with a small 14-byte terminal result reporter. Full PSRAM write/read algorithm, 81MHz clock, LVCMOS pin assignments, and 1MiB test footprint remain unchanged. Fixes a non-applied upstream `defparam` by explicitly specifying its existing 81MHz default, removes unused parity wire. Original PSRAM controller and its first-candidate FS are preserved.
+
+UART reports `PSRAM07:PASS\r\n` after entering FSM state 4 (readback complete) or `PSRAM07:FAIL\r\n` on FSM states 5–8. No initial progress prints or latency counters. A required standalone Icarus testbench checks both 14-byte messages *before* Gowin FIT. The testbench **does not** simulate the PSRAM electrical interface.
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- boards/tang-nano-9k/experiments/psram07
+.\boards\tang-nano-9k\experiments\psram07\tools\prepare_psram07.ps1 -Build -LeanUart
+```
+
+Expected earliest gate: `LAB07_UART_TB_PASS`. This produces a different PnR candidate and SHA if Gowin FIT completes. **Do not program FPGA yet**: derived 81MHz clock, Setup=0, PSRAM DDR special ports and unresolved original warnings require an independent check. Further unresolved timing issues are a stop under LAB-07 time-box.
