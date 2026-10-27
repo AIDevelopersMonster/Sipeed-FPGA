@@ -1,6 +1,8 @@
 # LAB-06 — Comparative RISC-V and reusable CPU blocks / Сравнение процессоров и типовых блоков
 
-**Programme status (2026-10-27): LAB-06.1 NEORV32 BOARD BASIC PASS and LAB-06.2 PicoRV32 BOARD BASIC PASS, both on Tang Nano 9K with independently verified SRAM programming, UART firmware banner and three physical LEDs observed. Pico Recovery/Removal report no paths, so full asynchronous reset sign-off is NOT DONE. Matched core-only and W01/W02/W03 performance benchmarks NOT MEASURED.** Existing PicoRV32/PiKoSoL and RetroStation results are not matched minimal SoC/core baselines; keep comparisons separate.
+**Programme status (2026-10-27): LAB-06 COMPARATIVE EXPERIMENT COMPLETE. Basic board UART/LED passes for both processors; final W01 FPGA UART/cycle PASS, PicoRV32 39,609 cycles vs NEORV32 38,162 cycles at 27 MHz. NEORV32 required 1,447 (3.65%) fewer cycles in this one workload. W01 LEDs visually unconfirmed, Pico async-reset timing not qualified, core-only resources and BRAM mapping cause unmeasured; W02/W03 canceled.** Existing PicoRV32/PiKoSoL and RetroStation results are not matched minimal SoC/core baselines; keep comparisons separate.
+
+**Final evidence:** [W01 hardware results](w01/RESULTS_W01_2026-10-27.md) · [LAB-06 closeout](LAB06_CLOSEOUT_2026-10-27.md).
 
 **Goal / Цель:** bring up a **second independent RISC-V processor**, then create a fair and reproducible comparative analysis of **processor cores, complete minimal SoCs, internal CPU blocks and standard peripherals**. The CPU comparison is useful only if the hardware configuration, workloads and measurement methods are documented.
 

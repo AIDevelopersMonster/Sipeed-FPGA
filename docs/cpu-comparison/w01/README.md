@@ -1,8 +1,10 @@
 # LAB-06 W01: final controlled RV32I comparison
 
-**STATE 2026-10-27: W01 compiler PASS, 62/62 machine words identical, real PicoRV32 SIM PASS 39609 cycles, NEORV32 SIM PASS 38162 cycles, Gowin FIT/STA preboard screen PASS for both (10/10 pin/VCCIO). Board W01 NOT RUN; Pico async-reset recovery/removal not qualified.**
+**STATE (2026-10-27): W01 SIM + REAL FPGA UART/CYCLE PASS on both processors. Same 62 RV32I instruction words, digest B26F8CA7, PicoRV32 39,609 cycles, NEORV32 38,162; both hardware counts exactly match simulation. Board programming SRAM-only, 10/10 pins/BankVccio PASS. W01 visual LEDs unconfirmed; Pico reset timing not qualified. Experiment closed with limitations.**
 
 This isolated workload will compare the two CPUs once each on Tang Nano 9K without changing any accepted LAB-06.1 or LAB-06.2 source or bitstream.
+
+**Final hardware evidence:** [W01 measured report](RESULTS_W01_2026-10-27.md) · [LAB-06 closeout](../LAB06_CLOSEOUT_2026-10-27.md). The instructions below preserve the historical sequence of tests; the reported state above supersedes earlier NOT RUN checkpoints.
 
 ## Design
 
