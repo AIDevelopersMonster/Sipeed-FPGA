@@ -71,3 +71,25 @@ No progress bar or SRAM write occurred, and there was no Flash/SD action. This i
 Next only two bounded steps: (1) inspect/release FTDI COM/JTAG ownership; (2) read-only `programmer_cli.exe --scan --cable-index 1`, one retry of exact SRAM load only after a positive scan. If repeated, stop and diagnose driver A/B and cable/USB power before any firmware changes. Earlier NEORV32 SRAM programming on the same board succeeded. See [Sipeed cable-open FAQ](https://wiki.sipeed.com/hardware/en/tang/common-doc/questions.html).
 
 **Updated status:** PnR verified; hardware load **CABLE_OPEN_FAILED, NOT CONFIGURED**; no board UART/LED result; preliminary STA and async reset caveats unchanged.
+
+## 2026-10-27 — successful USB/JTAG access, but different bitstream
+
+Operator subsequently ran the SRAM programmer again. This time the actual `BITSTREAM:` was **KonSol-RetroStation KBlocks**, not the Pico candidate:
+
+```text
+BITSTREAM: C:\GitHub\KonSol-RetroStation\games\kblocks-rgb\build\20261026_125847\work\impl\pnr\konsol_kblocks_rgb_nano9k.fs
+SHA256: F842B196CB4A56E0C18DEF1C471CBDDC82F59F0B552A27F553FDFF9692BBDC4E
+OPERATION: GW1NR-9C, operation_index 2, volatile SRAM (not Flash)
+Target Cable: Gowin USB Cable(FT2CH)/0/0/null@2.5MHz
+Target Device: GW1NR-9C(0x1100481B)
+Operation "SRAM Program" for device#1...
+Programming...: [#########################] 100%
+User Code: 0x0000F9C8
+Status Code: 0x0003F020
+Cost 3.65 second(s)
+LAB04_SRAM_PROGRAM_COMMAND_PASS
+```
+
+**Evidence interpretation:** USB/JTAG and SRAM programming are functional for the KBlocks image; the earlier `Cable open failed` is not shown to be a permanent programming-cable defect. But the PowerShell `$Fs` variable was **pointing to a RetroStation image**: no successful Pico LAB-06.2 programming or physical UART/GPIO check has been reported. Pico remains **BOARD NOT RUN / NOT LOADED**. Do not merge a KBlocks success into Pico acceptance.
+
+The Pico image remains SHA256 `31691075B56BB4167758AEB9D99CE8E7F4CE0BE84333D527FD2659606025F4A0`; next use a separate `$PicoFs` variable with full SHA and filename verification, then a single volatile-SRAM test. Original Gowin async-reset recovery/removal caveat still applies.

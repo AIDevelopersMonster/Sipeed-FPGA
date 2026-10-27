@@ -1,6 +1,6 @@
 # LAB-06.2A — PicoRV32 minimal native SoC, Tang Nano 9K
 
-**Status 2026-10-26: LAB-06.2A SIM PASS; LAB-06.2B PnR PASS, Setup/Hold 0 violations, fitted pins/BankVccio 10/10. SRAM dry-run and SHA PASS; one actual SRAM load attempt BLOCKED by `Cable open failed`, programmer exit 50 at 0.0 s; NO FPGA PROGRAMMING OCCURRED. UART/LED BOARD TEST NOT RUN; no Flash/SD writes. Recovery/Removal `Nothing to report!` (reset timing not qualified). Next: JTAG/USB driver/port diagnostic, NOT RTL or firmware changes.**
+**Status 2026-10-27: LAB-06.2A SIM PASS; LAB-06.2B PnR PASS, Setup/Hold 0 violations, fitted pins/BankVccio 10/10. Original Pico SRAM attempt FAILED with `Cable open failed` (exit 50). Subsequently JTAG cable opened and SRAM programming PASS for a DIFFERENT BITSTREAM: `KonSol-RetroStation` KBlocks, SHA `F842B196...BBDC4E`, not Pico LAB-06.2. Pico candidate `31691075...25F4A0` remains BOARD NOT RUN / NOT LOADED. Flash/SD NOT TOUCHED. Recovery/Removal `Nothing to report!`; full async reset timing not qualified. Next: use an explicit distinct `$PicoFs` path with SHA check for ONE SRAM-only Pico test.**
 
 A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (which is already BOARD BASIC PASS). Nothing under LAB-04, Pong, RetroStation or the accepted NEORV32 bitstream is modified.
 
@@ -10,6 +10,16 @@ A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (
 - FPGA I/O pinout will be matched to the accepted LAB-06.1 at later FIT stage.
 - First functional firmware: `PICORV32 READY\r\n` (16 bytes), GPIO `0x15` to `0x2A`. NEORV32 initial banner is 15 bytes, so **not a throughput comparison**.
 - This is a **native-SoC** trial, not a bare-CPU area comparison. The UART and MMIO are different hardware from NEORV32 native peripherals, and no equal-workload W01/W02/W03 benchmark has run.
+
+## Control point — 2026-10-27: Programmer functional again, but loaded KBlocks (not LAB-06 Pico)
+
+**Operator evidence (PowerShell command and Gowin output):** the existing `program_lab04_sram.ps1 -Bitstream $Fs -Program` command completed `SRAM Program` 100% with status `0x0003F020`, user code `0x0000F9C8`, cost 3.65s, Gowin FT2CH interface, FPGA GW1NR-9C. **The actual printed `BITSTREAM:` is from a different repository:** `C:\GitHub\KonSol-RetroStation\games\kblocks-rgb\build\20261026_125847\work\impl\pnr\konsol_kblocks_rgb_nano9k.fs`, SHA256 `F842B196CB4A56E0C18DEF1C471CBDDC82F59F0B552A27F553FDFF9692BBDC4E`.
+
+This is strong evidence that the **Gowin USB/JTAG cable works now**, at least for the KBlocks programming operation. It is **NOT** LAB-06 PicoRV32 BOARD PASS and does not demonstrate a successful SRAM load of the Pico candidate. The PowerShell session variable `$Fs` pointed to KBlocks at invocation; it must not be reused across projects without rechecking. We cannot infer precisely why the prior `Cable open failed` happened.
+
+**Exact pending Pico candidate**, unchanged: `01-PicoRV32\lab06\_build\fit_20261026_174759_839_3ed614\lab062_pico_nano9k.fs`, SHA256 `31691075B56BB4167758AEB9D99CE8E7F4CE0BE84333D527FD2659606025F4A0`.
+
+**Safe next experiment:** resolve this *specific* relative file to a new variable `$PicoFs`, verify full SHA256 and leaf filename `lab062_pico_nano9k.fs`, then invoke the existing SRAM-only programmer with `-Bitstream $PicoFs -Program` (not `$Fs`). Observe `PICORV32 READY` via UART 115200 8N1 and three illuminated LEDs; do not claim PASS until actual board evidence. Maximum 2–3 documented board attempts; no extra RTL rebuild, Flash or SD. Async reset recovery/removal remains not characterized.
 
 ## LAB-06.2C — First SRAM attempt BLOCKED BY USB/JTAG CABLE, 2026-10-26
 
