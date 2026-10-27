@@ -103,3 +103,7 @@ git restore --source origin/main --worktree -- boards/tang-nano-9k/experiments/p
 ```
 
 Expected earliest gate: `LAB07_UART_TB_PASS`. This produces a different PnR candidate and SHA if Gowin FIT completes. **Do not program FPGA yet**: derived 81MHz clock, Setup=0, PSRAM DDR special ports and unresolved original warnings require an independent check. Further unresolved timing issues are a stop under LAB-07 time-box.
+
+## LAB-07.1 UART testbench correction (2026-10-27)
+
+The first `-Build -LeanUart` invocation stopped *before Gowin FIT*: the testbench checked 14 UART bytes, matched the first 12 characters, then expected `0x72` (ASCII `r`) while RTL emitted the correct `0x0D` CR at index 12. The root cause was testbench use of Verilog `"\\r"` in an expected string. Only `tests/tb_lab07_uart_result.v` was corrected to concatenate exact numeric `8'h0d, 8'h0a` for both PASS and FAIL frames; **RTL, source PSRAM controller, build script, existing bitstreams and 81MHz timing constraints are unchanged**. A successful UART test is still only a pre-Gowin gate, not a PSRAM result. Re-run the same `-Build -LeanUart` command after pulling the corrected test file.

@@ -2,6 +2,9 @@ module tb_lab07_uart_result;
     reg clk=0, resetn=0;
     reg [3:0] test_state=0;
     wire tx;
+    // Exact 14 bytes: 12 ASCII characters + CR (0x0D) + LF (0x0A).
+    // Icarus treats Verilog string "\\r" as the letter 'r' (0x72),
+    // so CR/LF are explicit hex bytes rather than string escapes.
     reg [111:0] expected;
     reg [7:0] received;
     integer k,b;
@@ -35,7 +38,7 @@ module tb_lab07_uart_result;
         #1 resetn=1;
         repeat(3) @(posedge clk);
         #1 test_state=4;
-        expected="PSRAM07:PASS\r\n";
+        expected={"PSRAM07:PASS",8'h0d,8'h0a};
         check_message(expected);
         repeat(25) @(posedge clk);
         #1 resetn=0;
@@ -43,7 +46,7 @@ module tb_lab07_uart_result;
         #1 resetn=1;
         repeat(3) @(posedge clk);
         #1 test_state=8;
-        expected="PSRAM07:FAIL\r\n";
+        expected={"PSRAM07:FAIL",8'h0d,8'h0a};
         check_message(expected);
         $display("LAB07_UART_TB_PASS");
         $finish;
