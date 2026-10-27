@@ -29,3 +29,21 @@ Expected `W01_REFERENCE_DIGEST=B26F8CA7` and `W01_REFERENCE_PASS`. **That check 
 The next stage is an isolated compiler/run pipeline that must establish the exact RV32I object byte identity and two real CPU simulations before Gowin. No W01 results are claimed until the operator runs them and supplies raw receipts. W02/W03 cancelled.
 
 For a full comparison, audit the existing Pico `BSRAM=54%` vs NEORV32 `20%` resource summaries using mapped primitive reports, not just percentages.
+
+
+## Compile gate (not yet run)
+
+The cross-compiler invokes `-march=rv32i_zicsr` to make the cycle CSR legal;
+the shared workload itself only uses RV32I.
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin
+git restore --source origin/main --worktree -- docs/cpu-comparison/w01
+.\02-NEORV32\tools\activate_ucrt64.ps1
+.\docs\cpu-comparison\w01\tools\build_w01_firmware.ps1
+```
+
+Expected W01_REFERENCE_PASS and W01_COMMON_MACHINE_CODE_PASS.
+This **builds firmware only**; no CPU simulation, Gowin fitting or programming
+occurs. The two previously accepted CPU images remain unchanged.
