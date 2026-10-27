@@ -20,7 +20,8 @@ $ErrorActionPreference='Stop'
 $PSNativeCommandUseErrorActionPreference=$false
 
 $lab = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-$repo = (Resolve-Path -LiteralPath (Join-Path $lab '..\..\..')).Path
+# lab06 -> 01-PicoRV32 -> Sipeed-FPGA (two parents, not three)
+$repo = (Resolve-Path -LiteralPath (Join-Path $lab '..\..')).Path
 $job = Join-Path $lab '_build\fit_20261026_174759_839_3ed614'
 $fs = Join-Path $job 'lab062_pico_nano9k.fs'
 $fitReceipt = Join-Path $job 'fit_receipt.json'
