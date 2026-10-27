@@ -1,6 +1,6 @@
 # LAB-07 / Tang Nano 9K — PSRAM bring-up (memory, not another game)
 
-**Status 2026-10-27: Gowin PnR CANDIDATE PRODUCED by operator (SHA-256 D3E38926012EC2C7E7762D69553446E1BBDC9B05038A68A24165E1C3F74EE21B); 81MHz clock/DDR PSRAM/pin/STA audit NOT YET COMPLETE. No LAB-07 simulation or physical hardware run.** LAB-06 CPU comparison is closed; KonSol RetroStation is developed separately in another project and is **outside LAB-07**.
+**Status 2026-10-27: CLOSED / PRE-BOARD STA FAIL.** Two Gowin candidates built; the lean-UART candidate improved 81MHz main-clock Fmax but still has one phase-crossing Setup violation (-0.570ns) on the PSRAM ODDR clock path. **No FPGA programming and no PSRAM read/write hardware verification.** Details: [AUDIT_20261027.md](AUDIT_20261027.md). LAB-06 CPU comparison is closed; KonSol RetroStation is developed separately in another project and is **outside LAB-07**.
 
 ## Engineering goal
 
@@ -114,7 +114,7 @@ Second local Icarus failure: `UART byte 0 got 35 expected 50`, after correcting 
 
 ## LAB-07.1 second Gowin PnR result (2026-10-27)
 
-After `LAB07_UART_TB_PASS`, the operator successfully ran lean-UART Gowin FIT. New job: `fit_20261027_120909_174`. Exact bitstream SHA-256: `98FAA94E4C53A52C59F2DD7AB206A78E953134E7C071BBCD01C996A7508C21F5`. Its STA and PSRAM internal-port assignment **have not yet been audited**. The original PnR candidate and SHA remain preserved. The read-only `inspect_psram07_fit.ps1` now accepts `-FitJob` and `-ExpectedSha`; original defaults retained. Zero Setup/Hold reported violations do not by themselves prove DDR timing closure or authorize hardware.
+After `LAB07_UART_TB_PASS`, the operator successfully ran lean-UART Gowin FIT. New job: `fit_20261027_120909_174`. Exact bitstream SHA-256: `98FAA94E4C53A52C59F2DD7AB206A78E953134E7C071BBCD01C996A7508C21F5`. Its STA had not been audited at the time this build was reported; the subsequent audit **FAILED** (one Setup violation, -0.570ns). PSRAM internal-port physical verification remains uncompleted; see [AUDIT_20261027.md](AUDIT_20261027.md). The original PnR candidate and SHA remain preserved. The read-only `inspect_psram07_fit.ps1` now accepts `-FitJob` and `-ExpectedSha`; original defaults retained. Zero Setup/Hold reported violations do not by themselves prove DDR timing closure or authorize hardware.
 
 ## 27 October 2026 — published STA reader repair
 
