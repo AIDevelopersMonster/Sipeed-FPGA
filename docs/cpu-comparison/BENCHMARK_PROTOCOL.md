@@ -10,7 +10,7 @@
 | Input clock | 27 MHz; count any derived clocks/PLLs and do not substitute other Fmax values for measured runtime |
 | CPU ISA | **RV32I, ILP32**; no RVC, multiplication/division, caches, debug, HDMI, SPI/SD in baseline unless explicitly required and disclosed |
 | Firmware | Identical task/source semantics; target-specific startup/linker permitted only if fully recorded |
-| Memories | Target **16 KiB program ROM + 1 KiB data RAM**; if NEORV32 requires a larger power-of-two or reserved footprint, mark baseline as **not exactly matched**, record the actual resources, and run a second normalized configuration |
+| Memories | **C0 hardware-accepted reference: 16 KiB program ROM + 2 KiB data RAM** on both PicoRV32 and NEORV32 (actual physical resource mapping may differ). The earlier 1 KiB planning target was superseded by the accepted NEORV32 2 KiB DMEM configuration; changing ROM/RAM sizes requires a separate labeled scenario |
 | Peripherals | UART **115200 8N1** and logical 6-bit LED GPIO; 32-bit fabric timer for comparable cycle measurement |
 | Compiler | Pinned RISC-V GCC/assembler, `-march=rv32i -mabi=ilp32`; record optimization level, exact command and binary size |
 | FPGA tool | Same Gowin version, actual device, speed grade, PnR strategy, STA corner/constraints and run environment; retain exact bitstream hash |

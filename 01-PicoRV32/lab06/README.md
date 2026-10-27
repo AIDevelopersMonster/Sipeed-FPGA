@@ -1,6 +1,6 @@
 # LAB-06.2A — PicoRV32 minimal native SoC, Tang Nano 9K
 
-**Status 2026-10-27: LAB-06.2A SIM PASS; LAB-06.2B PnR PASS, Setup/Hold 0 violations, fitted pins/BankVccio 10/10. Original Pico SRAM attempt FAILED with `Cable open failed` (exit 50). Subsequently JTAG cable opened and SRAM programming PASS for a DIFFERENT BITSTREAM: `KonSol-RetroStation` KBlocks, SHA `F842B196...BBDC4E`, not Pico LAB-06.2. Pico candidate `31691075...25F4A0` remains BOARD NOT RUN / NOT LOADED. Flash/SD NOT TOUCHED. Recovery/Removal `Nothing to report!`; full async reset timing not qualified. Next: use an explicit distinct `$PicoFs` path with SHA check for ONE SRAM-only Pico test.**
+**Status 2026-10-27: LAB-06.2A PicoRV32 real-CPU SIM PASS, LAB-06.2B Gowin PnR PASS, internal Setup/Hold 0 violations, fitted pins/BankVccio 10/10, LAB-06.2C BOARD BASIC PASS: exact Pico image loaded to volatile SRAM, UART byte-exact 16/16, and operator observed 3 LEDs lit. Recovery/Removal `Nothing to report!`; async-reset release not timing-qualified. Core-only and equal-workload CPU performance benchmarks remain NOT RUN; no Flash/SD writes.**
 
 A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (which is already BOARD BASIC PASS). Nothing under LAB-04, Pong, RetroStation or the accepted NEORV32 bitstream is modified.
 
@@ -10,6 +10,18 @@ A separate reference SoC for later controlled comparison with NEORV32 LAB-06.1 (
 - FPGA I/O pinout will be matched to the accepted LAB-06.1 at later FIT stage.
 - First functional firmware: `PICORV32 READY\r\n` (16 bytes), GPIO `0x15` to `0x2A`. NEORV32 initial banner is 15 bytes, so **not a throughput comparison**.
 - This is a **native-SoC** trial, not a bare-CPU area comparison. The UART and MMIO are different hardware from NEORV32 native peripherals, and no equal-workload W01/W02/W03 benchmark has run.
+
+## 2026-10-27 — LAB-06.2C PicoRV32 physical board acceptance (BASIC PASS)
+
+**Actual board measurements, operator-supplied and recorded verbatim in the acceptance:** [LAB062_BOARD_2026-10-27.md](acceptance/LAB062_BOARD_2026-10-27.md).
+
+- **Actual image:** `lab062_pico_nano9k.fs` (not KBlocks), SHA256 `31691075B56BB4167758AEB9D99CE8E7F4CE0BE84333D527FD2659606025F4A0`, pinned PicoRV32 core `ef203c2b0a3fb793280f5114941416c425c5b461`.
+- **FPGA SRAM load:** `Programming... 100%`, user code `0x0000B310`, status `0x0003F020`, cost `4.59s`; the exact SHA was already verified by the smoke runner before programming. No Flash, SD or permanent configuration writes.
+- **Physical CPU activity:** UART COM10 115200/8N1 captured **16 exact bytes**: `b'PICORV32 READY\r\n'`, `LAB062_UART_BANNER_PASS`; S1 reset requested during capture. This proves the executed RV32I boot test in combination with prior real-CPU simulation and source-pin evidence, not full ISA compliance.
+- **GPIO:** operator: **three LEDs are lit**. Exact physical 6-bit LED mask/order not independently measured; expected logical mask at end of firmware is `0x2A`.
+- **Acceptance level:** **BOARD BASIC PASS**, not full async reset signoff, CPU-only performance/area audit, repeated reset reliability, UART RX test, or W01/W02/W03 benchmark. Prior failed FT2CH cable open and accidental KBlocks load remain preserved as *historical* checkpoints below.
+
+We now have separate NEORV32 and PicoRV32 physical basic passes on the same Sipeed Tang Nano 9K. Next work is a common measured RV32I workload (W01) plus resource/memory inference audit, without rebuilding this accepted bring-up image merely to change logging.
 
 ## Control point — 2026-10-27: Programmer functional again, but loaded KBlocks (not LAB-06 Pico)
 

@@ -1,6 +1,6 @@
 # LAB-06 — Comparative RISC-V and reusable CPU blocks / Сравнение процессоров и типовых блоков
 
-**Programme status (2026-10-26): LAB-06.1 NEORV32 board basic PASS. LAB-06.2 PicoRV32 SIM+PnR+fitted 10/10 pin/VCCIO PASS; Setup/Hold no violations; Recovery/Removal explicitly have no reported analysis paths, so full asynchronous-reset sign-off is NOT DONE; Pico board NOT RUN. One SHA-verified volatile-SRAM-only smoke experiment may proceed with documented reset caveat. Matched CPU/core and W01/W02/W03 benchmarks NOT MEASURED.** Existing PicoRV32/PiKoSoL and RetroStation results are not matched minimal SoC/core baselines; keep comparisons separate.
+**Programme status (2026-10-27): LAB-06.1 NEORV32 BOARD BASIC PASS and LAB-06.2 PicoRV32 BOARD BASIC PASS, both on Tang Nano 9K with independently verified SRAM programming, UART firmware banner and three physical LEDs observed. Pico Recovery/Removal report no paths, so full asynchronous reset sign-off is NOT DONE. Matched core-only and W01/W02/W03 performance benchmarks NOT MEASURED.** Existing PicoRV32/PiKoSoL and RetroStation results are not matched minimal SoC/core baselines; keep comparisons separate.
 
 **Goal / Цель:** bring up a **second independent RISC-V processor**, then create a fair and reproducible comparative analysis of **processor cores, complete minimal SoCs, internal CPU blocks and standard peripherals**. The CPU comparison is useful only if the hardware configuration, workloads and measurement methods are documented.
 
@@ -19,11 +19,13 @@ Start with **PicoRV32 vs NEORV32 on one Sipeed Tang Nano 9K / GW1NR-9C**, 27 MHz
 | Minimum Setup slack | +16.325 ns | +14.936 ns |
 | Minimum Hold slack | +0.427 ns | +0.405 ns |
 | Recovery / Removal | **Nothing to report — no analyzed paths; reset release not qualified** | +34.707 ns / +1.528 ns |
-| Physical board | **NOT RUN** | SRAM + UART + three LEDs PASS |
+| Physical board | **SRAM + UART (16/16 bytes) + three LEDs BASIC PASS** | **SRAM + UART + three LEDs BASIC PASS** |
 
 **Source of Pico row:** operator `fit_20261026_174759_839_3ed614`, bitstream SHA256 `31691075B56BB4167758AEB9D99CE8E7F4CE0BE84333D527FD2659606025F4A0`. The Pico SIM receipt was validated by the fit script. **Source of NEORV32 row:** accepted `fit_20261026_144630_744_c86f33`, SHA256 `3E1DC3EB6DC464E3992C733078A564680D5F279E4D89BAA8A47CB9002246FC5F`.
 
 Caution: these are **different native SoC designs** with different UART and register-file architecture and potentially different mapping of the same nominal ROM/RAM sizes. Pico uses **54% BSRAM** even though nominal memory is matched to NEORV32's 16KiB ROM / 2KiB RAM; this calls for a memory-inference audit, not an immediate conclusion about CPU memory requirements. No W01/W02/W03 comparative results, CPI or speed winner.
+
+**2026-10-27 Pico board evidence:** [LAB062_BOARD_2026-10-27.md](../../01-PicoRV32/lab06/acceptance/LAB062_BOARD_2026-10-27.md) — 4.59s SRAM load 100%, UART 16-byte exact `PICORV32 READY\r\n`, three LEDs observed, SHA `31691075B56BB4167758AEB9D99CE8E7F4CE0BE84333D527FD2659606025F4A0`. NEORV32 [hardware acceptance](../../02-NEORV32/acceptance/LAB061_BOARD_2026-10-26.md). **Resource comparison is descriptive for different native SoCs**: it does not prove a speed winner or core-only silicon efficiency. The 54% Pico BSRAM versus 20% NEORV32 calls for memory-inference analysis before interpreting area.
 
 ## 2026-10-26 checkpoint: first NEORV32 native-SoC physical bring-up
 
