@@ -70,6 +70,21 @@ Write-Host 'LAB07_MEMORY_SCOPE: 64Mbit total PSRAM; demo addresses only FIRST DI
 Write-Host 'LAB07_CLOCK_PLAN: 27MHz input -> 81MHz PLL + 90-degree phase; DDR paths require dedicated STA review.'
 Write-Host 'LAB07_RESET_PLAN: verified S1 pin3 (1.8V), NOT original upstream pin4.'
 Write-Host 'LAB07_UPSTREAM_LICENCE: Apache-2.0; Gowin generated PLL is vendor material, never committed.'
+# Cheap safety preflight: no build if actual board IO locations were edited.
+$cst = Get-Content -LiteralPath (Join-Path $lab 'constraints\psram07_nano9k.cst') -Raw
+$requiredPins = @(
+  'IO_LOC "sys_clk" 52;',
+  'IO_LOC "sys_resetn" 3;',
+  'IO_LOC "uart_txp" 17;',
+  'IO_PORT "sys_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;',
+  'IO_PORT "sys_resetn" IO_TYPE=LVCMOS18 PULL_MODE=UP;'
+)
+foreach($requiredPin in $requiredPins) {
+    if(-not $cst.Contains($requiredPin)) {
+        throw "LAB07_PIN_PREFLIGHT_BLOCKED: $requiredPin"
+    }
+}
+Write-Host 'LAB07_BOARD_PIN_PREFLIGHT_PASS: clock52, reset3, UART17; voltage constraints pinned.'
 if(-not $Build) {
     Write-Host 'LAB07_PREFLIGHT_PASS_NO_FPGA_ACTION: use -Build for isolated Gowin candidate.'
     return
@@ -92,8 +107,8 @@ Copy-Item (Join-Path $dep 'src\print.v') (Join-Path $rtl 'print.v')
 $testSrc = Get-Content (Join-Path $dep 'src\psram_test_top.v') -Raw
 $oldButton = '    input button,   // 0 when pressed'
 $oldLed = 'assign led = ~{error, dout_parity, dout, state};'
-if(@($testSrc.Split([string[]]@($oldButton),[StringSplitOptions]::None)).Count -ne 2 -or
-   @($testSrc.Split([string[]]@($oldLed),[StringSplitOptions]::None)).Count -ne 2) {
+if([regex]::Matches($testSrc, [regex]::Escape($oldButton)).Count -ne 1 -or
+   [regex]::Matches($testSrc, [regex]::Escape($oldLed)).Count -ne 1) {
     throw 'LAB07_REFERENCE_PATCH_UNSAFE: source fingerprint unexpected'
 }
 $testSrc = $testSrc.Replace($oldButton, '    // LAB07: unused button removed; sys_resetn maps to physical S1, pin3.')
@@ -150,8 +165,8 @@ $receipt=[ordered]@{
     DateUtc=(Get-Date).ToUniversalTime().ToString('o')
     Upstream=$url
     UpstreamCommit=$pin
-    FirstDieBytesTested=1048576
-    TotalMemoryBytesClaimed=0
+    PlannedFirstDieSweepBytes=1048576
+    PhysicallyVerifiedExternalMemoryBytes=0
     Bitstream=$fs
     BitstreamSHA256=$sha
     InputsManifest=(Join-Path $job 'input_sha256.csv')

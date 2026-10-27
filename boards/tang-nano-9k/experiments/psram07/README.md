@@ -1,6 +1,6 @@
 # LAB-07 / Tang Nano 9K — PSRAM bring-up (memory, not another game)
 
-**Status 2026-10-27: RESEARCH AND CLI PREPARATION. No LAB-07 simulation, Gowin FIT or hardware run has yet been performed.** LAB-06 CPU comparison is closed; KonSol RetroStation is developed separately in another project and is **outside LAB-07**.
+**Status 2026-10-27: READ-ONLY PREPARATION AVAILABLE. No LAB-07 simulation, Gowin FIT or hardware run has yet been performed.** LAB-06 CPU comparison is closed; KonSol RetroStation is developed separately in another project and is **outside LAB-07**.
 
 ## Engineering goal
 
@@ -37,6 +37,7 @@ Expected **not yet verified on the operator PC**:
 ```text
 LAB07_REFERENCE_PIN_PASS: 394ae14a68f112729f79f78cbfc62a95d874d632
 LAB07_MEMORY_SCOPE: 64Mbit total PSRAM; demo addresses only FIRST DIE, FIRST 1MiB
+LAB07_BOARD_PIN_PREFLIGHT_PASS: clock52, reset3, UART17; voltage constraints pinned.
 LAB07_PREFLIGHT_PASS_NO_FPGA_ACTION
 ```
 
@@ -59,3 +60,9 @@ This stages the pinned controller, unchanged PLL reference and UART/test source 
 **Time-box:** 1–2 days maximum, 2–3 documented board attempts at most. Recurrent failures move to power/USB/FTDI/reset/clock/PSRAM hardware diagnostics; no iterative rewrites of accepted PiKoSoL/SD/RetroStation. If the controller will not fit or cannot meet DDR timing, stop and record it, rather than moving on to CPU integration.
 
 **Follow-up if LAB-07 passes:** memory-mapped PicoRV32 adapter, CPU-side memory test; only then a read-only FAT32 program load into validated RAM. Each is a *separate stage*, not implicit success of this bring-up.
+
+## USB/JTAG recovery note (27 October 2026)
+
+On one Windows CHUWI setup, the board temporarily enumerated as `VID_FFFF&PID_FFFF` / COM28 instead of the expected `VID_0403&PID_6010` WebUSB profile after moving between PCs. The operator **recovered normal USB access by disconnecting BOTH USB and HDMI and removing residual power**, not by changing drivers or reflashing BL702. If the symptom recurs, first power down fully and reconnect USB before HDMI. This is an observed recovery, **not proof of the specific back-powering mechanism**. LAB-07 synthesis stage needs no USB/JTAG connection.
+
+The isolated Gowin candidate receipt uses `PlannedFirstDieSweepBytes` and `PhysicallyVerifiedExternalMemoryBytes=0` until a real board test is recorded; do not interpret a generated `.fs` as memory acceptance.
