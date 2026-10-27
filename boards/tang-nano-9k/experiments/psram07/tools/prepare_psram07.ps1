@@ -111,32 +111,12 @@ New-Item -ItemType Directory -Force -Path $rtl,$con | Out-Null
 Copy-Item (Join-Path $dep 'src\psram_controller.v') (Join-Path $rtl 'psram_controller.v')
 Copy-Item (Join-Path $dep 'src\gowin_rpll\gowin_rpll.v') (Join-Path $rtl 'gowin_rpll.v')
 if($Clock54) {
-    # Edit ONLY the ignored working copy of the upstream vendor-generated PLL.
-    # GW1NR-9C rPLL: CLKOUT = 27 * (FBDIV_SEL+1)/(IDIV_SEL+1).
-    # FBDIV_SEL=1, IDIV_SEL=0 -> 54MHz; ODIV_SEL=8 -> VCO=432MHz.
-    # PSDA_SEL=0100 preserves CLKOUTP +90 degrees.
-    $pllPath = Join-Path $rtl 'gowin_rpll.v'
-    $pllStage = Get-Content -LiteralPath $pllPath -Raw
-    $requiredPll = @(
-        '(?m)^defparam rpll_inst.FCLKIN = "27";[ \t]*$',
-        '(?m)^defparam rpll_inst.FBDIV_SEL = 2;[ \t]*$',
-        '(?m)^defparam rpll_inst.IDIV_SEL = 0;[ \t]*$',
-        '(?m)^defparam rpll_inst.ODIV_SEL = 8;[ \t]*$',
-        '(?m)^defparam rpll_inst.PSDA_SEL = "0100";[ \t]*$'
-    )
-    foreach($required in $requiredPll) {
-        if([regex]::Matches($pllStage,$required).Count -ne 1){
-            throw "LAB07_CLOCK54_PLL_FINGERPRINT_MISMATCH: $required"
-        }
+    # Patch ONLY an ignored staged copy, never the pinned upstream.
+    $pllHelper = Join-Path $PSScriptRoot 'patch_psram_pll54.ps1'
+    if(-not(Test-Path -LiteralPath $pllHelper -PathType Leaf)){
+        throw 'LAB07_CLOCK54_PLL_HELPER_MISSING'
     }
-    $pllStage = [regex]::Replace($pllStage,
-        '(?m)^defparam rpll_inst.FBDIV_SEL = 2;[ \t]*$',
-        'defparam rpll_inst.FBDIV_SEL = 1;')
-    if([regex]::Matches($pllStage,
-        '(?m)^defparam rpll_inst.FBDIV_SEL = 1;[ \t]*$').Count -ne 1){
-        throw 'LAB07_CLOCK54_PLL_PATCH_FAILED'
-    }
-    $pllStage | Set-Content -LiteralPath $pllPath -Encoding utf8
+    & $pllHelper -InputPath (Join-Path $rtl 'gowin_rpll.v')
 }
 
 Copy-Item (Join-Path $dep 'src\uart_tx.v') (Join-Path $rtl 'uart_tx.v')

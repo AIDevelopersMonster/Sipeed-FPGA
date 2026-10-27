@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'boards/tang-nano-9k/experiments/psram07/tools/prepare_psram07.ps1'
+      - 'boards/tang-nano-9k/experiments/psram07/tools/patch_psram_pll54.ps1'
       - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
       - 'boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
       - 'boards/tang-nano-9k/experiments/psram07/tests/tb_lab07_uart_result.v'
@@ -10,6 +11,7 @@ on:
   pull_request:
     paths:
       - 'boards/tang-nano-9k/experiments/psram07/tools/prepare_psram07.ps1'
+      - 'boards/tang-nano-9k/experiments/psram07/tools/patch_psram_pll54.ps1'
       - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
       - 'boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
       - 'boards/tang-nano-9k/experiments/psram07/tests/tb_lab07_uart_result.v'
@@ -24,7 +26,7 @@ jobs:
         shell: pwsh
         run: |
           $folder = 'boards/tang-nano-9k/experiments/psram07/tools'
-          foreach ($name in @('prepare_psram07.ps1','inspect_psram07_fit.ps1')) {
+          foreach ($name in @('prepare_psram07.ps1','inspect_psram07_fit.ps1','patch_psram_pll54.ps1')) {
             $tokens = $null
             $errors = $null
             $ast = [System.Management.Automation.Language.Parser]::ParseFile(
@@ -40,7 +42,7 @@ jobs:
           $s = Get-Content -LiteralPath (Join-Path $folder 'prepare_psram07.ps1') -Raw
           foreach ($marker in @(
               'LAB07_CLOCK54_REQUIRES_BUILD_AND_LEAN_UART',
-              'LAB07_CLOCK54_PLL_FINGERPRINT_MISMATCH',
+              'patch_psram_pll54.ps1',
               'LAB07_CLOCK54_TOP_FINGERPRINT_MISMATCH',
               'LAB07_CLOCK54_STAGE_PASS',
               'inspect_psram07_fit.ps1'
@@ -48,6 +50,33 @@ jobs:
               if (-not $s.Contains($marker)) { throw "Missing clock safety marker: $marker" }
           }
           Write-Output 'LAB07_CLOCK54_POWERSHELL_AST_PASS'
+      - name: Verify pinned upstream PLL patch with LF and CRLF
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'boards/tang-nano-9k/experiments/psram07'
+          $src = Join-Path $env:RUNNER_TEMP 'lab07_pinned_upstream'
+          git clone -q https://github.com/zf3/psram-tang-nano-9k.git $src
+          if ($LASTEXITCODE -ne 0) { throw 'LAB07_UPSTREAM_CLONE_FAIL' }
+          git -C $src checkout -q --detach 394ae14a68f112729f79f78cbfc62a95d874d632
+          if ($LASTEXITCODE -ne 0) { throw 'LAB07_UPSTREAM_PIN_FAIL' }
+          $original = [System.IO.File]::ReadAllText((Join-Path $src 'src/gowin_rpll/gowin_rpll.v'))
+          $cr = [string][char]13
+          $lfChar = [string][char]10
+          $lf = $original.Replace(($cr + $lfChar), $lfChar)
+          $patcher = Join-Path $root 'tools/patch_psram_pll54.ps1'
+          foreach ($mode in @('LF','CRLF')) {
+            $raw = if ($mode -eq 'CRLF') { $lf.Replace($lfChar, ($cr + $lfChar)) } else { $lf }
+            $file = Join-Path $env:RUNNER_TEMP "lab07_$mode.v"
+            [System.IO.File]::WriteAllText($file,$raw,[System.Text.UTF8Encoding]::new($false))
+            & $patcher -InputPath $file
+            $actual = [System.IO.File]::ReadAllText($file)
+            $expected = [regex]::Replace($raw,
+              '(?m)^defparam rpll_inst\.FBDIV_SEL = 2;(?=[ \t]*\r?$)',
+              'defparam rpll_inst.FBDIV_SEL = 1;')
+            if ($actual -cne $expected) { throw "LAB07_CLOCK54_DIFF_FAIL: $mode" }
+            Write-Output ('LAB07_CLOCK54_' + $mode + '_PATCH_PASS')
+          }
       - name: Install Icarus Verilog
         run: sudo apt-get update && sudo apt-get install -y iverilog
       - name: Validate terminal UART PASS/FAIL and reset
