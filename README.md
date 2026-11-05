@@ -45,6 +45,12 @@
 
 [LAB-06: архитектура и программа сравнения](docs/cpu-comparison/README.md) · [Сравнение типовых блоков](docs/cpu-comparison/TYPICAL_BLOCKS.md) · [Протокол измерений](docs/cpu-comparison/BENCHMARK_PROTOCOL.md) · [Пустые таблицы результатов](docs/cpu-comparison/RESULTS_TEMPLATE.md)
 
+## LAB-20 — Tang Nano 20K / LiteX BIOS
+
+**Factory BOARD PASS:** Tang Nano 20K with LiteX BIOS and VexRiscv_Min @ 48 MHz; COM25 UART console; 8 MiB SDRAM initialized and 2 MiB memtest passed. BIOS-measured sequential throughput: **12.9 MiB/s write**, **16.1 MiB/s read**. This is a test of the **factory SoC**, not a PiKoSoL-built bitstream.
+
+**[LAB-20 technical README and acceptance record](docs/lab20/README.md)** · **[LiteX BIOS technical article (RU/EN), DOI 10.5281/zenodo.23990004](https://doi.org/10.5281/zenodo.23990004)**
+
 ## Документация и разработка
 
 [Статья PiKoSoL RU/EN — DOI](https://doi.org/10.5281/zenodo.23593101) · [SPI — DOI](https://doi.org/10.5281/zenodo.23608792) · [SD — DOI](https://doi.org/10.5281/zenodo.23608853)
