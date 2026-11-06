@@ -17,6 +17,11 @@
 
 The technical article has two parts: (I) LiteX BIOS architecture, initialization, memory, serial boot and interactive monitoring in general; (II) the observed configuration and tests on our Tang Nano 20K. Russian and English PDF editions were prepared for publication. The DOI is the canonical publication reference; files in the Zenodo record should be consulted for published versions.
 
+## Further technical papers / Дополнительные публикации
+
+- **VexRiscv / VexRiscv_Min** (RU/EN): [DOI 10.5281/zenodo.23991097](https://doi.org/10.5281/zenodo.23991097). Core architecture and the factory 48 MHz CPU instance on Tang Nano 20K.
+- **WISHBONE 32-bit** (RU/EN): [DOI 10.5281/zenodo.23991663](https://doi.org/10.5281/zenodo.23991663). Wishbone B4, handshake, 32-bit data transfers and the reported LiteX 4 GiB address space. The address-space span is not the physical RAM capacity.
+
 ## Verified startup evidence / Подтверждённый журнал
 
 The following values come from the **physical board UART session**, after entering `reboot` at the `litex>` prompt:
