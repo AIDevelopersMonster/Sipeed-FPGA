@@ -51,6 +51,8 @@
 
 **[LAB-20 technical README and acceptance record](docs/lab20/README.md)** · **[LiteX BIOS technical article (RU/EN), DOI 10.5281/zenodo.23990004](https://doi.org/10.5281/zenodo.23990004)**
 
+**LAB-20 publications (RU/EN):** [VexRiscv / VexRiscv_Min — DOI 10.5281/zenodo.23991097](https://doi.org/10.5281/zenodo.23991097) · [WISHBONE 32-bit — DOI 10.5281/zenodo.23991663](https://doi.org/10.5281/zenodo.23991663).
+
 ## Документация и разработка
 
 [Статья PiKoSoL RU/EN — DOI](https://doi.org/10.5281/zenodo.23593101) · [SPI — DOI](https://doi.org/10.5281/zenodo.23608792) · [SD — DOI](https://doi.org/10.5281/zenodo.23608853)
