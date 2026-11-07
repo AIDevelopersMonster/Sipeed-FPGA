@@ -17,7 +17,7 @@ The **CSR / UART** tab explains why RISC-V `csrrw` on register `0xBC0` is not a 
 
 ## Hardware UART CSR validation (2026-11-07)
 
-Four read-only `litex> mem_read` measurements agree with the ROM-level UART reconstruction: `uart_txfull(0xF0003004)=0`, `uart_rxempty(0xF0003008)=1`, `uart_ev_pending(0xF0003010)=0`, `uart_ev_enable(0xF0003014)=3`.
+Seven read-only `litex> mem_read` measurements agree with the ROM-level UART reconstruction: `uart_txfull(0xF0003004)=0`, `uart_rxempty(0xF0003008)=1`, `uart_ev_status(0xF000300C)=1`, `uart_ev_pending(0xF0003010)=0`, `uart_ev_enable(0xF0003014)=3`, `uart_txempty(0xF0003018)=0`, `uart_rxfull(0xF000301C)=0`. **Measured `txempty=0` differs from the preliminary idle prediction and is retained unchanged.** `txfull=0` and `txempty=0` are compatible: a FIFO can have free space and still contain data. Measurements were sequential, not atomic.
 
 [Full operator UART readback and next safe checks](UART_CSR_HARDWARE_2026-11-07.md).
 

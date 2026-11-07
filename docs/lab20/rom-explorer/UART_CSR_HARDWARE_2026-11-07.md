@@ -3,7 +3,7 @@
 **Date:** 2026-11-07 (date of user-supplied terminal capture).  
 **Board:** Sipeed Tang Nano 20K, factory LiteX BIOS, VexRiscv_Min @ 48 MHz.  
 **Interface:** `litex>` UART monitor, COM25, 115200 8N1.  
-**Method:** four single-register `mem_read` calls, 4 bytes each. Read-only: no FPGA Flash, RAM or CSR write.
+**Method:** seven single-register `mem_read` calls, 4 bytes each (four first-pass readings, three follow-up readings). Read-only: no FPGA Flash, RAM or CSR write.
 
 ## Exact capture
 
@@ -25,26 +25,71 @@ Memory dump:
 0xf0003014  03 00 00 00                                      ....
 ```
 
+### Follow-up capture: adjacent UART CSR registers
+
+```text
+litex> mem_read 0xF000300C
+Memory dump:
+0xf000300c  01 00 00 00                                      ....
+
+litex> mem_read 0xF0003018
+Memory dump:
+0xf0003018  00 00 00 00                                      ....
+
+litex> mem_read 0xF000301C
+Memory dump:
+0xf000301c  00 00 00 00                                      ....
+```
+
 ## Register decoding
 
 | MMIO address | LiteX UART CSR | 32-bit value | Hardware interpretation |
 |---|---|---|---|
 | 0xF0003004 | `uart_txfull` | 0x00000000 | Transmit FIFO **not full**. Does not prove TX FIFO empty. |
 | 0xF0003008 | `uart_rxempty` | 0x00000001 | Receive FIFO **empty at the sampling instant**. |
+| 0xF000300C | `uart_ev_status` | 0x00000001 | TX event trigger level asserted; RX event trigger level inactive. |
 | 0xF0003010 | `uart_ev_pending` | 0x00000000 | No latched TX/RX event pending at the sampling instant. |
 | 0xF0003014 | `uart_ev_enable` | 0x00000003 | Both TX (bit0) and RX (bit1) event masks enabled. |
+| 0xF0003018 | `uart_txempty` | 0x00000000 | TX FIFO was **not empty at the sampling instant**. Different from `txfull`. |
+| 0xF000301C | `uart_rxfull` | 0x00000000 | RX FIFO was **not full at the sampling instant**. |
 
 All values are consistent with LiteX `b05c3069` `UART`/`EventManager` source and with the disassembled `uart_init()` routine in the captured 32 KiB ROM:
 `0x47A4 lw a4,16(a5)`, `0x47A8 sw a4,16(a5)`, `0x47B0 sw a4,20(a5)` (with `a4=3`), and IRQ mask operations at `0x47B4–0x47BC`.
 
-**Validation level:** `UART_CSR_READBACK_PASS`, direct evidence for values at these four addresses; the interpretation of register names is corroborated by matching source and firmware. This readback does **not** prove a full CSR map, show complete IRQ timing, or constitute a continuous waveform trace.
+**Validation level:** `UART_CSR_7_READBACK_PASS`, direct evidence for values at these seven addresses; the interpretation of register names is corroborated by matching source and firmware. This readback does **not** prove a full CSR map, show complete IRQ timing, or constitute a continuous waveform trace.
 
 ## One subtlety: event STATUS is not event PENDING
 
 `uart_ev_status` (predicted at `0xF000300C`) reflects the **current trigger level**.
 `uart_ev_pending` (confirmed at `0xF0003010`) reflects **latched events** that have not yet been acknowledged. The two registers need not have the same value. A steady TX-ready status can coexist with pending=0 after acknowledgement.
 
-## Next proposed read-only check
+## Why `ev_status=1` while `ev_pending=0`, and `txempty=0`
+
+Verified against LiteX `b05c3069` UART RTL:
+
+```python
+self._txfull.status.eq(~tx_fifo.sink.ready)
+self._txempty.status.eq(~tx_fifo.source.valid)
+self.ev.tx.trigger.eq(tx_fifo.sink.ready)
+self._rxempty.status.eq(~rx_fifo.source.valid)
+self._rxfull.status.eq(~rx_fifo.sink.ready)
+self.ev.rx.trigger.eq(rx_fifo.source.valid)
+```
+
+Therefore a non-full TX FIFO (`txfull=0`) asserts TX event status (`ev_status[0]=1`), even when its output still contains a character (`txempty=0`). `ev_pending` is a separate latched event register and may be zero after software acknowledgment. All seven readbacks are **separate moments**, not an atomic concurrent snapshot.
+
+The preliminary expectation `txempty=1` for an idle UART **did not hold**. One plausible explanation is active console output and recently queued characters during `mem_read`; this mechanism was not directly measured and is not presented as an established cause. `txempty=0` refers to FIFO contents, not necessarily whether the serial pin is actively transmitting.
+
+## Next optional diagnostic (read-only; same command repeated)
+
+```text
+mem_read 0xF0003018
+mem_read 0xF0003018
+```
+
+If the reading changes between invocations, this supports timing-dependent FIFO occupancy; if it stays zero, investigate register mapping and UART TX operation in more detail. Avoid active writes to UART CSRs and avoid reading `rxtx` merely to probe the address.
+
+## Completed prior read-only check
 
 ```text
 mem_read 0xF000300C
@@ -52,7 +97,7 @@ mem_read 0xF0003018
 mem_read 0xF000301C
 ```
 
-Expected register names derived from LiteX `UART` source CSR declaration order: `ev_status`, `txempty`, `rxfull` respectively. Typical idle state: `ev_status` TX-ready bit may be 1, `txempty=1`, `rxfull=0`; values must be **measured**, not assumed. Avoid reading `rxtx` at `0xF0003000` because reads may affect RX behavior. Do not use `mem_write` as a probe.
+Predicted register names: `ev_status`, `txempty`, `rxfull`, respectively. Observed values: 1, 0, 0. The earlier anticipated `txempty=1` was incorrect for the observed sampling instant. Avoid reading `rxtx` at `0xF0003000` because reads may affect RX behavior. Do not use `mem_write` as a probe.
 
 ## Source provenance
 

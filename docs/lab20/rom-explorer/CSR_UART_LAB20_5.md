@@ -104,7 +104,7 @@ mie.MEIE (bit 11) и mstatus.MIE (bit 3)
 
 - **Доказано файлом ROM:** конкретные команды, числа и адреса.
 - **Высоко подтверждено первичными исходниками:** `0xF0003010` — `uart_ev_pending`; `0xF0003014` — `uart_ev_enable`; TX=bit0 и RX=bit1.
-- **Аппаратно проверено 2026-11-07:** `txfull=0`, `rxempty=1`, `ev_pending=0`, `ev_enable=3` при четырёх отдельных чтениях. [См. точный протокол](UART_CSR_HARDWARE_2026-11-07.md). **Остаётся проверить:** полную таблицу `csr.csv`, сигналы IRQ и динамику событий.
+- **Аппаратно проверено 2026-11-07:** `txfull=0`, `rxempty=1`, `ev_status=1`, `ev_pending=0`, `ev_enable=3`, `txempty=0`, `rxfull=0` при семи отдельных чтениях. [См. точный протокол](UART_CSR_HARDWARE_2026-11-07.md). **Остаётся проверить:** полную таблицу `csr.csv`, сигналы IRQ и динамику событий.
 - **Не делать:** запись `mem_write` в UART-CSR на заводской плате ради поиска устройства, поскольку это меняет состояние событий и может повлиять на консоль.
 - Основная модель ROM Explorer по-прежнему **останавливается перед MMIO**, пока его реальное значение не подтверждено. Отдельный учебный сценарий UART использует *явно выбираемые гипотетические значения*, не выдавая их за аппаратную трассу.
 
@@ -132,6 +132,8 @@ mem_read 0xF0003014
 | `0xF0003010` | `uart_ev_pending=0` (нет ожидающих событий в момент чтения) |
 | `0xF0003014` | `uart_ev_enable=3` (TX/RX разрешены) |
 
+Дополнительные адреса: `0xF000300C` → `ev_status=1`; `0xF0003018` → `txempty=0`; `0xF000301C` → `rxfull=0`. Важное ограничение: `txempty=0` **отличается от прогноза**. По исходникам UART это означает, что при чтении FIFO TX ещё содержала данные. `txfull=0` означает лишь наличие свободного места, а не пустоту очереди. Все значения считаны последовательно, не атомарно.
+
 Результат записан отдельно: [аппаратный протокол и точная расшифровка](UART_CSR_HARDWARE_2026-11-07.md). Нельзя трактовать `txfull=0` как `txempty=1` или `pending=0` как отсутствие событий в прошлом.
 
 ## 8. Источники
@@ -146,4 +148,4 @@ mem_read 0xF0003014
 - [VexRiscv ExternalInterruptArrayPlugin](https://github.com/SpinalHDL/VexRiscv/blob/master/src/main/scala/vexriscv/plugin/ExternalInterruptArrayPlugin.scala)
 - [CPU bus integration](https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/cores/cpu/vexriscv/core.py)
 
-**LAB-20.5 result:** `UART_CSR_HARDWARE_READBACK_PASS / ARCH_CSR_VS_MMIO_SEPARATED / FULL_CSR_CSV_PENDING`.
+**LAB-20.5 result:** `UART_CSR_7_READBACK_PASS / TXEMPTY_ZERO_OBSERVED / FULL_CSR_CSV_PENDING`.

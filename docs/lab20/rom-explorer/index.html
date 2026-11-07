@@ -148,7 +148,18 @@
 
 <section id="view-csr" class="view">
  <div class="section-intro"><div><div class="eyebrow">LAB-20.5 · LITEX UART / CSR</div><h2>Два мира CSR: регистры CPU и периферия через Wishbone</h2><p>Одинаковая аббревиатура обозначает <strong>два разных адресных пространства и два разных механизма доступа</strong>. Ниже приведены настоящие машинные инструкции заводского ROM.</p></div></div>
- <div class="workgrid">
+ <article class="panel" style="margin:12px 0"><div class="panel-head"><h3>Семь аппаратных чтений CSR · 07.11.2026</h3><span class="pill-soft">BOARD READBACK</span></div>
+ <p>Все значения считаны непосредственно через <code>litex&gt; mem_read</code> на Tang Nano 20K. Это последовательные измерения, а не одновременный снимок всех сигналов.</p>
+ <div class="table-scroller"><table><thead><tr><th>Адрес</th><th>Регистр</th><th>Измерено</th><th>Значение</th></tr></thead><tbody>
+ <tr><td>F0003004</td><td>txfull</td><td>0</td><td>В TX FIFO есть место</td></tr>
+ <tr><td>F0003008</td><td>rxempty</td><td>1</td><td>RX FIFO пуста</td></tr>
+ <tr><td>F000300C</td><td>ev_status</td><td>1</td><td>Сигнал TX-ready установлен</td></tr>
+ <tr><td>F0003010</td><td>ev_pending</td><td>0</td><td>Ожидающих IRQ-событий нет</td></tr>
+ <tr><td>F0003014</td><td>ev_enable</td><td>3</td><td>TX и RX разрешены</td></tr>
+ <tr><td><strong>F0003018</strong></td><td><strong>txempty</strong></td><td><strong>0</strong></td><td>TX FIFO не пуста в момент чтения — отличие от предварительного прогноза</td></tr>
+ <tr><td>F000301C</td><td>rxfull</td><td>0</td><td>RX FIFO не заполнена</td></tr>
+ </tbody></table></div><p class="muted">По RTL <code>txfull=~tx_fifo.sink.ready</code>, <code>txempty=~tx_fifo.source.valid</code>. Поэтому <strong>txfull=0 и txempty=0 совместимы</strong>: данные ещё могут находиться в FIFO, хотя место для следующего байта уже есть. <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/docs/lab20/rom-explorer/UART_CSR_HARDWARE_2026-11-07.md" target="_blank" rel="noopener">Точный журнал эксперимента ↗</a>.</p></article>
+<div class="workgrid">
   <article class="panel"><div class="panel-head"><h3>RISC-V architectural CSR</h3><span class="pill-soft">ИНСТРУКЦИЯ CSR</span></div>
     <p>12-битный номер регистра <code>0x305</code>, <code>0x300</code>, <code>0x304</code>, <code>0xBC0</code>, <code>0xFC0</code> кодируется прямо в слове инструкции <code>0x73</code>. Это не адрес в 4-гигабайтном пространстве памяти.</p>
     <div class="explain-block"><code>csrrw zero, mtvec, a0</code><p style="margin:5px 0">PC=<code>0x000000C0</code> · CSR=<code>0x305</code> · значение <code>0x00000020</code>. Новый адрес обработчика исключений.</p><code>csrrsi zero, mstatus, 8</code><p style="margin:5px 0">PC=<code>0x000017C4</code> · установить бит <code>MIE=3</code> глобального разрешения машинных прерываний.</p></div>
@@ -168,6 +179,8 @@
  <tr><td>0xF000300C</td><td>uart_ev_status</td><td>Текущие уровни событий</td><td>EventManager; ожидаемый адрес</td></tr>
  <tr><td><strong>0xF0003010</strong></td><td><strong>uart_ev_pending</strong></td><td>Ожидающие события; запись 1 сбрасывает соответствующий флаг</td><td><strong>PC 0x47A4–0x47A8 + uart_init()</strong></td></tr>
  <tr><td><strong>0xF0003014</strong></td><td><strong>uart_ev_enable</strong></td><td>Разрешить события TX/RX: 0x00000003</td><td><strong>PC 0x47AC–0x47B0 + uart_init()</strong></td></tr>
+ <tr><td>0xF0003018</td><td>uart_txempty</td><td>Очередь TX пуста? 0=нет, 1=да</td><td>RTL: ~tx_fifo.source.valid</td></tr>
+ <tr><td>0xF000301C</td><td>uart_rxfull</td><td>Очередь RX заполнена? 0=нет, 1=да</td><td>RTL: ~rx_fifo.sink.ready</td></tr>
  </tbody></table></div>
  <p class="muted" style="margin:10px 0 0">Адреса реконструированы из ROM и исходников LiteX; полный заводской <code>csr.csv</code> ещё не получен. Чтение данных <code>uart_rxtx</code> может влиять на состояние UART, поэтому не предлагается как диагностическая команда.</p></article>
  <article class="panel" style="margin-bottom:13px"><div class="panel-head"><h3>Лаборатория: как работает uart_init()</h3><span class="pill-soft">ВИРТУАЛЬНЫЙ ПРИМЕР, НЕ ПЛАТА</span></div>
@@ -182,7 +195,7 @@ mem_read 0xF0003008
 mem_read 0xF0003010
 mem_read 0xF0003014</pre><p class="muted">Значение <code>ev_pending</code> может меняться, пока терминал передаёт символы. <strong>Не писать</strong> в эти адреса для диагностики. Не используем <code>mem_read 0xF0003000 24</code>: такое чтение включает <code>uart_rxtx</code>.</p></article>
  </div>
- <article class="panel"><h3>Исходники и граница реконструкции</h3><div class="source-list"><a target="_blank" rel="noopener" href="https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/software/libbase/uart.c">uart_init() / uart.c ↗</a><a target="_blank" rel="noopener" href="https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/cores/uart.py">UART registers ↗</a><a target="_blank" rel="noopener" href="https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/interconnect/csr_eventmanager.py">EventManager / W1C ↗</a><a target="_blank" rel="noopener" href="https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/interconnect/wishbone.py">Wishbone2CSR bridge ↗</a></div><p class="muted">LAB-20.5 / статус: UART_CSR_IDENTIFIED; FULL_CSR_CSV_PENDING. Основной имитатор на вкладке «Исследователь» намеренно по-прежнему останавливается перед неизвестным аппаратным MMIO-ответом, а не подставляет произвольное состояние платы.</p></article>
+ <article class="panel"><h3>Исходники и граница реконструкции</h3><div class="source-list"><a target="_blank" rel="noopener" href="https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/software/libbase/uart.c">uart_init() / uart.c ↗</a><a target="_blank" rel="noopener" href="https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/cores/uart.py">UART registers ↗</a><a target="_blank" rel="noopener" href="https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/interconnect/csr_eventmanager.py">EventManager / W1C ↗</a><a target="_blank" rel="noopener" href="https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/interconnect/wishbone.py">Wishbone2CSR bridge ↗</a></div><p class="muted">LAB-20.5 / статус: UART_CSR_7_READBACK_PASS; FULL_CSR_CSV_PENDING. Основной имитатор на вкладке «Исследователь» намеренно по-прежнему останавливается перед неизвестным аппаратным MMIO-ответом, а не подставляет произвольное состояние платы.</p></article>
 </section>
 
 <section id="view-method" class="view">

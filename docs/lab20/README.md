@@ -81,7 +81,7 @@ The factory BIOS ROM implements a match for LiteX `uart_init()`: `0x000047A4` lo
 
 **[Updated ROM Explorer v3.3 / CSR & UART laboratory](rom-explorer/index.html)** · **[Technical audit and safe BIOS read-only checks](rom-explorer/CSR_UART_LAB20_5.md)**
 
-**New hardware readback, 2026-11-07:** UART CSR values from the live factory BIOS: `txfull=0` at `0xF0003004`, `rxempty=1` at `0xF0003008`, `ev_pending=0` at `0xF0003010`, and `ev_enable=3` at `0xF0003014`. This confirms the predicted current UART register state (not a complete dynamic IRQ trace). [Hardware log](rom-explorer/UART_CSR_HARDWARE_2026-11-07.md).
+**New hardware readback, 2026-11-07:** UART CSR values from the live factory BIOS: `txfull=0` at `0xF0003004`, `rxempty=1` at `0xF0003008`, `ev_pending=0` at `0xF0003010`, and `ev_enable=3` at `0xF0003014`. Additional readings: `ev_status(0xF000300C)=1`, `txempty(0xF0003018)=0`, `rxfull(0xF000301C)=0`. `txempty=0` differs from a preliminary idle prediction; the actual measured value is preserved and consistent with a FIFO that is nonempty but not full. These seven reads are separate observations, not a complete dynamic IRQ trace. [Hardware log](rom-explorer/UART_CSR_HARDWARE_2026-11-07.md).
 
 ## Next work / Следующие эксперименты
 
