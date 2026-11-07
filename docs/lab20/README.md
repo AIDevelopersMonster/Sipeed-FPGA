@@ -83,6 +83,8 @@ The factory BIOS ROM implements a match for LiteX `uart_init()`: `0x000047A4` lo
 
 **New hardware readback, 2026-11-07:** UART CSR values from the live factory BIOS: `txfull=0` at `0xF0003004`, `rxempty=1` at `0xF0003008`, `ev_pending=0` at `0xF0003010`, and `ev_enable=3` at `0xF0003014`. Additional readings: `ev_status(0xF000300C)=1`, `txempty(0xF0003018)=0`, `rxfull(0xF000301C)=0`. `txempty=0` differs from a preliminary idle prediction; the actual measured value is preserved and consistent with a FIFO that is nonempty but not full. These seven reads are separate observations, not a complete dynamic IRQ trace. [Hardware log](rom-explorer/UART_CSR_HARDWARE_2026-11-07.md).
 
+**TX FIFO repeated check:** two further `mem_read 0xF0003018` commands also returned `0`; analysis of LiteX `helpers.c` shows `dump_bytes()` prints its header/address before sampling, which itself may put bytes in TX FIFO. The repeated zeros do **not** prove the FIFO stays nonempty at idle. [Analysis](rom-explorer/UART_CSR_HARDWARE_2026-11-07.md).
+
 ## Next work / Следующие эксперименты
 
 1. Capture the complete response to `litex> help` and inventory commands before issuing memory writes or Flash operations.

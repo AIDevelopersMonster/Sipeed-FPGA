@@ -21,6 +21,8 @@ Seven read-only `litex> mem_read` measurements agree with the ROM-level UART rec
 
 [Full operator UART readback and next safe checks](UART_CSR_HARDWARE_2026-11-07.md).
 
+**Follow-up:** two additional `mem_read 0xF0003018` calls both yielded `0` (three observed zeros in total). Source inspection of `helpers.c` shows that `dump_bytes()` **prints the dump header and address to UART before reading the target register**. The diagnostic therefore may make the TX FIFO nonempty itself, explaining repeated `txempty=0` without implying a permanently busy FIFO. [Read the source-backed explanation and exact capture](UART_CSR_HARDWARE_2026-11-07.md). A truly idle sample would need a no-print-before-sample RAM-only instrument; this has not yet been run.
+
 ## Captured ROM and evidence
 
 | Property | Value |

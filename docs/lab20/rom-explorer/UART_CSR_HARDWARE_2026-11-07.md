@@ -3,7 +3,7 @@
 **Date:** 2026-11-07 (date of user-supplied terminal capture).  
 **Board:** Sipeed Tang Nano 20K, factory LiteX BIOS, VexRiscv_Min @ 48 MHz.  
 **Interface:** `litex>` UART monitor, COM25, 115200 8N1.  
-**Method:** seven single-register `mem_read` calls, 4 bytes each (four first-pass readings, three follow-up readings). Read-only: no FPGA Flash, RAM or CSR write.
+**Method:** nine single-register `mem_read` calls, 4 bytes each (seven distinct CSR addresses and two repeated reads of `txempty`). Read-only: no FPGA Flash, RAM or CSR write.
 
 ## Exact capture
 
@@ -87,7 +87,7 @@ mem_read 0xF0003018
 mem_read 0xF0003018
 ```
 
-If the reading changes between invocations, this supports timing-dependent FIFO occupancy; if it stays zero, investigate register mapping and UART TX operation in more detail. Avoid active writes to UART CSRs and avoid reading `rxtx` merely to probe the address.
+**Performed:** both repeated readings returned zero. Source inspection of `dump_bytes()` demonstrates a self-observation mechanism: the command prints to UART before reading UART TX FIFO status. See 'Third measurement' below. Do not repeat the same procedure as an idle-FIFO diagnostic.
 
 ## Completed prior read-only check
 
@@ -98,6 +98,41 @@ mem_read 0xF000301C
 ```
 
 Predicted register names: `ev_status`, `txempty`, `rxfull`, respectively. Observed values: 1, 0, 0. The earlier anticipated `txempty=1` was incorrect for the observed sampling instant. Avoid reading `rxtx` at `0xF0003000` because reads may affect RX behavior. Do not use `mem_write` as a probe.
+
+## Third measurement: two immediate `txempty` reads
+
+Operator console capture (two additional commands, no writes):
+
+```text
+litex> mem_read 0xF0003018
+Memory dump:
+0xf0003018  00 00 00 00                                      ....
+
+litex> mem_read 0xF0003018
+Memory dump:
+0xf0003018  00 00 00 00                                      ....
+```
+
+Combined with the original reading, **three `txempty=0` readings** were observed.
+
+### Why repeated reads do not test idle-time FIFO vacancy
+
+Investigation of the factory LiteX version (`b05c3069`) found the source-level order of operations:
+
+- `litex/soc/software/bios/cmds/cmd_mem.c`: `mem_read_handler` calls `dump_bytes(addr, length, (unsigned long)addr)`.
+- `litex/soc/software/bios/helpers.c`: **`dump_bytes()` prints** `fputs("Memory dump:", stdout);` and then `printf("\\n0x%08lx  ", addr);` **before** the loop that reads the requested address and prints individual byte values via `printf("%02x ", *(unsigned char *)(data+i));`.
+- `litex/soc/software/libbase/uart.c`: printing drives UART via `uart_write`.
+- `litex/soc/cores/uart.py`: `txempty = ~tx_fifo.source.valid`, meaning queued data sets `txempty=0`.
+
+Thus **the measurement procedure itself can put bytes into the TX FIFO before sampling its occupancy**. Repeating the same command repeats the same output-before-read procedure; repeated zero results cannot distinguish a genuinely always-nonempty FIFO from an otherwise idle FIFO made nonempty by diagnostic output. Print buffering, clock timing, actual queue occupancy and serial-line activity were not instrumented, so this is a **source-backed mechanism consistent with observations, not a cycle-accurate causal proof of each sampled zero**.
+
+**Avoid further repetitive `mem_read 0xF0003018` as a purported idle test.**
+
+For a valid *idle-state* test, use a separately loaded RAM-only instrument that waits for TX FIFO to drain, acquires the CSR value **without printing**, stores the sample in SRAM, and only then prints the stored value (or makes it available to the BIOS dump command). This is proposed work; not executed and not a feature of the existing BIOS command. Preserve factory Flash and verify the RAM-loader path before running it.
+
+**Read-only verification status:** `LAB20_5_TXEMPTY_REPEAT_ZERO / SELF_OBSERVATION_MECHANISM_IDENTIFIED / IDLE_FIFO_STATE_NOT_PROVEN`.
+
+Historical primary source: [LiteX helpers.c `dump_bytes` at b05c3069](https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/software/bios/helpers.c).
 
 ## Source provenance
 
