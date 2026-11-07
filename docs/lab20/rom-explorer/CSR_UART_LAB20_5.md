@@ -104,7 +104,7 @@ mie.MEIE (bit 11) и mstatus.MIE (bit 3)
 
 - **Доказано файлом ROM:** конкретные команды, числа и адреса.
 - **Высоко подтверждено первичными исходниками:** `0xF0003010` — `uart_ev_pending`; `0xF0003014` — `uart_ev_enable`; TX=bit0 и RX=bit1.
-- **Остаётся проверить аппаратно:** текущее значение `ev_pending`, точная схема IRQ и полная таблица `csr.csv`.
+- **Аппаратно проверено 2026-11-07:** `txfull=0`, `rxempty=1`, `ev_pending=0`, `ev_enable=3` при четырёх отдельных чтениях. [См. точный протокол](UART_CSR_HARDWARE_2026-11-07.md). **Остаётся проверить:** полную таблицу `csr.csv`, сигналы IRQ и динамику событий.
 - **Не делать:** запись `mem_write` в UART-CSR на заводской плате ради поиска устройства, поскольку это меняет состояние событий и может повлиять на консоль.
 - Основная модель ROM Explorer по-прежнему **останавливается перед MMIO**, пока его реальное значение не подтверждено. Отдельный учебный сценарий UART использует *явно выбираемые гипотетические значения*, не выдавая их за аппаратную трассу.
 
@@ -121,7 +121,20 @@ mem_read 0xF0003014
 
 Не читать автоматически блоком весь банк: `rxtx` может иметь побочные эффекты. И не делать `mem_write` на этих адресах. Важно: значения `pending` зависят от текущей активности UART и могут изменяться между чтениями.
 
-## 7. Источники
+## 7. Аппаратное подтверждение CSR (2026-11-07)
+
+Прямые чтения с Tang Nano 20K подтверждают:
+
+| Адрес | Регистры и реальные значения |
+|---|---|
+| `0xF0003004` | `uart_txfull=0` (очередь не заполнена) |
+| `0xF0003008` | `uart_rxempty=1` (очередь приёма пуста в момент чтения) |
+| `0xF0003010` | `uart_ev_pending=0` (нет ожидающих событий в момент чтения) |
+| `0xF0003014` | `uart_ev_enable=3` (TX/RX разрешены) |
+
+Результат записан отдельно: [аппаратный протокол и точная расшифровка](UART_CSR_HARDWARE_2026-11-07.md). Нельзя трактовать `txfull=0` как `txempty=1` или `pending=0` как отсутствие событий в прошлом.
+
+## 8. Источники
 
 Исторические исходники ровно той версии LiteX, что указана BIOS (2023-03, `b05c3069`):
 
@@ -133,4 +146,4 @@ mem_read 0xF0003014
 - [VexRiscv ExternalInterruptArrayPlugin](https://github.com/SpinalHDL/VexRiscv/blob/master/src/main/scala/vexriscv/plugin/ExternalInterruptArrayPlugin.scala)
 - [CPU bus integration](https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/cores/cpu/vexriscv/core.py)
 
-**LAB-20.5 result:** `UART_CSR_IDENTIFIED / ARCH_CSR_VS_MMIO_SEPARATED / FULL_CSR_CSV_PENDING`.
+**LAB-20.5 result:** `UART_CSR_HARDWARE_READBACK_PASS / ARCH_CSR_VS_MMIO_SEPARATED / FULL_CSR_CSV_PENDING`.

@@ -5,7 +5,7 @@
 
 ## Open the interactive reference
 
-Open [PiKoSoL ROM Explorer v3.2](PiKoSoL_ROM_Explorer_v3_3.html) after downloading the HTML file, or open [index.html](index.html) from a local checkout. It works offline and embeds the verified 32 KiB ROM.
+Open [PiKoSoL ROM Explorer v3.3](PiKoSoL_ROM_Explorer_v3_3.html) after downloading the HTML file, or open [index.html](index.html) from a local checkout. It works offline and embeds the verified 32 KiB ROM.
 
 The interactive tool contains RV32I instruction explanations, machine-word fields, program flow, register and SRAM changes, a call catalog, and an address-alias laboratory.
 
@@ -14,6 +14,12 @@ The interactive tool contains RV32I instruction explanations, machine-word field
 The **CSR / UART** tab explains why RISC-V `csrrw` on register `0xBC0` is not a Wishbone MMIO access to `0xF0003010`. The latter is the UART `ev_pending` register. The newly identified `uart_init()` routine at ROM PC `0x4780–0x47C0` configures the UART event interrupt logic.
 
 [Read the detailed technical report](CSR_UART_LAB20_5.md). The emulator still stops before an *unknown live peripheral value*, and its TX/RX demonstration is explicitly hypothetical.
+
+## Hardware UART CSR validation (2026-11-07)
+
+Four read-only `litex> mem_read` measurements agree with the ROM-level UART reconstruction: `uart_txfull(0xF0003004)=0`, `uart_rxempty(0xF0003008)=1`, `uart_ev_pending(0xF0003010)=0`, `uart_ev_enable(0xF0003014)=3`.
+
+[Full operator UART readback and next safe checks](UART_CSR_HARDWARE_2026-11-07.md).
 
 ## Captured ROM and evidence
 
