@@ -85,6 +85,12 @@ The factory BIOS ROM implements a match for LiteX `uart_init()`: `0x000047A4` lo
 
 **TX FIFO repeated check:** two further `mem_read 0xF0003018` commands also returned `0`; analysis of LiteX `helpers.c` shows `dump_bytes()` prints its header/address before sampling, which itself may put bytes in TX FIFO. The repeated zeros do **not** prove the FIFO stays nonempty at idle. [Analysis](rom-explorer/UART_CSR_HARDWARE_2026-11-07.md).
 
+## LAB-20.6 — первая самостоятельная программа RV32I в SDRAM
+
+**[Проект и инструкция Windows / COM25](../../03-LiteX-VexRiscv/lab20-6-ram-diag/README.md)** · [Готовый BIN, 740 байт](../../03-LiteX-VexRiscv/lab20-6-ram-diag/snapshot.bin) · [Тестовый отчёт](../../03-LiteX-VexRiscv/lab20-6-ram-diag/TEST_REPORT.md).
+
+Программный снимок TXEMPTY до первого вывода UART и после него: инструкция `boot 0x40010000` заводского LiteX BIOS передаёт управление RV32I+Zicsr-программе в SDRAM, результаты сохранены по `0x40011000` и напечатаны в UART. Размер BIN — 740 байт, 185 машинных слов. **Компиляция и независимый симуляционный тест PASS, физический запуск ещё не подтверждён.** Flash не меняется, для возврата в BIOS необходим аппаратный RESET.
+
 ## Next work / Следующие эксперименты
 
 1. Capture the complete response to `litex> help` and inventory commands before issuing memory writes or Flash operations.

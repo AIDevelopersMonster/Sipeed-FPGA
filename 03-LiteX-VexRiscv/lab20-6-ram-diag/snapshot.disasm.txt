@@ -1,0 +1,118 @@
+
+snapshot.elf:	file format elf32-littleriscv
+
+Disassembly of section .text:
+
+40010000 <_start>:
+40010000: f0003437     	lui	s0, 0xf0003
+40010004: 400114b7     	lui	s1, 0x40011
+40010008: 001002b7     	lui	t0, 0x100
+4001000c: fff28293     	addi	t0, t0, -0x1
+40010010: fe029ee3     	bne	t0, zero, 0x4001000c <_start+0xc>
+40010014: 504b5337     	lui	t1, 0x504b5
+40010018: 34c30313     	addi	t1, t1, 0x34c
+4001001c: 0064a023     	sw	t1, 0x0(s1)
+40010020: 00010337     	lui	t1, 0x10
+40010024: 00b30313     	addi	t1, t1, 0xb
+40010028: 0064a223     	sw	t1, 0x4(s1)
+4001002c: 01842303     	lw	t1, 0x18(s0)
+40010030: 0064a423     	sw	t1, 0x8(s1)
+40010034: 00442303     	lw	t1, 0x4(s0)
+40010038: 0064a623     	sw	t1, 0xc(s1)
+4001003c: 00842303     	lw	t1, 0x8(s0)
+40010040: 0064a823     	sw	t1, 0x10(s1)
+40010044: 00c42303     	lw	t1, 0xc(s0)
+40010048: 0064aa23     	sw	t1, 0x14(s1)
+4001004c: 01042303     	lw	t1, 0x10(s0)
+40010050: 0064ac23     	sw	t1, 0x18(s1)
+40010054: 01442303     	lw	t1, 0x14(s0)
+40010058: 0064ae23     	sw	t1, 0x1c(s1)
+4001005c: 01c42303     	lw	t1, 0x1c(s0)
+40010060: 0264a023     	sw	t1, 0x20(s1)
+40010064: 30002373     	csrrs	t1, mstatus, zero
+40010068: 0264a223     	sw	t1, 0x24(s1)
+4001006c: 30402373     	csrrs	t1, mie, zero
+40010070: 0264a423     	sw	t1, 0x28(s1)
+40010074: bc002373     	csrrs	t1, 0xbc0, zero
+40010078: 0264a623     	sw	t1, 0x2c(s1)
+4001007c: fc002373     	csrrs	t1, 0xfc0, zero
+40010080: 0264a823     	sw	t1, 0x30(s1)
+40010084: 454e5337     	lui	t1, 0x454e5
+40010088: f4430313     	addi	t1, t1, -0xbc
+4001008c: 0264aa23     	sw	t1, 0x34(s1)
+
+40010090 <.Lpcrel_hi0>:
+40010090: 00000517     	auipc	a0, 0x0
+40010094: 0e850513     	addi	a0, a0, 0xe8
+40010098: 088000ef     	jal	ra, 0x40010120 <print_string>
+4001009c: 01842303     	lw	t1, 0x18(s0)
+400100a0: 0264ac23     	sw	t1, 0x38(s1)
+
+400100a4 <.Lpcrel_hi1>:
+400100a4: 00000917     	auipc	s2, 0x0
+400100a8: 21490913     	addi	s2, s2, 0x214
+400100ac: 00b00993     	addi	s3, zero, 0xb
+400100b0: 00848a13     	addi	s4, s1, 0x8
+400100b4: 00092503     	lw	a0, 0x0(s2)
+400100b8: 068000ef     	jal	ra, 0x40010120 <print_string>
+400100bc: 000a2503     	lw	a0, 0x0(s4)
+400100c0: 080000ef     	jal	ra, 0x40010140 <print_hex32>
+
+400100c4 <.Lpcrel_hi2>:
+400100c4: 00000517     	auipc	a0, 0x0
+400100c8: 0ed50513     	addi	a0, a0, 0xed
+400100cc: 054000ef     	jal	ra, 0x40010120 <print_string>
+400100d0: 00490913     	addi	s2, s2, 0x4
+400100d4: 004a0a13     	addi	s4, s4, 0x4
+400100d8: fff98993     	addi	s3, s3, -0x1
+400100dc: fc099ce3     	bne	s3, zero, 0x400100b4 <.Lpcrel_hi1+0x10>
+
+400100e0 <.Lpcrel_hi3>:
+400100e0: 00000517     	auipc	a0, 0x0
+400100e4: 0d450513     	addi	a0, a0, 0xd4
+400100e8: 038000ef     	jal	ra, 0x40010120 <print_string>
+400100ec: 0384a503     	lw	a0, 0x38(s1)
+400100f0: 050000ef     	jal	ra, 0x40010140 <print_hex32>
+
+400100f4 <.Lpcrel_hi4>:
+400100f4: 00000517     	auipc	a0, 0x0
+400100f8: 0bd50513     	addi	a0, a0, 0xbd
+400100fc: 024000ef     	jal	ra, 0x40010120 <print_string>
+
+40010100 <.Lpcrel_hi5>:
+40010100: 00000517     	auipc	a0, 0x0
+40010104: 0cd50513     	addi	a0, a0, 0xcd
+40010108: 018000ef     	jal	ra, 0x40010120 <print_string>
+4001010c: 0000006f     	jal	zero, 0x4001010c <.Lpcrel_hi5+0xc>
+
+40010110 <uart_putchar>:
+40010110: 00442f83     	lw	t6, 0x4(s0)
+40010114: fe0f9ee3     	bne	t6, zero, 0x40010110 <uart_putchar>
+40010118: 00a42023     	sw	a0, 0x0(s0)
+4001011c: 00008067     	jalr	zero, 0x0(ra)
+
+40010120 <print_string>:
+40010120: 00008c13     	addi	s8, ra, 0x0
+40010124: 00050293     	addi	t0, a0, 0x0
+40010128: 0002c503     	lbu	a0, 0x0(t0)
+4001012c: 00050863     	beq	a0, zero, 0x4001013c <print_string+0x1c>
+40010130: fe1ff0ef     	jal	ra, 0x40010110 <uart_putchar>
+40010134: 00128293     	addi	t0, t0, 0x1
+40010138: ff1ff06f     	jal	zero, 0x40010128 <print_string+0x8>
+4001013c: 000c0067     	jalr	zero, 0x0(s8)
+
+40010140 <print_hex32>:
+40010140: 00008c93     	addi	s9, ra, 0x0
+40010144: 00050e13     	addi	t3, a0, 0x0
+40010148: 00800e93     	addi	t4, zero, 0x8
+4001014c: 01ce5f13     	srli	t5, t3, 0x1c
+40010150: 00a00f93     	addi	t6, zero, 0xa
+40010154: 01ff6663     	bltu	t5, t6, 0x40010160 <print_hex32+0x20>
+40010158: 037f0513     	addi	a0, t5, 0x37
+4001015c: 0080006f     	jal	zero, 0x40010164 <print_hex32+0x24>
+40010160: 030f0513     	addi	a0, t5, 0x30
+40010164: fadff0ef     	jal	ra, 0x40010110 <uart_putchar>
+40010168: 004e1e13     	slli	t3, t3, 0x4
+4001016c: fffe8e93     	addi	t4, t4, -0x1
+40010170: fc0e9ee3     	bne	t4, zero, 0x4001014c <print_hex32+0xc>
+40010174: 000c8067     	jalr	zero, 0x0(s9)

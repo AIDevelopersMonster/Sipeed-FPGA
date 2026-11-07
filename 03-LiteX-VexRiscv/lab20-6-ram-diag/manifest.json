@@ -1,0 +1,23 @@
+{
+  "project": "PiKoSoL LAB-20.6",
+  "version": "v0.1.0",
+  "board": "Sipeed Tang Nano 20K",
+  "cpu": "VexRiscv_Min RV32I+Zicsr",
+  "firmware": "Factory LiteX BIOS (2023-03-13)",
+  "program_load_address": "0x40010000",
+  "entry_address": "0x40010000",
+  "snapshot_address": "0x40011000",
+  "snapshot_words": 15,
+  "recorded_registers": 11,
+  "post_print_registers": 1,
+  "image_bytes": 740,
+  "image_words": 185,
+  "bin_sha256": "def94e225021f654258cd2760a32c63343a0ade98b4f770882e63a2f17255a0e",
+  "bios_commands_file": "load_mem_write_only.txt",
+  "flash_writes": false,
+  "hardware_pass": false,
+  "boot_command": "boot 0x40010000",
+  "boot_notice": "No return to BIOS; use physical reset. Host script never boots unless -Boot explicitly supplied.",
+  "source_tag": "LiteX b05c3069",
+  "assumed_sdram_size_bytes": 8388608
+}

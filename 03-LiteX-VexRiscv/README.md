@@ -6,6 +6,12 @@ Target hardware: Tang Primer **25K** (GW5A), own Dock model must be verified. Re
 [`litex-hub/litex-boards/litex_boards/targets/sipeed_tang_primer_25k.py`](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/targets/sipeed_tang_primer_25k.py).
 Upstream CPU: [`SpinalHDL/VexRiscv`](https://github.com/SpinalHDL/VexRiscv).
 
+## LAB-20.6 — RAM-only диагностика на заводской Tang Nano 20K
+
+**[Исходный код RV32I, BIN 740 байт, PowerShell-загрузчик и тесты](lab20-6-ram-diag/README.md).** Это отдельная работа с уже установленным **заводским LiteX / VexRiscv_Min** на Tang Nano 20K, а не с планируемой самостоятельной сборкой для Primer 25K.
+
+Статус: `BUILD_PASS / RV32_SIM_PASS / BOARD_TEST_PENDING`. Программа снимает состояние UART до первого собственного вывода и после вывода, сохраняя результаты в SDRAM. Установка только во временную SDRAM `0x40010000`; заводская Flash не изменяется. `boot 0x40010000` необратимо передаёт управление до аппаратного RESET.
+
 ## Planned milestones
 
 1. Pin a known LiteX/VexRiscv/litex-boards toolchain and inspect toolchain compatibility with the Gowin Education version.
