@@ -67,6 +67,14 @@ Windows host -- USB-C / board interface -- COM25 (115200 8N1)
 
 This is an explanatory block diagram, **not** a verified netlist or full CSR map. The exact topology, memory windows other than SDRAM base, peripheral mapping, reset behavior and build revisions remain to be recovered from this SoC configuration.
 
+## LAB-20.4 — ROM Explorer v3.2 / интерактивный справочник
+
+**Hardware evidence (2026-11-07):** full 128 KiB CPU-visible ROM window acquired read-only from factory LiteX BIOS, SHA-256 `fac8e6e6f39a22e2995de54c271646687d86ad9802e884b848bcf5b6ec4edb65`. Four identical 32 KiB address periods confirmed both by binary comparison and direct LiteX `mem_read`. Canonical unique-period file (32 KiB) SHA-256 `3347be74e9716744949e572229345c3ea9e74f1740001408b934c0d85c79c5bc`; BIOS CRC `f2b1f4f6` matches. Exact post-synthesis BSRAM topology remains unverified.
+
+**[Open ROM Explorer online](rom-explorer/index.html)** · **[Files and reproducibility](rom-explorer/README.md)** · **[32 KiB ROM](rom-explorer/PiKoSoL_LAB20_ROM_32KiB.bin)** · **[ROM alias audit](rom-explorer/ROM_ALIAS_AUDIT.md)**
+
+The standalone HTML is an educational RV32I interpreter and instruction reference with verified board code, memory maps, aliases and step-by-step execution. Its results are software-model tests, **not** a cycle-exact hardware trace. The original 128 KiB dump remains locally archived as primary acquisition evidence.
+
 ## Next work / Следующие эксперименты
 
 1. Capture the complete response to `litex> help` and inventory commands before issuing memory writes or Flash operations.

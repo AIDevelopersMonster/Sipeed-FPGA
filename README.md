@@ -53,6 +53,8 @@
 
 **LAB-20 publications (RU/EN):** [VexRiscv / VexRiscv_Min — DOI 10.5281/zenodo.23991097](https://doi.org/10.5281/zenodo.23991097) · [WISHBONE 32-bit — DOI 10.5281/zenodo.23991663](https://doi.org/10.5281/zenodo.23991663).
 
+**LAB-20.4 ROM Explorer v3.2:** [Интерактивный справочник RV32I и заводского LiteX BIOS](https://aidevelopersmonster.github.io/Sipeed-FPGA/docs/lab20/rom-explorer/) · [32 KiB ROM, SHA-256 и воспроизводимый аудит](docs/lab20/rom-explorer/README.md). Считанное окно 128 КиБ содержит четыре зеркала по 32 КиБ; BSRAM-топология после синтеза ещё не подтверждена.
+
 ## Документация и разработка
 
 [Статья PiKoSoL RU/EN — DOI](https://doi.org/10.5281/zenodo.23593101) · [SPI — DOI](https://doi.org/10.5281/zenodo.23608792) · [SD — DOI](https://doi.org/10.5281/zenodo.23608853)
