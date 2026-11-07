@@ -45,3 +45,13 @@ PASS binary+commands+memory bounds+all UART text+snapshot-before-print
 - Program ends in HOLD and physical hardware RESET returns to factory LiteX BIOS without Flash modification.
 
 Until then status remains `BOARD_TEST_PENDING`.
+
+## Uploader hotfix v0.1.1 — 2026-11-08
+
+Reported physical-host result: `TIMEOUT waiting for [litex>]. Received:  litex>` during the initial boot-prompt handshake, **before any SDRAM write**. Primary source `litex/soc/software/bios/readline.h` at `b05c3069` defines `PROMPT "\e[92;1mlitex\e[0m> "`, so the text is interrupted by ANSI SGR escape codes that the original script failed to normalize.
+
+Corrective change: strip ANSI CSI sequences in `Read-Until` before looking for `litex>`, retain a raw code-point dump in timeout diagnostics, and introduce `-Probe` that does not issue memory commands.
+
+Regression test `test_upload_protocol.ps1` uses **the functions parsed from the actual uploader source** and tests the ANSI prompt and SDRAM hex dump readback, including rejection of a corrupted byte. It must be run in PowerShell on the Windows operator host; a PowerShell runtime is **not** available in the current build environment. The firmware code and its SHA-256 are unchanged. Status: `ROOT_CAUSE_CONFIRMED_BY_LITEX_SOURCE / STATIC_CHECK_PASS / WINDOWS_PROBE_PENDING / BOARD_UPLOAD_PENDING`.
+
+Source: [LiteX historical readline.h](https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/software/bios/readline.h).

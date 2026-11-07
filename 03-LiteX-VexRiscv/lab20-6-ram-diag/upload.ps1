@@ -2,11 +2,13 @@
 # Without -Upload, reports instructions and does not connect to COM or change hardware.
 # -Upload opens the exclusive COM port, loads/reads back all words, and leaves BIOS prompt.
 # -Upload -Boot additionally transfers control and REQUIRES physical RESET to return to BIOS.
+# -Probe ONLY reads/recognizes the ANSI-colored LiteX prompt, without memory writes.
 [CmdletBinding()]
 param(
   [string]$PortName = 'COM25',
   [switch]$Upload,
   [switch]$Boot,
+  [switch]$Probe,
   [int]$TimeoutMs = 7000
 )
 $ErrorActionPreference = 'Stop'
@@ -21,10 +23,12 @@ if ($Image.Length -ge 4096) { throw 'Image overlaps snapshot scratch region' }
 if (-not [BitConverter]::IsLittleEndian) { throw 'Expected little-endian Windows host' }
 $LoadAddress = 0x40010000L
 if ($Boot -and (-not $Upload)) { throw 'To boot, use explicit -Upload -Boot. This command does not return to BIOS.' }
+if ($Probe -and ($Upload -or $Boot)) { throw 'Use -Probe alone (without -Upload or -Boot). Probe never writes SDRAM.' }
 Write-Host "PiKoSoL LAB-20.6: $($Image.Length) bytes, $($Image.Length / 4) words, SHA256 $ActualHash"
-if (-not $Upload) {
+if ((-not $Upload) -and (-not $Probe)) {
   Write-Host "DRY RUN ONLY: no COM operation, no writes, no boot."
   Write-Host "Close any other terminal connected to $PortName, then run:"
+  Write-Host "  pwsh -NoProfile -File .\upload.ps1 -PortName $PortName -Probe"
   Write-Host "  pwsh -NoProfile -File .\upload.ps1 -PortName $PortName -Upload"
   Write-Host "After verification, boot in LiteX monitor: boot 0x40010000"
   Write-Host "Or explicitly upload+boot in PowerShell: pwsh -NoProfile -File .\upload.ps1 -PortName $PortName -Upload -Boot"
@@ -37,16 +41,32 @@ $Port = [System.IO.Ports.SerialPort]::new($PortName,115200,[System.IO.Ports.Pari
 $Port.Handshake = [System.IO.Ports.Handshake]::None
 $Port.ReadTimeout = $TimeoutMs
 $Port.WriteTimeout = $TimeoutMs
+# LiteX b05c3069: PROMPT = "\e[92;1mlitex\e[0m> " (readline.h).
+# The visible "litex>" is split by ANSI SGR sequences in the raw serial stream.
+# Normalize the complete accumulated serial response BEFORE testing for prompts.
+function Remove-LiteXAnsi([string]$RawText) {
+  return [System.Text.RegularExpressions.Regex]::Replace(
+    $RawText, '\x1B\[[0-?]*[ -/]*[@-~]', ''
+  )
+}
 function Read-Until([string]$Needle, [int]$Timeout = 7000) {
   $sw = [System.Diagnostics.Stopwatch]::StartNew()
-  $b = New-Object System.Text.StringBuilder
+  $b = [System.Text.StringBuilder]::new()
   while ($sw.ElapsedMilliseconds -lt $Timeout) {
     $part = $Port.ReadExisting()
-    if ($part.Length -gt 0) { [void]$b.Append($part) }
-    if ($b.ToString().Contains($Needle)) { return $b.ToString() }
+    if ($part.Length -gt 0) {
+      [void]$b.Append($part)
+      # PowerShell's String.Contains cannot match through hidden ANSI escapes.
+      $plain = Remove-LiteXAnsi -RawText ($b.ToString())
+      if ($plain.Contains($Needle)) { return $plain }
+    }
     Start-Sleep -Milliseconds 8
   }
-  throw "TIMEOUT waiting for [$Needle]. Received: $($b.ToString())"
+  $raw = $b.ToString()
+  $plain = Remove-LiteXAnsi -RawText $raw
+  $sample = $raw.Substring(0, [Math]::Min(96, $raw.Length))
+  $codes = (@($sample.ToCharArray() | ForEach-Object { '{0:X2}' -f [int][char]$_ }) -join ' ')
+  throw "TIMEOUT waiting for [$Needle]. Visible: [$plain]. Raw UTF-16 codepoints (first 96): $codes"
 }
 function Invoke-Bios([string]$Command) {
   $Port.DiscardInBuffer()
@@ -71,7 +91,12 @@ try {
   $Port.Open()
   $Port.DiscardInBuffer()
   $Port.Write("`r")
-  [void](Read-Until 'litex>' $TimeoutMs)
+  $promptReply = Read-Until 'litex>' $TimeoutMs
+  if ($Probe) {
+    Write-Host 'PROBE PASS: ANSI-colored LiteX BIOS prompt recognized on serial COM port.'
+    Write-Host 'No mem_write, mem_read or boot commands were issued.'
+    return
+  }
   Write-Host 'BIOS prompt detected. Loading verified SDRAM payload...'
   for ($offset=0; $offset -lt $Image.Length; $offset += 4) {
     $word = [BitConverter]::ToUInt32($Image, $offset)

@@ -1,4 +1,4 @@
-# PiKoSoL LAB-20.6 — VexRiscv RAM-only Diagnostics v0.1.0
+# PiKoSoL LAB-20.6 — VexRiscv RAM-only Diagnostics v0.1.0 (uploader fix v0.1.1)
 
 **Tang Nano 20K · factory LiteX BIOS (2023-03-13) · VexRiscv_Min @ 48 MHz**  
 **Статус:** `BUILD_PASS / RV32_SIM_PASS / BOARD_TEST_PENDING`.
@@ -20,13 +20,15 @@
 
 ## Как выполнить на Windows (COM25, 115200 8N1)
 
-На ПК, где находится рабочий репозиторий:
+Если LAB-20.6 уже размещена в отдельном рабочем дереве `C:\GitHub\Sipeed-FPGA-LAB20-6` (в режиме detached HEAD), получи исправление, **не меняя старую ветку PicoRV32**:
 
 ```powershell
-Set-Location C:\GitHub\Sipeed-FPGA
-git pull --ff-only
-Set-Location .\03-LiteX-VexRiscv\lab20-6-ram-diag
+git -C C:\GitHub\Sipeed-FPGA fetch origin main
+git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
+Set-Location C:\GitHub\Sipeed-FPGA-LAB20-6\03-LiteX-VexRiscv\lab20-6-ram-diag
 ```
+
+Если у тебя другая копия репозитория, обнови именно её ветку main. Не вызывай старое `git pull --ff-only` в ветке `feature/picorv32-lab03-uart-trace`, которая отсутствует на сервере.
 
 **Шаг A. Проверить пакет без подключения к плате.** Команда *ничего не отправляет*:
 
@@ -34,7 +36,25 @@ Set-Location .\03-LiteX-VexRiscv\lab20-6-ram-diag
 pwsh -NoProfile -File .\upload.ps1
 ```
 
-**Шаг B. Закрой прежнюю программу UART/терминал**, если она удерживает COM25. Загрузка с проверкой всех 740 байт, без запуска:
+**Hotfix загрузчика v0.1.1 (08.11.2026):** исправлено распознавание приглашения BIOS `PROMPT = "\e[92;1mlitex\e[0m> "`, которое содержит цветовые ANSI-команды. Предыдущий скрипт ошибочно искал буквальную подстроку `litex>` и выдавал `TIMEOUT`, хотя UART отвечал. Исправленный `Read-Until` удаляет ANSI CSI-последовательности из отображаемого текста. **Бинарная программа `snapshot.bin` не изменена:** 740 байт и тот же SHA-256.
+
+**Шаг A2. Проверка протокола без FPGA (PowerShell 7):**
+
+```powershell
+pwsh -NoProfile -File .\test_upload_protocol.ps1
+```
+
+Этот тест анализирует синтаксис самого `upload.ps1`, проверяет цветное приглашение (в том числе разбитое на части) и парсер обратного чтения, включая отрицательный контроль. COM не открывается, запись не выполняется.
+
+**Шаг B1. Проверь соединение с BIOS без записи в SDRAM.** Закрой UART-терминал, освободи COM25:
+
+```powershell
+pwsh -NoProfile -File .\upload.ps1 -PortName COM25 -Probe
+```
+
+Ожидаемый результат: `PROBE PASS: ANSI-colored LiteX BIOS prompt recognized ...`. Параметр `-Probe` посылает только пустую строку в UART и проверяет ответ, не отправляя `mem_write`, `mem_read` или `boot`.
+
+**Шаг B2. Загрузка 740 байт с полным readback, без запуска:**
 
 ```powershell
 pwsh -NoProfile -File .\upload.ps1 -PortName COM25 -Upload
@@ -115,10 +135,11 @@ LAB20.6 HOLD - press physical RESET to return to BIOS
 | `snapshot.S` | Исходный код RISC-V, без C runtime и stack |
 | `linker.ld` | Фиксация точки входа `0x40010000` |
 | `snapshot.bin` | **Готовый загрузочный бинарник 740 байт**, не ELF |
-| `snapshot.elf` | Воспроизводимый ELF для отладки, создаётся локально через `build.sh`; в GitHub включён `snapshot.bin` |
+| `snapshot.elf` | Образ для дизассемблирования и отладки |
 | `snapshot.disasm.txt` | Дизассемблированный машинный код |
 | `load_mem_write_only.txt` | 185 безопасных команд `mem_write` только SDRAM; **без boot** |
-| `upload.ps1` | Загрузчик для Windows PowerShell 7 с побайтовой проверкой |
+| `upload.ps1` | Загрузчик PowerShell 7 v0.1.1, учитывающий цветное приглашение LiteX; режим `-Probe` без записи |
+| `test_upload_protocol.ps1` | Автономный тест распознавания цветного приглашения и сравнения дампа, без COM |
 | `generate_commands.py` | Генератор текстовых команд и манифеста |
 | `manifest.json` | Адреса, SHA-256, размеры и статус тестов |
 | `test_emulator.py` | Независимый RV32I+CSR симулятор для проверки полного хода программы |
