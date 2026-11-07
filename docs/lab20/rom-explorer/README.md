@@ -1,13 +1,19 @@
-# PiKoSoL LAB-20.4 — Tang Nano 20K / LiteX ROM Explorer v3.2
+# PiKoSoL LAB-20.4 — Tang Nano 20K / LiteX ROM Explorer v3.3
 
 **Hardware:** Sipeed Tang Nano 20K · factory LiteX SoC · VexRiscv_Min @ 48 MHz.
 **Status:** original factory BIOS and CPU-visible ROM captured on physical hardware; HTML is an RV32I educational simulator, not cycle-accurate VexRiscv RTL.
 
 ## Open the interactive reference
 
-Open [PiKoSoL ROM Explorer v3.2](PiKoSoL_ROM_Explorer_v3_2.html) after downloading the HTML file, or open [index.html](index.html) from a local checkout. It works offline and embeds the verified 32 KiB ROM.
+Open [PiKoSoL ROM Explorer v3.2](PiKoSoL_ROM_Explorer_v3_3.html) after downloading the HTML file, or open [index.html](index.html) from a local checkout. It works offline and embeds the verified 32 KiB ROM.
 
 The interactive tool contains RV32I instruction explanations, machine-word fields, program flow, register and SRAM changes, a call catalog, and an address-alias laboratory.
+
+## LAB-20.5: Architectural CSR vs peripheral MMIO
+
+The **CSR / UART** tab explains why RISC-V `csrrw` on register `0xBC0` is not a Wishbone MMIO access to `0xF0003010`. The latter is the UART `ev_pending` register. The newly identified `uart_init()` routine at ROM PC `0x4780–0x47C0` configures the UART event interrupt logic.
+
+[Read the detailed technical report](CSR_UART_LAB20_5.md). The emulator still stops before an *unknown live peripheral value*, and its TX/RX demonstration is explicitly hypothetical.
 
 ## Captured ROM and evidence
 

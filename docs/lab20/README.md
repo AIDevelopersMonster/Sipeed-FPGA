@@ -75,6 +75,12 @@ This is an explanatory block diagram, **not** a verified netlist or full CSR map
 
 The standalone HTML is an educational RV32I interpreter and instruction reference with verified board code, memory maps, aliases and step-by-step execution. Its results are software-model tests, **not** a cycle-exact hardware trace. The original 128 KiB dump remains locally archived as primary acquisition evidence.
 
+## LAB-20.5 — CSR and UART initialization (2026-11-07)
+
+The factory BIOS ROM implements a match for LiteX `uart_init()`: `0x000047A4` loads the UART event pending register at **`0xF0003010`**, `0x000047A8` acknowledges pending bits, `0x000047B0` writes 3 to **`0xF0003014`** (TX/RX event enable), and `0x000047B4–0x000047BC` sets bit 0 in VexRiscv-specific machine CSR `0xBC0`. These peripheral registers use `lw/sw` through Wishbone, **not** the RISC-V `csrr*` instruction family. This is a reconstruction from physical ROM + LiteX `b05c3069` sources, not a recording of live event register values.
+
+**[Updated ROM Explorer v3.3 / CSR & UART laboratory](rom-explorer/index.html)** · **[Technical audit and safe BIOS read-only checks](rom-explorer/CSR_UART_LAB20_5.md)**
+
 ## Next work / Следующие эксперименты
 
 1. Capture the complete response to `litex> help` and inventory commands before issuing memory writes or Flash operations.
