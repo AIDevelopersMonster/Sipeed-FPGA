@@ -7,7 +7,7 @@
 | № | Направление | Доказанное | Что ещё требует проверки |
 |---|---|---|---|
 | 1 | RAM | BIOS memtest 2 МиБ, полный 740/740 readback | Дополнительные безопасные шаблоны и границы — `BOARD PENDING` |
-| 2 | Wishbone / CSR | Реальный CPU UART MMIO, SDRAM reads/writes | Строгая функциональная матрица; waveform нужен только для собственного SoC с GAO — `PARTIAL` |
+| 2 | Wishbone / CSR | Реальный CPU UART MMIO, SDRAM reads/writes, **read-only 7-CSR PASS 2026-11-08 11:53** | Функциональная матрица и корреляция; отдельный WB waveform не заявлен — [протокол](BIOS_UART_READONLY_PASS_2026-11-08.md), `PARTIAL BOARD PASS` |
 | 3 | IRQ | Считаны IRQ_MASK, PENDING, MIE, MSTATUS | Trap handler + подтверждение события + mret — `BOARD PENDING` |
 | 4 | Timer / Boot | RAM `boot 0x40010000` аппаратно работает | Сначала узнать наличие Timer по `mem_list`; Timer `UNKNOWN` |
 | 5 | Исходные тесты LiteX | На GitHub есть тесты на коммите b05c3069 | Запуск в Python/Migen и отчёт — `HOST PENDING` |
@@ -22,7 +22,7 @@ Set-Location C:\GitHub\Sipeed-FPGA\Tang-Nano-20K\LiteX-Closeout
 pwsh -NoProfile -File .\closeout_readonly.ps1 -PortName COM25
 ~~~
 
-Скрипт запрашивает приглашение LiteX, `mem_list`, семь уже идентифицированных **статусных** UART MMIO. Результаты сохраняются в `evidence`. **Нет записи RAM, IRQ, boot или Flash.** При ошибке нужен полный лог. Без результатов пользователя это не считается новым hardware PASS.
+**Оператор подтвердил BOARD PASS 2026-11-08 11:53**, полная квитанция [здесь](BIOS_UART_READONLY_PASS_2026-11-08.md). Скрипт запрашивает приглашение LiteX, `mem_list`, семь уже идентифицированных **статусных** UART MMIO. Результаты сохраняются в `evidence`. **Нет записи RAM, IRQ, boot или Flash.** При ошибке нужен полный лог. Результат одной аппаратной проверки получен; повторно запускать ради этого PASS не требуется. **Полный вывод `mem_list` пока не предъявлен.**
 
 ## Выполняем на ПК отдельно от платы — тесты исходного LiteX
 
