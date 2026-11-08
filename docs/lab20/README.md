@@ -91,6 +91,8 @@ The factory BIOS ROM implements a match for LiteX `uart_init()`: `0x000047A4` lo
 
 Программный снимок TXEMPTY до первого вывода UART и после него: инструкция `boot 0x40010000` заводского LiteX BIOS передаёт управление RV32I+Zicsr-программе в SDRAM, результаты сохранены по `0x40011000` и напечатаны в UART. Размер BIN — 740 байт, 185 машинных слов. **Компиляция и независимый симуляционный тест PASS, физический запуск ещё не подтверждён.** Flash не меняется, для возврата в BIOS необходим аппаратный RESET.
 
+**2026-11-08 hardware milestone:** PiKoSoL LAB-20.6 now has **full 740-byte SDRAM readback PASS** after 185 BIOS `mem_write` operations. PowerShell `-VerifyOnly` read the complete uploaded binary back without additional writes or CPU program launch. This verifies RAM loading, **not** VexRiscv execution. [Hardware receipt](../../03-LiteX-VexRiscv/lab20-6-ram-diag/SDRAM_HARDWARE_PASS_2026-11-08.md). Next gated step: `boot 0x40010000` and capture UART report.
+
 ## Next work / Следующие эксперименты
 
 1. Capture the complete response to `litex> help` and inventory commands before issuing memory writes or Flash operations.

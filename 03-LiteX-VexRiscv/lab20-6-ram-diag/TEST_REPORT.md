@@ -1,6 +1,6 @@
 # LAB-20.6 v0.1.0 — Test receipt (offline only)
 
-**Date:** 2026-11-07. **Status:** `BUILD_PASS / RV32_SIM_PASS / WINDOWS_COM25_UNTESTED / BOARD_TEST_PENDING`.
+**Initial date:** 2026-11-07. **Updated 2026-11-08 status:** `BUILD_PASS / RV32_SIM_PASS / SDRAM_READBACK_HARDWARE_PASS / RV32_APP_BOOT_PENDING`.
 
 ## Build inputs and constraints
 
@@ -62,3 +62,7 @@ Source: [LiteX historical readline.h](https://github.com/enjoy-digital/litex/blo
 ## v0.1.3 test harness correction (2026-11-08)
 
 Operator's PowerShell v0.1.2 offline test passed prompt normalization, initial readback, corrupt readback rejection, and **verbatim real-board dump** decoding. Test then failed at the final 4-byte fixture: `Unexpected BIOS command in test: mem_read 0x400102E0 4`. This is a **mock/stub defect**: fake `Invoke-Bios` demanded `mem_read 0x40010000 16` before consulting the simulated response, regardless of requested offset. Fixed the stub to validate the actual command against `ExpectedCommand`, updated by each fixture. Added negative control for mismatched fixture command. `upload.ps1`, ROM binary and its SHA-256 are unchanged. Full Windows regression and full 740-byte physical SDRAM readback remain pending.
+
+## SDRAM complete hardware readback (2026-11-08)
+
+Operator ran v0.1.3 protocol test on Windows: **all eight PASS checkpoints** including real captured BIOS response, CR/LF variants, the terminal 4-byte block, and bad-command rejection. The host `-VerifyOnly` then read back all 740 bytes from actual SDRAM on Tang Nano 20K with progress 128, 256, 384, 512, 640, 740 and final `PASS: 740 bytes SDRAM readback match SHA256-controlled binary; NO WRITES / NO BOOT.` The prior 185-word upload is therefore hardware verified in full. No program execution/boot has yet been observed. Full readback evidence: [SDRAM_HARDWARE_PASS_2026-11-08.md](SDRAM_HARDWARE_PASS_2026-11-08.md).
