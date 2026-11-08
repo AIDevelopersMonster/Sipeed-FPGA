@@ -36,8 +36,17 @@ $script:LoadAddress = 0x40010000L
 $script:Image = [byte[]](0..15)
 $script:FakeReadback = '0x40010000  ' + (($script:Image | ForEach-Object { '{0:X2}' -f $_ }) -join ' ') + '   ........' + "`r`n"
 function Invoke-Bios([string]$Command) {
+  # The early synthetic test uses a single fixed 16-byte read.
+  # Later fixtures also exercise the last 4-byte block at 0x400102E0.
+  # Validate the actual requested command against the fixture's expected command,
+  # not against the early test's fixed address.
+  if ($null -ne $script:FakeResponse) {
+    if ($Command -ne $script:ExpectedCommand) {
+      throw "Unexpected BIOS command in test: $Command (expected: $script:ExpectedCommand)"
+    }
+    return $script:FakeResponse
+  }
   if ($Command -ne 'mem_read 0x40010000 16') { throw "Unexpected BIOS command in test: $Command" }
-  if ($null -ne $script:FakeResponse) { return $script:FakeResponse }
   return "Memory dump:`r`n" + $script:FakeReadback + "`r`n${esc}[92;1mlitex${esc}[0m> "
 }
 Verify-Chunk 0 16
@@ -50,6 +59,7 @@ Write-Host 'PASS: corrupt readback rejected before boot.'
 
 # Actual flattened board output observed after 185 uploaded words.
 $script:Image = [System.IO.File]::ReadAllBytes((Join-Path $PSScriptRoot 'snapshot.bin'))
+$script:ExpectedCommand = 'mem_read 0x40010000 16'
 $script:FakeResponse = 'mem_read 0x40010000 16 Memory dump: 0x40010000  37 34 00 f0 b7 14 01 40 b7 02 10 00 93 82 f2 ff  74.....@........  litex>'
 Verify-Chunk 0 16
 Write-Host 'PASS: real flattened board response matched canonical BIN.'
@@ -58,7 +68,8 @@ function Make-BiosDump([int]$Offset, [int]$Count, [string]$Separator) {
   $addr = 0x40010000L + $Offset
   $hex = ((($Offset..($Offset+$Count-1)) | ForEach-Object { '{0:x2}' -f [int]$script:Image[$_] }) -join ' ')
   $line = '0x{0:x8}  {1}   ................' -f $addr, $hex
-  return ('mem_read 0x{0:X8} {1}' -f $addr, $Count) + $Separator + 'Memory dump:' + $Separator + $line + $Separator + 'litex>'
+  $script:ExpectedCommand = 'mem_read 0x{0:X8} {1}' -f $addr, $Count
+  return $script:ExpectedCommand + $Separator + 'Memory dump:' + $Separator + $line + $Separator + 'litex>'
 }
 foreach ($sep in @([string][char]13, [string][char]10, ([string][char]13+[string][char]10), ' ')) {
   $script:FakeResponse = Make-BiosDump 0 16 $sep
@@ -76,4 +87,13 @@ foreach ($malformed in @($bad.Replace('Memory dump:', 'Other output:'), $bad.Rep
 }
 Write-Host 'PASS: wrong address and missing header rejected.'
 
-Write-Host 'PASS: uploader v0.1.2 regression finished, no COM or writes.'
+
+# Negative control: mock must reject a read command inconsistent with the selected fixture.
+$badCommandRejected = $false
+try { Invoke-Bios 'mem_read 0x400102E0 4' | Out-Null } catch {
+  $badCommandRejected = $_.Exception.Message -match 'Unexpected BIOS command in test'
+}
+if (-not $badCommandRejected) { throw 'FAIL: mock accepted unexpected readback request' }
+Write-Host 'PASS: mock rejects a request inconsistent with the fixture.'
+
+Write-Host 'PASS: uploader v0.1.3 protocol regression finished, no COM or writes.'

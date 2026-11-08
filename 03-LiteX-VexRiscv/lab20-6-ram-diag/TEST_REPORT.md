@@ -58,3 +58,7 @@ Source: [LiteX historical readline.h](https://github.com/enjoy-digital/litex/blo
 ## COM25 SDRAM upload incident — parser fix v0.1.2
 
 2026-11-08: operator reported successful transfer of 185 `mem_write` words to SDRAM. First `mem_read 0x40010000 16` yielded code bytes starting `37 34 00 f0 b7 14 01 40`, but verification aborted because the regex required address at LF-anchored line start. New loader uses `Memory dump:` header and whitespace-delimited address without LF anchor. Added `-VerifyOnly` that reads back all 740 bytes without rewriting SDRAM or booting. Test fixture includes the captured response and CR/LF/CRLF/flattened variants. **Hardware verification remains pending until the operator reports PASS.** Binary is unchanged.
+
+## v0.1.3 test harness correction (2026-11-08)
+
+Operator's PowerShell v0.1.2 offline test passed prompt normalization, initial readback, corrupt readback rejection, and **verbatim real-board dump** decoding. Test then failed at the final 4-byte fixture: `Unexpected BIOS command in test: mem_read 0x400102E0 4`. This is a **mock/stub defect**: fake `Invoke-Bios` demanded `mem_read 0x40010000 16` before consulting the simulated response, regardless of requested offset. Fixed the stub to validate the actual command against `ExpectedCommand`, updated by each fixture. Added negative control for mismatched fixture command. `upload.ps1`, ROM binary and its SHA-256 are unchanged. Full Windows regression and full 740-byte physical SDRAM readback remain pending.
