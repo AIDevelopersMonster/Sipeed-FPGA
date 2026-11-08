@@ -43,13 +43,14 @@
 | **[SD-02 — чтение microSD](boards/tang-nano-9k/experiments/sd-multilba/README.md)** | Четыре LBA, CRC16, UART, исходники и тесты | **BOARD PASS**, только чтение |
 | **[SD-06 — секторная запись](boards/tang-nano-9k/experiments/sd06-cmd24/README.md)** | CMD17/CMD24, проверка записи и восстановление сектора | **Ограниченный BOARD PASS**: одна тестовая SD и один разрешённый LBA |
 | **[SPI и microSD — учебные материалы](docs/education/README.md)** | PDF, Markdown, RTL и методика проверки | Опубликованные учебные материалы |
+| **[Tang Nano 20K — LAB-20.6](Tang-Nano-20K/README.md)** | Заводской LiteX/VexRiscv, ROM, UART CSR, собственная RAM-only программа, полная инструкция повторения | **BOARD PASS**, RISC-V программа реально выполнена |
 
 ## Что не готово как продукт
 
 - **SD-08 (FAT32 read-only):** на плате получены FS, DIR и TYPE PIKO.TXT, но проверенный бинарный файл **не опубликован для автоматической загрузки**. [Статус SD-08](docs/lab04/web-loader/README_SD08_WEB_LAB.md).
 - **PicoTiny / заводская PicoSoc:** пример PicoTiny не является подтверждённой копией заводской прошивки; восстановление Flash не проверено.
 - **Остальные RTL-эксперименты:** [каталог Tang Nano 9K](boards/tang-nano-9k/experiments/README.md) и [LAB-03](docs/lab03/README.md). Наличие исходников само по себе не означает BOARD PASS.
-- **Другие CPU:** [NEORV32](02-NEORV32/README.md), [LiteX/VexRiscv](03-LiteX-VexRiscv/README.md), [Rocket](04-Rocket/README.md) — исследовательские направления, не аппаратные релизы.
+- **Другие CPU:** [NEORV32](02-NEORV32/README.md), [Rocket](04-Rocket/README.md) — исследовательские направления. **[LiteX/VexRiscv на Tang Nano 20K](Tang-Nano-20K/README.md) — уже имеет аппаратно подтверждённое исполнение собственной RISC-V программы из SDRAM**, но это не собственный FPGA bitstream.
 
 ## LAB-06 — сравнение процессоров и типовых блоков
 
