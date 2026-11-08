@@ -80,7 +80,7 @@ litex> mem_read 0xF0003014
 
 ## 5. Как посмотреть BIOS в HTML: уже выложено, скачивать необязательно
 
-**Online (GitHub Pages):** [PiKoSoL ROM Explorer v3.3](https://aidevelopersmonster.github.io/Sipeed-FPGA/docs/lab20/rom-explorer/) — это **опубликованный адрес проекта**. HTML существует в GitHub, но **доступность опубликованной страницы не удалось проверить из текущей среды**. При недоступности онлайн используйте офлайн-файл.
+**Online (GitHub Pages):** [PiKoSoL ROM Explorer v3.3](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/) — это **опубликованный адрес проекта**. HTML существует в GitHub, но **доступность опубликованной страницы не удалось проверить из текущей среды**. При недоступности онлайн используйте офлайн-файл.
 
 **GitHub (точный исходный HTML):** [`index.html` в этой папке](index.html) и [исторический сайт в `docs/lab20/rom-explorer`](https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/docs/lab20/rom-explorer/index.html). GitHub показывает *код* файла, а не запускает интерактивную модель: нужно скачать **Raw**, либо открыть файл из локального клона.
 

@@ -39,7 +39,7 @@ LAB20.6 HOLD - press physical RESET to return to BIOS
 ## Что скачать и открыть
 
 - **[Готовая программа RISC-V, 740 байт](06-RV32-RAM-Diagnostics/snapshot.bin)** · [ассемблерный исходник](06-RV32-RAM-Diagnostics/snapshot.S) · [загрузчик PowerShell](06-RV32-RAM-Diagnostics/upload.ps1).
-- **[ROM Explorer v3.3 — интерактивный учебный справочник](BIOS/LiteX/index.html)** (HTML, можно сохранить и открыть локально).
+- **[Запустить ROM Explorer v3.3 онлайн](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/)** · [скачать автономный HTML](BIOS/LiteX/index.html) · [руководство](BIOS/LiteX/ROM_EXPLORER_GUIDE_RU.md).
 - [ROM BIOS, уникальные 32 КиБ](04-ROM-Explorer/PiKoSoL_LAB20_ROM_32KiB.bin) · [реестр UART/CSR](05-UART-CSR/README.md).
 - [Полная инструкция воспроизведения с командами для Windows](REPRODUCE_LAB20_6_RU.md).
 

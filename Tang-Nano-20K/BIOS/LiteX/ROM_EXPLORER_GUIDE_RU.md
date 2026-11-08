@@ -6,7 +6,7 @@
 
 ## Где открыть
 
-- **[GitHub Pages — ROM Explorer v3.3](https://aidevelopersmonster.github.io/Sipeed-FPGA/docs/lab20/rom-explorer/)**. Это опубликованный адрес проекта; из текущей среды **не удалось подтвердить HTTP-доступность страницы**. Если не открывается, используйте локальную версию ниже.
+- **[GitHub Pages — ROM Explorer v3.3](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/)**. Это опубликованный адрес проекта; из текущей среды **не удалось подтвердить HTTP-доступность страницы**. Если не открывается, используйте локальную версию ниже.
 - **[Файл `index.html` в нашей папке BIOS/LiteX](index.html)**. На странице GitHub выберите `Raw` или скачайте репозиторий: GitHub не выполняет JavaScript непосредственно при просмотре исходника.
 - **[Оригинальный каталог приложения на GitHub](https://github.com/AIDevelopersMonster/Sipeed-FPGA/tree/main/docs/lab20/rom-explorer)**. Путь оставлен для GitHub Pages и старых ссылок.
 - [Независимый бинарный образ ROM 32 КиБ](PiKoSoL_LAB20_ROM_32KiB.bin) · [манифест с SHA-256 и CRC](PiKoSoL_ROM_32KiB_manifest.json).

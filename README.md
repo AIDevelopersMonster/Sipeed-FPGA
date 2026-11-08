@@ -66,9 +66,9 @@
 
 **LAB-20 publications (RU/EN):** [VexRiscv / VexRiscv_Min — DOI 10.5281/zenodo.23991097](https://doi.org/10.5281/zenodo.23991097) · [WISHBONE 32-bit — DOI 10.5281/zenodo.23991663](https://doi.org/10.5281/zenodo.23991663).
 
-**LAB-20.4 ROM Explorer v3.2:** [Интерактивный справочник RV32I и заводского LiteX BIOS](https://aidevelopersmonster.github.io/Sipeed-FPGA/docs/lab20/rom-explorer/) · [32 KiB ROM, SHA-256 и воспроизводимый аудит](docs/lab20/rom-explorer/README.md). Считанное окно 128 КиБ содержит четыре зеркала по 32 КиБ; BSRAM-топология после синтеза ещё не подтверждена.
+**LAB-20.4 ROM Explorer v3.2:** [Интерактивный справочник RV32I и заводского LiteX BIOS](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/) · [32 KiB ROM, SHA-256 и воспроизводимый аудит](docs/lab20/rom-explorer/README.md). Считанное окно 128 КиБ содержит четыре зеркала по 32 КиБ; BSRAM-топология после синтеза ещё не подтверждена.
 
-**LAB-20.5 CSR / UART:** [PiKoSoL ROM Explorer v3.3](https://aidevelopersmonster.github.io/Sipeed-FPGA/docs/lab20/rom-explorer/) — различие процессорных CSR и LiteX MMIO, восстановленный UART EventManager на `0xF0003000`, реальная последовательность BIOS `uart_init()`. [Аудит и источники](docs/lab20/rom-explorer/CSR_UART_LAB20_5.md).
+**LAB-20.5 CSR / UART:** [PiKoSoL ROM Explorer v3.3](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/) — различие процессорных CSR и LiteX MMIO, восстановленный UART EventManager на `0xF0003000`, реальная последовательность BIOS `uart_init()`. [Аудит и источники](docs/lab20/rom-explorer/CSR_UART_LAB20_5.md).
 
 **LAB-20.6 / Tang Nano 20K:** [RAM-only программа для VexRiscv_Min, исходники и загрузчик](03-LiteX-VexRiscv/lab20-6-ram-diag/README.md). **Аппаратный запуск PASS 2026-11-08**: 740 байт в SDRAM, полный readback, собственный UART-отчёт и TXEMPTY 1→0. [Протокол](03-LiteX-VexRiscv/lab20-6-ram-diag/RV32_HARDWARE_EXECUTION_PASS_2026-11-08.md). Заводская FPGA Flash остаётся неизменной.
 
