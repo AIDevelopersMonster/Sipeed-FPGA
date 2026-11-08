@@ -37,7 +37,7 @@ h1{font-size:clamp(26px,4vw,42px);margin:12px 0}h2{margin:32px 0 12px}.cards{dis
 <script>
 (()=>{'use strict';
  const $=id=>document.getElementById(id), log=$('log'),status=$('status');
- let port=null,writer=null,reader=null,buffer='',session=[],busy=false;
+ let port=null,writer=null,reader=null,session=[],busy=false,pending=null;
  const strip=s=>s.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g,'');
  const append=(title,txt)=>{let line='['+new Date().toISOString()+'] '+title+'\n'+txt;session.push(line);log.textContent+=(log.textContent.startsWith('Здесь ')?'':'\n')+line+'\n';};
  const buttons=()=>{
@@ -46,33 +46,49 @@ h1{font-size:clamp(26px,4vw,42px);margin:12px 0}h2{margin:32px 0 12px}.cards{dis
  };
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const encoder=new TextEncoder(),decoder=new TextDecoder();
- async function readUntilPrompt(timeout=9000){
-  const deadline=Date.now()+timeout;let raw='';
-  while(Date.now()<deadline){
-   const remaining=deadline-Date.now();if(remaining<=0)break;
-   const part=await Promise.race([reader.read(),sleep(Math.min(remaining,1500)).then(()=>({timeout:true}))]);
-   if(part.timeout)continue;
-   if(part.done)throw Error('COM connection closed');
-   raw+=decoder.decode(part.value,{stream:true});
-   if(strip(raw).includes('litex>'))return strip(raw);
+ async function pump(){
+  try {
+   while(reader) {
+    const part=await reader.read();
+    if(part.done)break;
+    const text=decoder.decode(part.value,{stream:true});
+    if(pending){
+     pending.text+=text;
+     if(strip(pending.text).includes('litex>')){
+      const waiter=pending;pending=null;
+      clearTimeout(waiter.timer);waiter.resolve(strip(waiter.text));
+     }
+    } else if(text.trim())append('ASYNC UART',strip(text));
+   }
+  } catch(e){
+   if(pending){const w=pending;pending=null;clearTimeout(w.timer);w.reject(e)}
   }
-  throw Error('Timeout waiting for LiteX prompt: '+strip(raw).slice(-350));
+ }
+ function readUntilPrompt(timeout=9000){
+  if(pending)throw Error('Concurrent BIOS command blocked');
+  return new Promise((resolve,reject)=>{
+   const wait={resolve,reject,text:'',timer:null};
+   wait.timer=setTimeout(()=>{
+    if(pending===wait){pending=null;reject(Error('Timeout waiting for LiteX prompt: '+strip(wait.text).slice(-350)))}
+   },timeout);
+   pending=wait;
+  });
  }
  // Only these fixed commands are permitted. Never expose an arbitrary command text box.
  const commands=Object.freeze(['help','mem_list','mem_read 0xF0003004 4','mem_read 0xF0003008 4','mem_read 0xF000300C 4','mem_read 0xF0003010 4','mem_read 0xF0003014 4','mem_read 0xF0003018 4','mem_read 0xF000301C 4']);
- async function runCommand(c){if(!commands.includes(c))throw Error('Command not permitted');await writer.write(encoder.encode(c+'\r'));let response=await readUntilPrompt();append(c,response);return response;}
+ async function runCommand(c){if(!commands.includes(c))throw Error('Command not permitted');const reply=readUntilPrompt();await writer.write(encoder.encode(c+'\r'));let response=await reply;append(c,response);return response;}
  async function commandSet(list){if(busy||!port)return;busy=true;buttons();try{for(const c of list)await runCommand(c);status.textContent='Сеанс чтения завершён. Результат сохраните как журнал, это не автоматический BOARD PASS.'}catch(e){status.textContent='Ошибка чтения: '+e.message;append('ERROR',e.message)}finally{busy=false;buttons()}}
  $('connect').onclick=async()=>{
   if(!('serial' in navigator)){status.textContent='Web Serial недоступен: откройте сайт в Chrome/Edge по HTTPS.';return;}
   try{
    port=await navigator.serial.requestPort();await port.open({baudRate:115200,dataBits:8,stopBits:1,parity:'none',flowControl:'none'});
-   reader=port.readable.getReader();writer=port.writable.getWriter();
+   reader=port.readable.getReader();writer=port.writable.getWriter();void pump();
    status.textContent='COM подключён. Проверяю приглашение LiteX...';buttons();
-   await writer.write(encoder.encode('\r'));let reply=await readUntilPrompt();append('BIOS HANDSHAKE',reply);
+   const greeting=readUntilPrompt();await writer.write(encoder.encode('\r'));let reply=await greeting;append('BIOS HANDSHAKE',reply);
    status.textContent='COM подключён. Используйте только фиксированные команды.';
-  }catch(e){status.textContent='Не удалось подключиться: '+e.message;try{reader?.releaseLock();writer?.releaseLock();await port?.close()}catch(_){}port=null;reader=null;writer=null;}buttons();
+  }catch(e){status.textContent='Не удалось подключиться: '+e.message;try{await reader?.cancel();reader?.releaseLock();writer?.releaseLock();await port?.close()}catch(_){}port=null;reader=null;writer=null;}buttons();
  };
- $('disconnect').onclick=async()=>{if(busy)return;try{reader?.releaseLock();writer?.releaseLock();await port?.close();status.textContent='COM отключён'}catch(e){status.textContent='Ошибка закрытия: '+e.message}finally{port=null;reader=null;writer=null;buttons()}};
+ $('disconnect').onclick=async()=>{if(busy)return;try{if(pending){const w=pending;pending=null;clearTimeout(w.timer);w.reject(Error('Disconnected'))}await reader?.cancel();reader?.releaseLock();writer?.releaseLock();await port?.close();status.textContent='COM отключён'}catch(e){status.textContent='Ошибка закрытия: '+e.message}finally{port=null;reader=null;writer=null;buttons()}};
  $('help').onclick=()=>commandSet(['help']);$('map').onclick=()=>commandSet(['mem_list']);
  $('uart').onclick=()=>commandSet(commands.slice(2));
  $('download').onclick=()=>{const text='LiteX 20K read-only browser log (operator provided)\n'+session.join('\n')+'\n';
