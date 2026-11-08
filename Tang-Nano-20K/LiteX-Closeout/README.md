@@ -81,3 +81,16 @@ git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
 ~~~
 
 Аппаратный PASS получен от оператора: 40/40 шаблонов, полное восстановление 8/8. [Протокол](RAM_SCRATCH_BOARD_PASS_2026-11-08.md). Следующее направление — Timer/IRQ. Для нового запуска нужен полный текст результата. Поскольку это реальная запись RAM, сценарий запускается только **явным `--run`**. Не запускайте его при другой прошивке или работающей RAM-программе.
+
+## ROM-аудит Timer/IRQ и ограниченная аппаратная проверка IRQ
+
+[Результаты дизассемблирования заводского ROM и карта регистров](TIMER_IRQ_ROM_AUDIT_2026-11-08.md). Установлено, что `0xF0002000` используется контроллером/PHY SDRAM, а `0xF0002800` — адрес таймингового блока (возможный Timer); **до подтверждения по generated CSR карте никакие записи по новому адресу не выполняем**.
+
+Следующий тест: [`irq_rx_bios_counter.py`](irq_rx_bios_counter.py), **3/3 mock tests PASS** в изолированной среде, физический запуск ещё не проведён. Скрипт только отправляет BIOS-команды `mem_list`, `mem_read 0x10000178 4`, `help`, сравнивает два увеличения `rx_produce` на 22 и 27 байт. При наличии точной корреляции — подтверждение работы штатного UART RX ISR с реальной UART, но **не** отдельного пользовательского trap handler / `mret`. В противном случае — `INCONCLUSIVE`, без вывода об отсутствии IRQ.
+
+```powershell
+git -C C:\GitHub\Sipeed-FPGA fetch origin main
+git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
+& "C:\GitHub\litex-b05c3069-test\venv\Scripts\python.exe" "C:\GitHub\Sipeed-FPGA-LAB20-6\Tang-Nano-20K\LiteX-Closeout\irq_rx_bios_counter.py" --self-test
+& "C:\GitHub\litex-b05c3069-test\venv\Scripts\python.exe" "C:\GitHub\Sipeed-FPGA-LAB20-6\Tang-Nano-20K\LiteX-Closeout\irq_rx_bios_counter.py" --run --port COM25
+```

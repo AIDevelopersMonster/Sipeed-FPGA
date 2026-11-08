@@ -87,3 +87,7 @@
 ## 14. Ограниченный SDRAM scratch — BOARD PASS 2026-11-08 13:29
 
 Оператор исполнил реальный `ram_scratch_test.py --run --port COM25`: CPU/BIOS ответил, `mem_list` подтвердил MAIN_RAM, создан backup JSON `RAM_BACKUP_20261108_132904_001600.json`; пять шаблонов ZERO/ONES/ALT_A/ALT_5/ADDRESS по 8 слов **40/40 PASS**; исходные 8 слов восстановлены и проверены **RESTORE 8/8 PASS**; создан `RAM_SCRATCH_20261108_132904_001600.json`. Полный консольный вывод сохранён в [квитанции](LiteX-Closeout/RAM_SCRATCH_BOARD_PASS_2026-11-08.md). **Это 32-байтная выборка, не полный RAM stress test.** На FPGA Flash/ROM/CSR скрипт не писал.
+
+## 15. ROM forensic: IRQ and timer — 2026-11-08
+
+[ROM audit / next safe experiment](LiteX-Closeout/TIMER_IRQ_ROM_AUDIT_2026-11-08.md). Исходный ROM подтверждает работу обработчика UART RX: `0x10000178` — счётчик `rx_produce` в SRAM, обновляется в обработчике (PC `0x4610..0x4634`), а `0xBC0` управляет маской IRQ. **`0xF0002000` — контроллер SDRAM, не таймер.** Инструкции BIOS используют `0xF0002800` в циклах задержки; это кандидат Timer, но пока не присваиваем аппаратный статус. Подготовлен [read-only IRQ correlation tester](LiteX-Closeout/irq_rx_bios_counter.py): 3/3 mock regressions PASS; **BOARD PENDING**. До физического запуска не заявлять IRQ PASS.
