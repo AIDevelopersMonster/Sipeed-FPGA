@@ -15,6 +15,8 @@
 
 **[Полный справочник BIOS / LiteX, команды и HTML ROM Explorer](../../Tang-Nano-20K/BIOS/LiteX/README.md)** — единая точка входа для повторения всех BIOS-опытов и изучения оригинального кода.
 
+**[LiteX-Closeout — шесть финальных проверок](../../Tang-Nano-20K/LiteX-Closeout/README.md)** · **[Браузерный диагностический стенд](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/closeout/)** — только чтение BIOS/UART, аппаратные квитанции отдельно от моделей.
+
 ## Technical article / Техническая статья
 
 **LiteX BIOS: SoC Early Initialization and the Interactive System Monitor**  

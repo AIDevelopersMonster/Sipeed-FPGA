@@ -52,6 +52,10 @@
 
 ## 6. Где мы остановились и что делать следующим
 
-**Последний реальный PASS:** LAB-20.6 CPU-RAM-UART. **Следующий незакрытый шаг:** подготовка и проведение граничных RAM/Wishbone проверок с сохранением исходных образов и UART-лога. Плата физически управляется оператором; без его результатов аппаратный PASS не объявляется.
+**Последний реальный PASS:** LAB-20.6 CPU-RAM-UART. **Следующий незакрытый шаг:** исполнение безопасного `closeout_readonly.ps1` и аппаратная сверка. [Комплект закрытия LiteX](LiteX-Closeout/README.md). **RAM / IRQ / Timer пока требуют отдельных подтверждений.** Затем при необходимости подготовка ограниченных RAM/Wishbone проверок с сохранением исходных образов и UART-лога. Плата физически управляется оператором; без его результатов аппаратный PASS не объявляется.
 
 **Где учиться:** [LiteX / BIOS](BIOS/LiteX/README.md) · [интерактивный ROM Explorer](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/) · [базовый курс](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/).
+
+## 7. Пакет LiteX-Closeout — опубликован 2026-11-08
+
+Опубликованы [read-only проверка BIOS/UART](LiteX-Closeout/closeout_readonly.ps1), [тесты исторического LiteX](LiteX-Closeout/run_upstream_tests.ps1), [инструкция](LiteX-Closeout/README.md) и [браузерная диагностическая панель](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/closeout/). Это **исходники и модели — никакой новый BOARD PASS без фактических результатов пользователя**. Browser Web Serial работает только при поддержке браузера и явном разрешении COM. Код программы 9K PiKoSoL и существующие FPGA bitstream не изменены.
