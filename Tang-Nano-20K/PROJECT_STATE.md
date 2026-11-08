@@ -99,3 +99,7 @@
 ## 17. Завершающая ограниченная проверка Timer0 — подготовлена (2026-11-08)
 
 Заводской ROM `0x3C84..0x3D0C` содержит непосредственную последовательность команд `timer0` (`0xF0002800`), совпадающую с `system.c` и `timer.py` LiteX b05c3069. Подготовлен [`timer0_bios_test.py`](LiteX-Closeout/timer0_bios_test.py): `--self-test`, `--probe` read-only и `--run` ограниченный one-shot 3 c с backup/restore. **Аппаратный Timer0 всё ещё PENDING** до реального отчёта оператора. После этого — зафиксировать LiteX-Closeout и открыть EX20-01 HDMI, EX20-03 microSD. [Инструкция](LiteX-Closeout/README.md).
+
+## 18. Timer0 — аппаратный READONLY PROBE PASS (2026-11-08 23:03)
+
+Оператор на реальной Tang Nano 20K через COM25 выполнил `timer0_bios_test.py --probe`: ROM fingerprint **5/5 PASS**, `LOAD=0x00B71B00` (12 млн тактов/250 мс), `RELOAD=0`, `ENABLE=1`, `EV_PENDING=1`, `EV_ENABLE=0`. Файл локального журнала: `TIMER_TEST_20261108_230352_555688.json`. [Точный вывод](LiteX-Closeout/TIMER0_READONLY_PROBE_PASS_2026-11-08.md). **Timer0 функциональный BOARD PASS ещё не достигнут**: фактический отсчёт и восстановление проверит только `--run`.

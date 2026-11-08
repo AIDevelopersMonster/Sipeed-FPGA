@@ -120,3 +120,7 @@ git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
 
 После подтверждённого `TIMER0 BOARD PASS` оформить финальную квитанцию LiteX-Closeout. Неподтверждённый результат не становится PASS от публикации исходников.
 
+
+## Timer0 READONLY PROBE — подтверждён на реальной плате 2026-11-08 23:03
+
+Проверены ROM fingerprint `5/5` и исходные Timer0 регистры: `LOAD=0x00B71B00` (12 000 000 тактов), `RELOAD=0`, `EN=1`, `EV_PENDING=1`, `EV_ENABLE=0`. **BOARD PROBE PASS, без записи по CSR**. [Дословный операторский результат](TIMER0_READONLY_PROBE_PASS_2026-11-08.md). Следующий `--run` проверит исходный текущий `VALUE`, ограниченный 3-секундный one-shot, затем вернёт исходное состояние. **Функциональный TIMER0 BOARD PASS пока не заявляется.**
