@@ -9,7 +9,7 @@
 | 1 | RAM | BIOS memtest 2 МиБ, полный 740/740 readback | Дополнительные безопасные шаблоны и границы — `BOARD PENDING` |
 | 2 | Wishbone / CSR | Реальный CPU UART MMIO, SDRAM reads/writes, **read-only 7-CSR PASS 2026-11-08 11:53** | Функциональная матрица и корреляция; отдельный WB waveform не заявлен — [протокол](BIOS_UART_READONLY_PASS_2026-11-08.md), `PARTIAL BOARD PASS` |
 | 3 | IRQ | Считаны IRQ_MASK, PENDING, MIE, MSTATUS | Trap handler + подтверждение события + mret — `BOARD PENDING` |
-| 4 | Timer / Boot | RAM `boot 0x40010000` аппаратно работает | Сначала узнать наличие Timer по `mem_list`; Timer `UNKNOWN` |
+| 4 | Timer / Boot | RAM `boot 0x40010000` аппаратно работает; `mem_list` подтвердил окно CSR, но **не его устройства** | Timer `UNKNOWN`, требуется конфигурация/CSR-карта или отдельный ограниченный тест; [ответ mem_list](MEM_LIST_HARDWARE_PASS_2026-11-08.md) |
 | 5 | Исходные тесты LiteX | На GitHub есть тесты на коммите b05c3069 | Запуск в Python/Migen и отчёт — `HOST PENDING` |
 | 6 | Браузер | ROM Explorer v3.3 и учебная страница | Разделённая панель `MODEL / SOURCE TEST / BOARD EVIDENCE` — `PARTIAL` |
 
@@ -40,7 +40,7 @@ pwsh -NoProfile -File .\run_upstream_tests.ps1
 
 **IRQ:** не включать прерывания без собственной работающей таблицы обработчиков, ограничителя повторов и восстановления состояния.
 
-**Timer:** пока нет подтверждённой карты CSR таймера именно этой заводской FPGA-конфигурации. Не читать случайные адреса и не помечать таймер PASS на основании его наличия в исходниках LiteX.
+**Timer:** `mem_list` уже получен — **четыре области ROM/SRAM/MAIN_RAM/CSR**, таймер там не назван, поскольку команда не перечисляет CSR-периферию. В историческом `SoCCore` таймер включён по умолчанию (`with_timer=True`), но есть `--no-timer`; это предпосылка, не аппаратный PASS. Не читать случайные CSR-адреса и не помечать таймер PASS. [Точный ответ BIOS](MEM_LIST_HARDWARE_PASS_2026-11-08.md).
 
 ## Отладка GAO/GVIO в будущем собственном SoC
 
