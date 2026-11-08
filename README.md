@@ -12,7 +12,7 @@
 
 **Реальный результат 08.11.2026:** загрузили собственную программу **740 байт**, подтвердили обратное чтение **740/740**, запустили VexRiscv_Min командой `boot 0x40010000` и получили собственный UART-отчёт. Аппаратный эксперимент подтвердил изменение `TXEMPTY=1 → 0` после начала диагностической печати.
 
-**[Понятно: что и зачем делаем](Tang-Nano-20K/START_HERE_RU.md)** · **[Повторить на Windows, пошаговая инструкция](Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md)** · **[ROM Explorer](Tang-Nano-20K/04-ROM-Explorer/README.md)** · **[Исходник, BIN и доказательства LAB-20.6](Tang-Nano-20K/06-RV32-RAM-Diagnostics/README.md)**
+**[BIOS/LiteX: устройство, команды, ROM и HTML-эмулятор](Tang-Nano-20K/BIOS/LiteX/README.md)** · **[Понятно: что и зачем делаем](Tang-Nano-20K/START_HERE_RU.md)** · **[Повторить на Windows, пошаговая инструкция](Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md)** · **[ROM Explorer](Tang-Nano-20K/04-ROM-Explorer/README.md)** · **[Исходник, BIN и доказательства LAB-20.6](Tang-Nano-20K/06-RV32-RAM-Diagnostics/README.md)**
 
 ---
 

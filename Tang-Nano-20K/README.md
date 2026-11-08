@@ -6,13 +6,13 @@
 
 ## Начать за 5 минут
 
-**[Понятное объяснение проекта — с нуля](START_HERE_RU.md)** · **[Как повторить LAB-20.6 на Windows (пошагово)](REPRODUCE_LAB20_6_RU.md)** · **[Частые вопросы](FAQ_RU.md)**
+**[BIOS / LiteX — подробный справочник, команды и эмулятор](BIOS/LiteX/README.md)** · **[Понятное объяснение проекта — с нуля](START_HERE_RU.md)** · **[Как повторить LAB-20.6 на Windows (пошагово)](REPRODUCE_LAB20_6_RU.md)** · **[Частые вопросы](FAQ_RU.md)**
 
 ## Карта лабораторий
 
 | Этап | Что мы исследовали | Файлы | Аппаратный результат |
 |---|---|---|---|
-| **LAB-20.0 — Заводская система** | Встроенный BIOS, процессор, доступная SDRAM и UART | [00-Factory-LiteX](00-Factory-LiteX/README.md) | **PASS**: LiteX BIOS на COM25, VexRiscv_Min 48 МГц, память |
+| **LAB-20.0 — Заводская система** | Встроенный BIOS, процессор, доступная SDRAM и UART | **[BIOS/LiteX](BIOS/LiteX/README.md)** · [стенд](00-Factory-LiteX/README.md) | **PASS**: LiteX BIOS на COM25, VexRiscv_Min 48 МГц, память |
 | **LAB-20.4 — ROM Explorer** | Считали ROM BIOS, нашли повторение адресов, разобрали машинный код RV32I | [04-ROM-Explorer](04-ROM-Explorer/README.md) | **PASS**: окно 128 КиБ, уникальный образ 32 КиБ |
 | **LAB-20.5 — UART / CSR** | Выяснили, как CPU управляет UART через регистры, проверили 7 адресов | [05-UART-CSR](05-UART-CSR/README.md) | **PASS**: значения на реальной плате |
 | **LAB-20.6 — Собственная программа** | Написали RV32I-код, загрузили 740 байт в SDRAM, исполнили и вывели отчёт | **[06-RV32-RAM-Diagnostics](06-RV32-RAM-Diagnostics/README.md)** | **PASS**: чтение 740/740 байт + исполнение на VexRiscv |
@@ -39,7 +39,7 @@ LAB20.6 HOLD - press physical RESET to return to BIOS
 ## Что скачать и открыть
 
 - **[Готовая программа RISC-V, 740 байт](06-RV32-RAM-Diagnostics/snapshot.bin)** · [ассемблерный исходник](06-RV32-RAM-Diagnostics/snapshot.S) · [загрузчик PowerShell](06-RV32-RAM-Diagnostics/upload.ps1).
-- **[ROM Explorer v3.3 — интерактивный учебный справочник](04-ROM-Explorer/index.html)** (HTML, можно сохранить и открыть локально).
+- **[ROM Explorer v3.3 — интерактивный учебный справочник](BIOS/LiteX/index.html)** (HTML, можно сохранить и открыть локально).
 - [ROM BIOS, уникальные 32 КиБ](04-ROM-Explorer/PiKoSoL_LAB20_ROM_32KiB.bin) · [реестр UART/CSR](05-UART-CSR/README.md).
 - [Полная инструкция воспроизведения с командами для Windows](REPRODUCE_LAB20_6_RU.md).
 

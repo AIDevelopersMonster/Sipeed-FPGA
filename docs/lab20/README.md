@@ -10,6 +10,9 @@
 
 **Публичная главная страница Tang Nano 20K:** [единый каталог, файлы и инструкции](../../Tang-Nano-20K/README.md) · [как повторить на Windows](../../Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md).
 
+
+**[Полный справочник BIOS / LiteX, команды и HTML ROM Explorer](../../Tang-Nano-20K/BIOS/LiteX/README.md)** — единая точка входа для повторения всех BIOS-опытов и изучения оригинального кода.
+
 ## Technical article / Техническая статья
 
 **LiteX BIOS: SoC Early Initialization and the Interactive System Monitor**  

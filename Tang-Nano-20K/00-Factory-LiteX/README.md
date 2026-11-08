@@ -1,6 +1,6 @@
 # 00 — С чего начинается Tang Nano 20K: заводской LiteX BIOS
 
-[Главная страница Tang Nano 20K](../README.md) · [Как повторить первый собственный код](../REPRODUCE_LAB20_6_RU.md)
+[Главная страница Tang Nano 20K](../README.md) · **[Полный справочник BIOS/LiteX](../BIOS/LiteX/README.md)** · [Как повторить первый собственный код](../REPRODUCE_LAB20_6_RU.md)
 
 Плата **Tang Nano 20K (GW2AR-18)** работает с **заводской системой LiteX** на **RISC-V VexRiscv_Min @ 48 МГц**. Система включает ROM с BIOS, UART-монитор и внешнюю SDRAM **8 МиБ**; ранее в BIOS прошёл тест памяти объёмом 2 МиБ.
 
