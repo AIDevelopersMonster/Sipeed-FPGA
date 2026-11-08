@@ -1,0 +1,105 @@
+{
+  "project": "PiKoSoL LAB-20.6",
+  "hardware_date": "2026-11-08",
+  "board": "Sipeed Tang Nano 20K",
+  "cpu": "VexRiscv_Min",
+  "soc": "factory LiteX BIOS",
+  "rom_baseline": "b05c3069",
+  "frequency_hz": 48000000,
+  "port": "COM25",
+  "baud": 115200,
+  "image": {
+    "file": "snapshot.bin",
+    "bytes": 740,
+    "words": 185,
+    "sha256": "def94e225021f654258cd2760a32c63343a0ade98b4f770882e63a2f17255a0e",
+    "load_address": "0x40010000"
+  },
+  "command": "boot 0x40010000",
+  "result": "LAB20_6_RV32_HARDWARE_EXECUTION_PASS",
+  "evidence_scope": "Operator UART terminal log in conversation. No independent physical console control.",
+  "registers": [
+    {
+      "name": "TXEMPTY",
+      "value": "0x00000001"
+    },
+    {
+      "name": "TXFULL",
+      "value": "0x00000000"
+    },
+    {
+      "name": "RXEMPTY",
+      "value": "0x00000001"
+    },
+    {
+      "name": "EV_STATUS",
+      "value": "0x00000001"
+    },
+    {
+      "name": "EV_PENDING",
+      "value": "0x00000001"
+    },
+    {
+      "name": "EV_ENABLE",
+      "value": "0x00000003"
+    },
+    {
+      "name": "RXFULL",
+      "value": "0x00000000"
+    },
+    {
+      "name": "MSTATUS",
+      "value": "0x00000080"
+    },
+    {
+      "name": "MIE",
+      "value": "0x00000880"
+    },
+    {
+      "name": "IRQ_MASK",
+      "value": "0x00000000"
+    },
+    {
+      "name": "IRQ_PENDING",
+      "value": "0x00000000"
+    },
+    {
+      "name": "TXEMPTY_AFTER_PRINT",
+      "value": "0x00000000"
+    }
+  ],
+  "first_snapshot_sdram": "0x40011000",
+  "post_print_sdram": "0x40011038",
+  "prior_sdram_readback_pass": true,
+  "app_boot_pass": true,
+  "uart_self_observation_pass": true,
+  "flash_modified": false,
+  "final_state": "HOLD; physical RESET required to return to BIOS",
+  "original_log": [
+    "litex> boot 0x40010000",
+    "Executing booted program at 0x40010000",
+    "",
+    "--============= Liftoff! ===============--",
+    "",
+    "PiKoSoL LAB20.6 RAM-only snapshot BEFORE UART output",
+    "TXEMPTY    = 0x00000001",
+    "TXFULL     = 0x00000000",
+    "RXEMPTY    = 0x00000001",
+    "EV_STATUS  = 0x00000001",
+    "EV_PENDING = 0x00000001",
+    "EV_ENABLE  = 0x00000003",
+    "RXFULL     = 0x00000000",
+    "MSTATUS    = 0x00000080",
+    "MIE        = 0x00000880",
+    "IRQ_MASK   = 0x00000000",
+    "IRQ_PENDING= 0x00000000",
+    "TXEMPTY_AFTER_PRINT = 0x00000000",
+    "LAB20.6 HOLD - press physical RESET to return to BIOS"
+  ],
+  "limitations": [
+    "No oscilloscope/logic-analyzer waveform",
+    "No hardware IRQ handler entry proven",
+    "CSR values sampled at different times",
+    "No separate memory dump of snapshot after launch"
+  ]
+}

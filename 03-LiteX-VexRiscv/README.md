@@ -6,6 +6,8 @@ Target hardware: Tang Primer **25K** (GW5A), own Dock model must be verified. Re
 [`litex-hub/litex-boards/litex_boards/targets/sipeed_tang_primer_25k.py`](https://github.com/litex-hub/litex-boards/blob/master/litex_boards/targets/sipeed_tang_primer_25k.py).
 Upstream CPU: [`SpinalHDL/VexRiscv`](https://github.com/SpinalHDL/VexRiscv).
 
+**Tang Nano 20K (заводской LiteX) — открытая лаборатория:** [папка платы](../Tang-Nano-20K/README.md) · [пошаговый запуск программы](../Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md). Эксперимент LAB-20.6: реальный RISC-V запуск PASS.
+
 ## LAB-20.6 — RAM-only диагностика на заводской Tang Nano 20K
 
 **[Исходный код RV32I, BIN 740 байт, PowerShell-загрузчик и тесты](lab20-6-ram-diag/README.md).** Это отдельная работа с уже установленным **заводским LiteX / VexRiscv_Min** на Tang Nano 20K, а не с планируемой самостоятельной сборкой для Primer 25K.

@@ -4,6 +4,18 @@
 
 Здесь собраны **работающие результаты, исходники и воспроизводимые учебные примеры**. Отметка **BOARD PASS** относится только к конкретному испытанному стенду и версии, а не к любой новой сборке.
 
+## Tang Nano 20K — начните здесь
+
+**[ОТКРЫТЬ ПРОЕКТ TANG NANO 20K →](Tang-Nano-20K/README.md)**
+
+**Что это:** заводской LiteX с процессором **VexRiscv_Min (RISC-V)**. Изучаем BIOS, ROM и UART, а затем запускаем **свои программы из SDRAM** — без изменения заводской FPGA-прошивки.
+
+**Реальный результат 08.11.2026:** загрузили собственную программу **740 байт**, подтвердили обратное чтение **740/740**, запустили VexRiscv_Min командой `boot 0x40010000` и получили собственный UART-отчёт. Аппаратный эксперимент подтвердил изменение `TXEMPTY=1 → 0` после начала диагностической печати.
+
+**[Понятно: что и зачем делаем](Tang-Nano-20K/START_HERE_RU.md)** · **[Повторить на Windows, пошаговая инструкция](Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md)** · **[ROM Explorer](Tang-Nano-20K/04-ROM-Explorer/README.md)** · **[Исходник, BIN и доказательства LAB-20.6](Tang-Nano-20K/06-RV32-RAM-Diagnostics/README.md)**
+
+---
+
 ## Начните здесь: PiKoSoL v0.2.0
 
 **[1. Прошить FPGA через браузер](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/)** · **[2. Открыть Web Serial](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/)** · **[Релиз и прошивка v0.2.0](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0)**

@@ -1,0 +1,15 @@
+{
+  "project": "PiKoSoL LAB-20.4",
+  "board": "Tang Nano 20K",
+  "source_rom_window_bytes": 131072,
+  "canonical_image_bytes": 32768,
+  "alias_period_bytes": 32768,
+  "aliases_in_observed_window": 4,
+  "source_sha256": "fac8e6e6f39a22e2995de54c271646687d86ad9802e884b848bcf5b6ec4edb65",
+  "canonical_sha256": "3347be74e9716744949e572229345c3ea9e74f1740001408b934c0d85c79c5bc",
+  "verified_all_four_windows_equal": true,
+  "bios_crc32": "F2B1F4F6",
+  "bios_payload_bytes": 26180,
+  "bios_with_crc_bytes": 26184,
+  "note": "The 128KiB image is retained as primary acquisition. 32KiB is one observed unique period. Physical BRAM topology is not proven by these bytes."
+}

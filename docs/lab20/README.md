@@ -8,6 +8,8 @@
 - First observed UART console: **COM25**, **115200 8N1** on the tested Windows host. **COM24** also opens; its role has not been positively identified.
 - Status: **BOARD PASS (factory LiteX BIOS + SDRAM diagnostic)**. No custom FPGA synthesis or SD boot has been verified. The user RV32I RAM-only program was **successfully executed on physical hardware** in LAB-20.6.
 
+**Публичная главная страница Tang Nano 20K:** [единый каталог, файлы и инструкции](../../Tang-Nano-20K/README.md) · [как повторить на Windows](../../Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md).
+
 ## Technical article / Техническая статья
 
 **LiteX BIOS: SoC Early Initialization and the Interactive System Monitor**  
