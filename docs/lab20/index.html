@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Tang Nano 20K: учебный маршрут по заводскому LiteX BIOS и VexRiscv. ROM Explorer v3.3, карта ROM, CSR и протокол аппаратного исполнения RISC-V."/>
+<title>Tang Nano 20K — LiteX BIOS: курс и ROM Explorer</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif;--bg:#081724;--panel:#11283a;--text:#eff7fb;--sub:#b5cedb;--line:#38576a;--accent:#60e2c0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);line-height:1.65}main{max-width:1060px;margin:auto;padding:36px 22px 70px}a{color:#97e8ff}h1{font-size:clamp(30px,4.4vw,52px);line-height:1.16;margin:12px 0}h2{margin:36px 0 12px}p{color:var(--sub)}.tag{display:inline-block;font-size:12px;letter-spacing:.06em;border:1px solid var(--line);padding:3px 10px;border-radius:20px;color:var(--accent)}.buttons{display:flex;flex-wrap:wrap;gap:12px;margin:25px 0}.buttons a{background:var(--accent);color:#05322b;text-decoration:none;font-weight:800;padding:13px 19px;border-radius:11px}.buttons a.secondary{background:#19374a;color:#def8ff;border:1px solid #3d6479}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:15px}.card,.lesson{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:20px}.card h3,.lesson h3{margin:0 0 8px}.lesson{margin:11px 0}.lesson small{color:var(--accent)}.lesson p{margin:5px 0 10px}code,pre{font-family:Consolas,monospace}pre{background:#05121e;border:1px solid #365369;border-radius:10px;padding:16px;overflow:auto;color:#e5f8ff}.warn{border-left:3px solid #ecbf7d;padding-left:15px}footer{border-top:1px solid var(--line);margin-top:40px;padding-top:20px;color:var(--sub);font-size:13px}label{display:block;margin:0 0 10px}input{background:#071924;border:1px solid var(--line);border-radius:8px;padding:9px;color:#fff;font:inherit;width:220px}button{border:1px solid #477688;background:#1c4f59;color:white;font:inherit;font-weight:bold;border-radius:8px;padding:9px 13px;cursor:pointer}output{font-family:Consolas,monospace;color:var(--accent);display:block;margin-top:12px;font-size:18px}
+</style>
+</head>
+<body><main>
+<header><span class="tag">TANG NANO 20K · ЗАВОДСКОЙ LITEX · VEXRISCV_MIN</span>
+<h1>Изучаем BIOS, память и процессор RISC-V на настоящей FPGA</h1>
+<p>Это <strong>самостоятельный образовательный маршрут по Tang Nano 20K</strong>. У нас есть проверенный образ заводского BIOS, интерактивный ROM Explorer и аппаратный опыт исполнения собственной 740-байтной RISC-V-программы из SDRAM.</p>
+<div class="buttons"><a href="./rom-explorer/">Запустить ROM Explorer v3.3</a><a class="secondary" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/tree/main/Tang-Nano-20K/BIOS/LiteX">BIOS и LiteX: справочник</a><a class="secondary" href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md">Повторить на Windows</a></div>
+</header>
+<section class="grid" aria-label="Состояние стенда">
+<article class="card"><h3>CPU: VexRiscv_Min</h3><p>Заводской LiteX SoC, 48 МГц. <strong>Не</strong> PiKoSoL/PicoRV32 на Tang Nano 9K.</p></article>
+<article class="card"><h3>ROM: 128 КиБ окно</h3><p>В реальном дампе повторяется один 32-КиБ период. ROM Explorer содержит проверенный уникальный образ.</p></article>
+<article class="card"><h3>LAB-20.6: HARDWARE PASS</h3><p>740/740 байт записаны и прочитаны обратно из SDRAM, затем выполнены настоящим процессором.</p></article>
+</section>
+<h2>Порядок изучения — семь демонстраций</h2>
+<div class="lesson"><small>01 · АРХИТЕКТУРА</small><h3>Что такое LiteX и чем он отличается от CPU</h3><p>Процессор VexRiscv выполняет команды; LiteX соединяет CPU, Wishbone, ROM, RAM и UART. BIOS — программа, а не bitstream FPGA.</p><a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/Tang-Nano-20K/START_HERE_RU.md">Основы архитектуры</a></div>
+<div class="lesson"><small>02 · RESET / BOOT</small><h3>Первая инструкция: PC=0 → 0xB0</h3><p>В ROM Explorer откройте «01 Исследователь», нажмите «Сброс», затем «Шаг»; смотрите изменение PC и регистров.</p><a href="./rom-explorer/">Открыть исследователь</a></div>
+<div class="lesson"><small>03 · ПАМЯТЬ</small><h3>Почему ROM в 128 КиБ содержит 32 КиБ уникальных данных?</h3><p>Те же байты повторяются по адресам 0xB0, 0x80B0, 0x100B0, 0x180B0. Попробуйте вычислить смещение ниже.</p><a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/Tang-Nano-20K/BIOS/LiteX/ROM_ALIAS_AUDIT.md">Доказательства зеркалирования</a></div>
+<div class="lesson"><small>04 · АССЕМБЛЕР</small><h3>Декодируем настоящий RISC-V</h3><p>В «02 Справочник» изучите JAL, LW, SW, CSRRW и форматы команд, затем выполните несколько инструкций BIOS.</p><a href="./rom-explorer/">ROM Explorer: ISA</a></div>
+<div class="lesson"><small>05 · UART / CSR</small><h3>Как BIOS включает периферию</h3><p>«05 CSR и UART» → «К PC 0x47A4». Сопоставьте инструкции LW/SW, MMIO 0xF0003010 и CSR 0xBC0.</p><a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/Tang-Nano-20K/BIOS/LiteX/MEMORY_MAP_RU.md">Карта памяти и CSR</a></div>
+<div class="lesson"><small>06 · ИЗМЕРЕНИЕ</small><h3>Почему диагностика меняет TXEMPTY</h3><p>На реальной плате TXEMPTY было 1 до собственного вывода, и 0 после: диагностическая печать сама занимает UART FIFO.</p><a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/Tang-Nano-20K/06-RV32-RAM-Diagnostics/RV32_HARDWARE_EXECUTION_PASS_2026-11-08.md">Полный аппаратный протокол</a></div>
+<div class="lesson"><small>07 · СВОЙ КОД</small><h3>Как BIOS запускает наш 740-байтный RV32I-код</h3><p>Загрузка в SDRAM 0x40010000, сверка 740/740, затем boot. Для возврата из HOLD физическая кнопка RESET.</p><a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/main/Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md">Пошаговая инструкция</a></div>
+<h2>Интерактивная мини-лаборатория: зеркала ROM</h2>
+<div class="card"><p>Это математическая проверка адресного соответствия, а не эмуляция FPGA. Для нашего CPU-visible ROM длиной 128 КиБ наблюдаемый период равен 0x8000 (32 КиБ).</p>
+<label for="addr">Адрес ROM (hex), например 0x100B0</label><input id="addr" value="0x100B0" spellcheck="false" autocomplete="off"/><button id="calc" type="button">Показать физическое смещение</button><output id="out" aria-live="polite">0x100B0 → 0x00B0</output></div>
+<h2>Где взять исходники и как подтвердить результат</h2>
+<p>Все документы и файлы лежат в <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/tree/main/Tang-Nano-20K/BIOS/LiteX">BIOS/LiteX</a>: ROM 32 КиБ, манифест SHA-256, полноценный HTML, команды BIOS, адресная карта, официальные источники, реальные снимки регистров и инструкция. Отдельно хранится <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/tree/main/Tang-Nano-20K/06-RV32-RAM-Diagnostics">LAB-20.6</a> с исходником, BIN, PowerShell-загрузчиком, тестами и аппаратной квитанцией.</p>
+<p class="warn"><strong>Границы результата:</strong> ROM Explorer — программная RV32I-модель без цикл-точного поведения VexRiscv и без соединения с платой. Реальный UART-протокол — отдельное аппаратное доказательство. В этом проекте <strong>не изменяется FPGA Flash</strong>; LAB-20.7 (IRQ) ещё не подтверждена. Прошивки PiKoSoL для 9K сюда не подходят.</p>
+<footer>LiteX 20K Lab · 2026 · <a href="https://github.com/AIDevelopersMonster/Sipeed-FPGA/tree/main/Tang-Nano-20K">Главная папка Tang Nano 20K</a> · <a href="../">PiKoSoL 9K — отдельный проект</a></footer>
+</main>
+<script>
+(function(){
+ const input=document.getElementById('addr'),out=document.getElementById('out'),btn=document.getElementById('calc');
+ function fmt(n){return '0x'+n.toString(16).toUpperCase().padStart(4,'0')}
+ function calc(){
+  const text=input.value.trim();if(!/^0x[0-9a-fA-F]+$/.test(text)){out.textContent='Введите адрес в формате 0x100B0';return}
+  const addr=Number.parseInt(text.slice(2),16);
+  if(!Number.isSafeInteger(addr)||addr<0||addr>0x1FFFF){out.textContent='Адрес вне наблюдаемого ROM-окна 0x00000–0x1FFFF';return}
+  out.textContent=fmt(addr)+' → '+fmt(addr & 0x7FFF)+' · период '+Math.floor(addr/0x8000)+' из 4';
+ }
+ btn.addEventListener('click',calc);input.addEventListener('keydown',e=>{if(e.key==='Enter')calc()});calc()
+})();
+</script>
+</body>
+</html>

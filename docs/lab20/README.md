@@ -11,6 +11,8 @@
 **Публичная главная страница Tang Nano 20K:** [единый каталог, файлы и инструкции](../../Tang-Nano-20K/README.md) · [как повторить на Windows](../../Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md).
 
 
+**[Запустить ROM Explorer v3.3 в браузере](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/)** · **[Учебная страница LiteX 20K](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/)** · [BIOS и исходники](../../Tang-Nano-20K/BIOS/LiteX/README.md).
+
 **[Полный справочник BIOS / LiteX, команды и HTML ROM Explorer](../../Tang-Nano-20K/BIOS/LiteX/README.md)** — единая точка входа для повторения всех BIOS-опытов и изучения оригинального кода.
 
 ## Technical article / Техническая статья

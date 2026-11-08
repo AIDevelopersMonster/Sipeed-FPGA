@@ -2,6 +2,8 @@
 
 [← Справочник](README.md) · [Запуск HTML](ROM_EXPLORER_GUIDE_RU.md) · [Команды реального BIOS](COMMANDS_RU.md)
 
+**[Запустить автономную модель BIOS в браузере](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/)** · [отдельная страница курса LiteX 20K](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/) · [файл для офлайн-запуска](index.html).
+
 Эти эксперименты можно показать посетителям: для каждой демонстрации указываются **действие**, **наблюдение** и **предел вывода**. HTML — не подключённая FPGA, а автономный интерпретатор ROM; реальный UART-лог приведён отдельно.
 
 ## DEMO 1 — Как RISC-V начинает исполнять BIOS

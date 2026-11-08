@@ -4,6 +4,8 @@
 
 **BIOS** здесь — начальная программа, которую процессор исполняет после сброса FPGA-системы: инициализация UART/памяти, поиск источника загрузки и интерактивный монитор. BIOS не равен конфигурационному файлу FPGA (`.fs`) и не равен нашему пользовательскому `snapshot.bin`.
 
+**[Запустить LiteX ROM Explorer v3.3 — онлайн](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/)** · [демонстрационный маршрут](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/) · [автономный HTML](LiteX/index.html).
+
 ## Доступная реализация
 
 **[LiteX BIOS — подробный справочник, команды, исходный ROM и HTML-эмулятор](LiteX/README.md)**.

@@ -8,6 +8,8 @@ Upstream CPU: [`SpinalHDL/VexRiscv`](https://github.com/SpinalHDL/VexRiscv).
 
 **Tang Nano 20K (заводской LiteX) — открытая лаборатория:** [папка платы](../Tang-Nano-20K/README.md) · [пошаговый запуск программы](../Tang-Nano-20K/REPRODUCE_LAB20_6_RU.md). Эксперимент LAB-20.6: реальный RISC-V запуск PASS.
 
+**Интерактивный ROM Explorer v3.3:** [открыть на GitHub Pages](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/) · [команды и карта LiteX BIOS](../Tang-Nano-20K/BIOS/LiteX/README.md).
+
 ## LAB-20.6 — RAM-only диагностика на заводской Tang Nano 20K
 
 **[Исходный код RV32I, BIN 740 байт, PowerShell-загрузчик и тесты](lab20-6-ram-diag/README.md).** Это отдельная работа с уже установленным **заводским LiteX / VexRiscv_Min** на Tang Nano 20K, а не с планируемой самостоятельной сборкой для Primer 25K.

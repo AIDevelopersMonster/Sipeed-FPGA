@@ -5,6 +5,9 @@
 
 ## Open the interactive reference
 
+**[Запустить ROM Explorer v3.3 онлайн — корректный адрес GitHub Pages](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/)** · [учебный маршрут](../index.html). Это отдельная лаборатория **Tang Nano 20K / LiteX**, а не приложение PiKoSoL для 9K. Для офлайн-режима используйте `index.html` из репозитория.
+
+
 Open [PiKoSoL ROM Explorer v3.3](PiKoSoL_ROM_Explorer_v3_3.html) after downloading the HTML file, or open [index.html](index.html) from a local checkout. It works offline and embeds the verified 32 KiB ROM.
 
 The interactive tool contains RV32I instruction explanations, machine-word fields, program flow, register and SRAM changes, a call catalog, and an address-alias laboratory.

@@ -2,6 +2,8 @@
 
 [На главную Tang Nano 20K](README.md) · [Повторить опыт](REPRODUCE_LAB20_6_RU.md)
 
+**Начать интерактивное изучение:** [ROM Explorer v3.3](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/rom-explorer/) · [учебный маршрут LiteX 20K](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/) · [подробный справочник BIOS](BIOS/LiteX/README.md).
+
 ## Короткий ответ
 
 На этой FPGA-плате уже существует готовая вычислительная система: **процессор RISC-V VexRiscv_Min**, память, UART и служебная программа LiteX BIOS. Мы изучаем её так, как инженер исследует незнакомый микрокомпьютер: сначала смотрим, что установлено, затем понимаем устройство памяти и команд, находим периферийные регистры и наконец **пишем собственную программу**.
