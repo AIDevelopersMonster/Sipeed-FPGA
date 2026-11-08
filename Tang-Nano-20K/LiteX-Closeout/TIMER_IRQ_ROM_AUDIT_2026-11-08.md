@@ -26,7 +26,7 @@ ROM addresses refer to the unique 32-KiB period; virtual ROM larger window repea
 
 [Run `irq_rx_bios_counter.py`](irq_rx_bios_counter.py), importing the already tested `ram_scratch_test.py` serial/hex parser. It reads SRAM `0x10000178` (128-byte ring producer index) through BIOS `mem_read` three times, inserting two known input sequences. The expected differences are **22** and **27** bytes modulo 128. Those counts include the trailing `CR` of each command. Seeing both differences is direct evidence that the factory UART RX ISR updates software state on real hardware. It does **not** isolate the `mret` instruction or prove a new custom trap handler.
 
-This is **no direct RAM or MMIO writes**; BIOS internally necessarily processes UART events, and sending commands may affect the RX ring. No `boot`, no IRQ setup, no FPGA Flash. `--self-test` mock test = 3/3 PASS in the authoring environment; physical `--run` = **PENDING**. Unknown/failed deltas => `INCONCLUSIVE`, not blanket IRQ failure.
+This is **no direct RAM or MMIO writes**; BIOS internally necessarily processes UART events, and sending commands may affect the RX ring. No `boot`, no IRQ setup, no FPGA Flash. `--self-test` mock test = 3/3 PASS in the authoring environment; physical `--run` = **BOARD RX ISR PASS 2026-11-08, 22/22 + 27/27** ([квитанция](UART_RX_ISR_BOARD_PASS_2026-11-08.md)). Unknown/failed deltas => `INCONCLUSIVE`, not blanket IRQ failure.
 
 ### Commands (PowerShell)
 
@@ -38,3 +38,7 @@ git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
 ```
 
 Close browser/terminal holders of COM25 first. If the BIOS prompt is not visible, press the physical board RESET *before* testing. Evidence is written locally as `evidence/IRQ_RX_COUNTER_*.json` (the file content is not automatically uploaded to GitHub).
+
+## Реальная плата: оператор подтвердил RX ISR
+
+2026-11-08 14:24: результаты команд `irq_rx_bios_counter.py --run --port COM25`: **22/22 и 27/27**; [отдельный протокол](UART_RX_ISR_BOARD_PASS_2026-11-08.md). Считать **BOARD PASS корреляции UART RX ISR**, но не пользовательского обработчика trap/mret.

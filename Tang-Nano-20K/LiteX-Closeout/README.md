@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 1 | RAM | BIOS memtest 2 МиБ, полный 740/740 readback; **40/40 реальных проверок 8 слов на 5 шаблонах с RESTORE 8/8 PASS (13:29)** | Выборочная SDRAM-проверка закрыта как `BOARD PASS` для 32-байтного scratch, **не полные 8 МиБ**. [Квитанция](RAM_SCRATCH_BOARD_PASS_2026-11-08.md) |
 | 2 | Wishbone / CSR | Реальный CPU UART MMIO, SDRAM reads/writes, **read-only 7-CSR PASS 2026-11-08 11:53** | Функциональная матрица и корреляция; отдельный WB waveform не заявлен — [протокол](BIOS_UART_READONLY_PASS_2026-11-08.md), `PARTIAL BOARD PASS` |
-| 3 | IRQ | Считаны IRQ_MASK, PENDING, MIE, MSTATUS | Trap handler + подтверждение события + mret — `BOARD PENDING` |
+| 3 | IRQ | **BOARD RX ISR PASS** — счётчик `rx_produce` в SRAM увеличился на 22/22 и 27/27 байт при вводе команд по UART | Штатный обработчик подтверждён; пользовательский trap/mret отдельно не испытывали. [Квитанция](UART_RX_ISR_BOARD_PASS_2026-11-08.md) |
 | 4 | Timer / Boot | RAM `boot 0x40010000` аппаратно работает; `mem_list` подтвердил окно CSR, но **не его устройства** | Timer `UNKNOWN`, требуется конфигурация/CSR-карта или отдельный ограниченный тест; [ответ mem_list](MEM_LIST_HARDWARE_PASS_2026-11-08.md) |
 | 5 | Исходные тесты LiteX | **HOST UNITTEST PASS 17/17** на b05c3069 (CSR 4, Wishbone 5, Timer 3, Stream 5) | Пункт выбранного поднабора закрыт. [Фактический операторский вывод](UPSTREAM_UNITTEST_PASS_2026-11-08.md). `test_cpu` / другие тесты не проводились; никакого BOARD PASS это не даёт |
 | 6 | Браузер | ROM Explorer v3.3, раздельные MODEL/SOURCE/BOARD, реальная страница Closeout; оператор подтвердил «Работает» | `BROWSER OPERATOR WORKS`; конкретные `help`, `mem_list`, UART CSR и выгрузка журнала ещё не подтверждены скриншотом/логом. [Квитанция](BROWSER_OPERATOR_CONFIRMATION_2026-11-08.md) |
@@ -86,7 +86,7 @@ git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
 
 [Результаты дизассемблирования заводского ROM и карта регистров](TIMER_IRQ_ROM_AUDIT_2026-11-08.md). Установлено, что `0xF0002000` используется контроллером/PHY SDRAM, а `0xF0002800` — адрес таймингового блока (возможный Timer); **до подтверждения по generated CSR карте никакие записи по новому адресу не выполняем**.
 
-Следующий тест: [`irq_rx_bios_counter.py`](irq_rx_bios_counter.py), **3/3 mock tests PASS** в изолированной среде, физический запуск ещё не проведён. Скрипт только отправляет BIOS-команды `mem_list`, `mem_read 0x10000178 4`, `help`, сравнивает два увеличения `rx_produce` на 22 и 27 байт. При наличии точной корреляции — подтверждение работы штатного UART RX ISR с реальной UART, но **не** отдельного пользовательского trap handler / `mret`. В противном случае — `INCONCLUSIVE`, без вывода об отсутствии IRQ.
+Следующий тест: [`irq_rx_bios_counter.py`](irq_rx_bios_counter.py), **3/3 mock tests PASS** в изолированной среде, **физический PASS получен 2026-11-08 14:24: 22/22 + 27/27**, [протокол](UART_RX_ISR_BOARD_PASS_2026-11-08.md). Скрипт только отправляет BIOS-команды `mem_list`, `mem_read 0x10000178 4`, `help`, сравнивает два увеличения `rx_produce` на 22 и 27 байт. При наличии точной корреляции — подтверждение работы штатного UART RX ISR с реальной UART, но **не** отдельного пользовательского trap handler / `mret`. В противном случае — `INCONCLUSIVE`, без вывода об отсутствии IRQ.
 
 ```powershell
 git -C C:\GitHub\Sipeed-FPGA fetch origin main
@@ -94,3 +94,7 @@ git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
 & "C:\GitHub\litex-b05c3069-test\venv\Scripts\python.exe" "C:\GitHub\Sipeed-FPGA-LAB20-6\Tang-Nano-20K\LiteX-Closeout\irq_rx_bios_counter.py" --self-test
 & "C:\GitHub\litex-b05c3069-test\venv\Scripts\python.exe" "C:\GitHub\Sipeed-FPGA-LAB20-6\Tang-Nano-20K\LiteX-Closeout\irq_rx_bios_counter.py" --run --port COM25
 ```
+
+## UART RX ISR — BOARD PASS 2026-11-08
+
+Физический запуск `irq_rx_bios_counter.py --run --port COM25` подтвердил два приращения ISR producer-счётчика **22/22 и 27/27 байт**, при этом Flash/MMIO/IRQ_MASK операторским скриптом не изменялись. [Квитанция, точный вывод и ограничения](UART_RX_ISR_BOARD_PASS_2026-11-08.md). **Для штатного UART RX закрыто как BOARD PASS;** персональный обработчик `mret` не заявляем.
