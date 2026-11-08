@@ -10,7 +10,7 @@
 | 2 | Wishbone / CSR | Реальный CPU UART MMIO, SDRAM reads/writes, **read-only 7-CSR PASS 2026-11-08 11:53** | Функциональная матрица и корреляция; отдельный WB waveform не заявлен — [протокол](BIOS_UART_READONLY_PASS_2026-11-08.md), `PARTIAL BOARD PASS` |
 | 3 | IRQ | Считаны IRQ_MASK, PENDING, MIE, MSTATUS | Trap handler + подтверждение события + mret — `BOARD PENDING` |
 | 4 | Timer / Boot | RAM `boot 0x40010000` аппаратно работает; `mem_list` подтвердил окно CSR, но **не его устройства** | Timer `UNKNOWN`, требуется конфигурация/CSR-карта или отдельный ограниченный тест; [ответ mem_list](MEM_LIST_HARDWARE_PASS_2026-11-08.md) |
-| 5 | Исходные тесты LiteX | На GitHub есть тесты на коммите b05c3069 | Запуск в Python/Migen и отчёт — `HOST PENDING` |
+| 5 | Исходные тесты LiteX | На GitHub есть тесты на коммите b05c3069 | **ВНИМАНИЕ:** первый запуск показал 4× `EXIT=0`, но **не исполнил тесты**, поскольку Python-файлы определяют `unittest.TestCase` без `unittest.main()`. Исправленный runner запускает `python -m unittest discover` и требует **4+5+3+5=17 тестов**. `HOST TEST EXECUTION PENDING` |
 | 6 | Браузер | ROM Explorer v3.3 и учебная страница | Разделённая панель `MODEL / SOURCE TEST / BOARD EVIDENCE` — `PARTIAL` |
 
 ## Выполняем сейчас — только безопасная диагностика BIOS
@@ -30,7 +30,7 @@ pwsh -NoProfile -File .\closeout_readonly.ps1 -PortName COM25
 pwsh -NoProfile -File .\run_upstream_tests.ps1
 ~~~
 
-Создаёт отдельное рабочее дерево с **LiteX b05c30690854c462a2e704a22ff895c0055a8265**, отдельный Python venv, устанавливает LiteX/Migen и запускает upstream тесты CSR, Wishbone, Timer, Stream. Если установка зависимостей или тесты падают — записывается `FAIL / ENVIRONMENT`, а не аппаратный PASS. `test_cpu` требует дополнительного `litex_sim`/Verilator и в этом коротком запуске не отмечается как пройденный.
+Создаёт отдельное рабочее дерево с **LiteX b05c30690854c462a2e704a22ff895c0055a8265**, отдельный Python venv, устанавливает LiteX/Migen и запускает upstream тесты **через `unittest discover`**, считая реально выполненные тесты: CSR 4, Wishbone 5, Timer 3, Stream 5. **Первый вариант runner ошибочно запускал файлы напрямую, получив четыре ложных `EXIT=0` (нулевое число выполненных тестов). Этот запуск не засчитывается.** После первой установки зависимостей можно повторить исправленный скрипт с параметром `-SkipInstall`. Если установка зависимостей или тесты падают — записывается `FAIL / ENVIRONMENT`, а не аппаратный PASS. `test_cpu` требует дополнительного `litex_sim`/Verilator и в этом коротком запуске не отмечается как пройденный.
 
 [Оригинальные тесты LiteX](https://github.com/enjoy-digital/litex/tree/b05c30690854c462a2e704a22ff895c0055a8265/test).
 
@@ -49,3 +49,7 @@ pwsh -NoProfile -File .\run_upstream_tests.ps1
 ## Финиш
 
 Каждый пункт закрываем `PASS`, `FAIL с документом` либо `NOT PRESENT`. Затем — **[Examples](../Examples/README.md)**, без новой цепочки технических лабораторий.
+
+## Коррекция тестового runner (2026-11-08)
+
+В предоставленном оператором протоколе `test_csr EXIT=0`, `test_wishbone EXIT=0`, `test_timer EXIT=0`, `test_stream EXIT=0` фиксируют **успешную установку/импорт модулей, а не PASS тестов**: исторические тестовые файлы содержат классы `unittest.TestCase` без входной точки. Исправленный скрипт использует `python -m unittest discover -s <test-dir> -p test_*.py -v` для каждого файла, проверяет число тестов и строку `OK`, отклоняет `Ran 0 tests`, сохраняет полный stderr/stdout, требует ровно 17 тестов. Этот новый runner **ещё не запускался на ПК оператора**, поэтому сохраняется статус `HOST PENDING`. Python 3.14 и зависимости Migen 2023 года могут выявить ошибки совместимости, которые нужно документировать отдельно.
