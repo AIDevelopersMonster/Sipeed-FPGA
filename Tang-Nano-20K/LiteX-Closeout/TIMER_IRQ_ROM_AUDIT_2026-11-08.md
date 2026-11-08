@@ -42,3 +42,7 @@ Close browser/terminal holders of COM25 first. If the BIOS prompt is not visible
 ## Реальная плата: оператор подтвердил RX ISR
 
 2026-11-08 14:24: результаты команд `irq_rx_bios_counter.py --run --port COM25`: **22/22 и 27/27**; [отдельный протокол](UART_RX_ISR_BOARD_PASS_2026-11-08.md). Считать **BOARD PASS корреляции UART RX ISR**, но не пользовательского обработчика trap/mret.
+
+## Уточнение Timer0: по ROM доказана карта регистров, BOARD TEST впереди
+
+Машинные инструкции в настоящем 32-КиБ заводском BIOS ROM: `0x3C84=F0003437` (база `0xF0003000`), `0x3C88=80042423` (запись в `0xF0002808`), `0x3C90=80042223` (запись в `0xF0002804`), `0x3CD4=F00037B7`, `0x3D00=8107A703` (чтение `0xF0002810`). Эта последовательность соответствует `timer0_en_write(0)`, `timer0_reload_write(0)`, `timer0_update_value_write(1)`, `timer0_value_read()` из [`system.c`](https://github.com/enjoy-digital/litex/blob/b05c30690854c462a2e704a22ff895c0055a8265/litex/soc/software/libbase/system.c). Карта CSR таймера выведена из наблюдаемого машинного кода и описания [`timer.py`](https://github.com/enjoy-digital/litex/blob/b05c30690854c462a2e704a22ff895c0055a8265/litex/soc/cores/timer.py); это **сильная идентификация оборудования**, но функциональная проверка Timer0 ещё **не выполнена**. Подготовлен отдельный [`timer0_bios_test.py`](timer0_bios_test.py) с обязательной проверкой fingerprint, backup/restore и ограничением 3 секунды. Не писать по адресам SDRAM контроллера `0xF0002000`.

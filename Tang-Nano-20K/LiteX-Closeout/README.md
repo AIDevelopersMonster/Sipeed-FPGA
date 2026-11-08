@@ -98,3 +98,25 @@ git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
 ## UART RX ISR — BOARD PASS 2026-11-08
 
 Физический запуск `irq_rx_bios_counter.py --run --port COM25` подтвердил два приращения ISR producer-счётчика **22/22 и 27/27 байт**, при этом Flash/MMIO/IRQ_MASK операторским скриптом не изменялись. [Квитанция, точный вывод и ограничения](UART_RX_ISR_BOARD_PASS_2026-11-08.md). **Для штатного UART RX закрыто как BOARD PASS;** персональный обработчик `mret` не заявляем.
+
+## Завершающий Timer0 test — без смены FPGA-конфигурации (2026-11-08)
+
+[Сценарий `timer0_bios_test.py`](timer0_bios_test.py) работает с **фактическим заводским BIOS** и фиксированными адресами `0xF0002800–0xF000281C`. Адрес привязан к реальному ROM через пять конкретных машинных инструкций, а раскладка `LOAD=0x00, RELOAD=0x04, ENABLE=0x08, UPDATE=0x0C, VALUE=0x10, EV_STATUS=0x14, EV_PENDING=0x18, EV_ENABLE=0x1C` сопоставлена с LiteX `timer.py`, `system.c` и дизассемблером BIOS (вызовы `busy_wait`). **Аппаратный PASS всё ещё не получен.**
+
+Сценарий имеет независимые режимы:
+- `--self-test` — автономные регрессионные тесты на mock BIOS, **не BOARD PASS**.
+- `--probe --port COM25` — только чтение `mem_list`, ROM fingerprint, пяти Timer-регистров. **Никаких Timer-записей.**
+- `--run --port COM25` — **явно разрешённая запись только в Timer0**, после проверок ROM fingerprint и исходных регистров. Допускается лишь неиспользуемый Timer0 (`EV_ENABLE=0`, `RELOAD=0`, а при `EN=1` текущий отсчёт строго 0). Перед записью сохраняется `TIMER_BACKUP_*.json`; выполняется ровно один **3-секундный** однократный отсчёт, проверяются два значения (убывает), ноль и статус события. В `finally` сохраняется исходное состояние регистров; результирующая квитанция `TIMER_TEST_*.json` всегда фиксирует статус восстановления. При неопределённой конфигурации — **STOP / INCONCLUSIVE**, без попыток вмешаться.
+
+Код не изменяет BIOS, Flash, SDRAM и не включает IRQ. Команда `mem_write` направлена **только на разрешённые Timer0 CSR**, но чтение/запись таких регистров потенциально влияет на штатные задержки BIOS. При `RESTORE FAILED` не повторять тест и использовать физический RESET.
+
+```powershell
+git -C C:\GitHub\Sipeed-FPGA fetch origin main
+git -C C:\GitHub\Sipeed-FPGA-LAB20-6 switch --detach origin/main
+& "C:\GitHub\litex-b05c3069-test\venv\Scripts\python.exe" "C:\GitHub\Sipeed-FPGA-LAB20-6\Tang-Nano-20K\LiteX-Closeout\timer0_bios_test.py" --self-test
+& "C:\GitHub\litex-b05c3069-test\venv\Scripts\python.exe" "C:\GitHub\Sipeed-FPGA-LAB20-6\Tang-Nano-20K\LiteX-Closeout\timer0_bios_test.py" --probe --port COM25
+& "C:\GitHub\litex-b05c3069-test\venv\Scripts\python.exe" "C:\GitHub\Sipeed-FPGA-LAB20-6\Tang-Nano-20K\LiteX-Closeout\timer0_bios_test.py" --run --port COM25
+```
+
+После подтверждённого `TIMER0 BOARD PASS` оформить финальную квитанцию LiteX-Closeout. Неподтверждённый результат не становится PASS от публикации исходников.
+
