@@ -277,13 +277,17 @@ class MockBios:
         self.bad_map = bad_map
         self.stuck = stuck
         self.writes = []
+        # The "running" regression must survive all mock UART commands
+        # (which advance the virtual clock) before the guard checks the count.
+        # 300e6 cycles = 6.25 seconds at 48 MHz.
+        initial_load = 300_000_000 if running else 50_000
         self.registers = {
-            LOAD: 50_000, RELOAD: 0, ENABLE: int(start_enabled),
+            LOAD: initial_load, RELOAD: 0, ENABLE: int(start_enabled),
             EVENT_PENDING: 1 if start_enabled else 0,
             EVENT_ENABLE: int(irq_enabled),
         }
         self.running = bool(start_enabled)
-        self.base_value = 50_000 if running else (0 if start_enabled else 50_000)
+        self.base_value = initial_load if running else (0 if start_enabled else initial_load)
         self.started = self.clock.now()
         self.latched = self.base_value
 
