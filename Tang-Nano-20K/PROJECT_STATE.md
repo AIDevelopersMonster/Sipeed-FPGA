@@ -31,7 +31,7 @@
 | 3 | **UART IRQ**: EventManager → IRQ_MASK/mie/mstatus → trap handler → mret | `PENDING`: реальное подтверждение **входа и возврата** с ограниченным количеством прерываний и защитой от IRQ storm; `EV_PENDING=1` не считается IRQ PASS |
 | 4 | **Timer / Boot**: однократный/периодический таймер, возврат/повторная загрузка, ограниченные ошибки | `BOOT BOARD PASS / TIMER UNKNOWN`: `mem_list` подтверждает окно CSR, но **не перечисляет устройства**. Исторический SoCCore имеет `with_timer=True` по умолчанию и опцию `--no-timer`; наличие таймера в именно этой FPGA-конфигурации не доказано. [Протокол mem_list](LiteX-Closeout/MEM_LIST_HARDWARE_PASS_2026-11-08.md) |
 | 5 | **Тесты исходного LiteX**: выбранные модули `test_csr`, `test_wishbone`, `test_timer`, `test_stream` на историческом коммите | **`HOST SOURCE TEST PASS: 17/17` (2026-11-08 12:38)**: CSR 4, Wishbone 5, Timer 3, Stream 5; Python 3.14 / Migen 0.10.0; runner проверил число запусков, `OK` и `exit=0`. [Квитанция](LiteX-Closeout/UPSTREAM_UNITTEST_PASS_2026-11-08.md). `test_cpu`/litex_sim и другие upstream тесты **не выполнялись**; это не аппаратный PASS. |
-| 6 | **Browser Test Bench**: модели + просмотр настоящих протоколов и, при наличии поддерживаемой связи, безопасный read-only Web Serial | `PENDING`: ссылка доступна, понятное разделение `SIMULATION`, `SOURCE TEST` и `HARDWARE`, оператор может воспроизвести результаты |
+| 6 | **Browser Test Bench**: модель BIOS, отчёты и read-only Web Serial | **`BROWSER OPERATOR WORKS / DETAILED COMMAND VERIFICATION PENDING` (2026-11-08)**: оператор сообщил «Работает» после проверки страницы. Подтверждение фактического вывода `help`, `mem_list`, семи UART CSR и сохранения файла не предоставлено. [Квитанция](LiteX-Closeout/BROWSER_OPERATOR_CONFIRMATION_2026-11-08.md) |
 
 **Правило остановки:** каждый из шести этапов закрывается `PASS`, `FAIL + documented reason` или `NOT PRESENT/NOT APPLICABLE`. Не вводить LAB-20.8, 20.9 и др. из желания подробно исследовать все внутренние блоки. Новое исследование допускается только если оно является блокирующим дефектом конкретного примера изделия.
 
@@ -75,3 +75,7 @@
 ## 11. Подтверждённые upstream unit tests — HOST PASS 17/17 (2026-11-08 12:38)
 
 После исправления runner оператор выполнил настоящие 17 `unittest` в историческом LiteX `b05c30690854c462a2e704a22ff895c0055a8265`: CSR `4/4`, Wishbone `5/5`, Timer `3/3`, Stream `5/5`, каждый файл `exit=0`. [Дословный консольный результат и границы](LiteX-Closeout/UPSTREAM_UNITTEST_PASS_2026-11-08.md). **Пункт 5 закрыт в рамках выбранных 4 тестовых файлов на HOST.** Другие upstream-модули и `test_cpu` не выполнялись, работа аппаратного Timer по-прежнему `UNKNOWN`.
+
+## 12. Браузерный LiteX Closeout — подтверждение оператора (2026-11-08)
+
+После открытия [GitHub Pages: `/lab20/closeout/`](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab20/closeout/) и предложенной проверки COM оператор ответил **«Работает»**. Это **операторское подтверждение работоспособности интерфейса**, но детальный текст ответов `help`, `mem_list`, показаний UART и скачанный журнал пока не представлен. Поэтому **не** приписываем детальные PASS отдельным операциям. [Протокол статуса](LiteX-Closeout/BROWSER_OPERATOR_CONFIRMATION_2026-11-08.md).

@@ -11,7 +11,7 @@
 | 3 | IRQ | Считаны IRQ_MASK, PENDING, MIE, MSTATUS | Trap handler + подтверждение события + mret — `BOARD PENDING` |
 | 4 | Timer / Boot | RAM `boot 0x40010000` аппаратно работает; `mem_list` подтвердил окно CSR, но **не его устройства** | Timer `UNKNOWN`, требуется конфигурация/CSR-карта или отдельный ограниченный тест; [ответ mem_list](MEM_LIST_HARDWARE_PASS_2026-11-08.md) |
 | 5 | Исходные тесты LiteX | **HOST UNITTEST PASS 17/17** на b05c3069 (CSR 4, Wishbone 5, Timer 3, Stream 5) | Пункт выбранного поднабора закрыт. [Фактический операторский вывод](UPSTREAM_UNITTEST_PASS_2026-11-08.md). `test_cpu` / другие тесты не проводились; никакого BOARD PASS это не даёт |
-| 6 | Браузер | ROM Explorer v3.3 и учебная страница | Разделённая панель `MODEL / SOURCE TEST / BOARD EVIDENCE` — `PARTIAL` |
+| 6 | Браузер | ROM Explorer v3.3, раздельные MODEL/SOURCE/BOARD, реальная страница Closeout; оператор подтвердил «Работает» | `BROWSER OPERATOR WORKS`; конкретные `help`, `mem_list`, UART CSR и выгрузка журнала ещё не подтверждены скриншотом/логом. [Квитанция](BROWSER_OPERATOR_CONFIRMATION_2026-11-08.md) |
 
 ## Выполняем сейчас — только безопасная диагностика BIOS
 
@@ -57,3 +57,7 @@ pwsh -NoProfile -File .\run_upstream_tests.ps1
 ## Результат реального запуска upstream тестов (2026-11-08 12:38)
 
 `run_upstream_tests.ps1 -SkipInstall` действительно запустил 4 + 5 + 3 + 5 = **17 тестов unittest**, все `PASS`, `exit=0`. Локальный журнал оператора: `C:\GitHub\litex-b05c3069-test\results\SOURCE_TESTS_20261108_123811.txt`. [Квитанция](UPSTREAM_UNITTEST_PASS_2026-11-08.md). Программный пункт закрыт без подключения платы. Остальные пункты RAM, IRQ, Timer и Browser остаются в своих статусах.
+
+## Браузерный стенд — подтверждение пользователя (2026-11-08)
+
+Оператор после предложенного испытания ответил «Работает». Не было предоставлено точных команд, ответов или скачанного лог-файла: отмечаем **доступность и работоспособность по сообщению оператора**, а не бездоказательный полный Web Serial test PASS. [Квитанция](BROWSER_OPERATOR_CONFIRMATION_2026-11-08.md). Для полного закрытия нужен экспорт журнала после read-only `help`, `mem_list`, `UART status`, без каких-либо записей.
