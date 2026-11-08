@@ -37,6 +37,7 @@ $script:Image = [byte[]](0..15)
 $script:FakeReadback = '0x40010000  ' + (($script:Image | ForEach-Object { '{0:X2}' -f $_ }) -join ' ') + '   ........' + "`r`n"
 function Invoke-Bios([string]$Command) {
   if ($Command -ne 'mem_read 0x40010000 16') { throw "Unexpected BIOS command in test: $Command" }
+  if ($null -ne $script:FakeResponse) { return $script:FakeResponse }
   return "Memory dump:`r`n" + $script:FakeReadback + "`r`n${esc}[92;1mlitex${esc}[0m> "
 }
 Verify-Chunk 0 16
@@ -46,4 +47,33 @@ $rejected = $false
 try { Verify-Chunk 0 16 } catch { $rejected = $_.Exception.Message -match 'READBACK MISMATCH' }
 if (-not $rejected) { throw 'FAIL: mismatch not rejected by Verify-Chunk' }
 Write-Host 'PASS: corrupt readback rejected before boot.'
-Write-Host 'PASS: uploader regression completed without serial access or writes.'
+
+# Actual flattened board output observed after 185 uploaded words.
+$script:Image = [System.IO.File]::ReadAllBytes((Join-Path $PSScriptRoot 'snapshot.bin'))
+$script:FakeResponse = 'mem_read 0x40010000 16 Memory dump: 0x40010000  37 34 00 f0 b7 14 01 40 b7 02 10 00 93 82 f2 ff  74.....@........  litex>'
+Verify-Chunk 0 16
+Write-Host 'PASS: real flattened board response matched canonical BIN.'
+
+function Make-BiosDump([int]$Offset, [int]$Count, [string]$Separator) {
+  $addr = 0x40010000L + $Offset
+  $hex = ((($Offset..($Offset+$Count-1)) | ForEach-Object { '{0:x2}' -f [int]$script:Image[$_] }) -join ' ')
+  $line = '0x{0:x8}  {1}   ................' -f $addr, $hex
+  return ('mem_read 0x{0:X8} {1}' -f $addr, $Count) + $Separator + 'Memory dump:' + $Separator + $line + $Separator + 'litex>'
+}
+foreach ($sep in @([string][char]13, [string][char]10, ([string][char]13+[string][char]10), ' ')) {
+  $script:FakeResponse = Make-BiosDump 0 16 $sep
+  Verify-Chunk 0 16
+}
+$script:FakeResponse = Make-BiosDump 736 4 ([string][char]13)
+Verify-Chunk 736 4
+Write-Host 'PASS: CR-only, LF-only, CRLF, flattened and final 4-byte block.'
+$bad = Make-BiosDump 0 16 ([string][char]13)
+foreach ($malformed in @($bad.Replace('Memory dump:', 'Other output:'), $bad.Replace('0x40010000  ', '0x40020000  '))) {
+  $script:FakeResponse = $malformed
+  $rejected = $false
+  try { Verify-Chunk 0 16 } catch { $rejected = $true }
+  if (-not $rejected) { throw 'FAIL: malformed readback accepted' }
+}
+Write-Host 'PASS: wrong address and missing header rejected.'
+
+Write-Host 'PASS: uploader v0.1.2 regression finished, no COM or writes.'

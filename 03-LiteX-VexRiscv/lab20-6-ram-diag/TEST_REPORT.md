@@ -55,3 +55,6 @@ Corrective change: strip ANSI CSI sequences in `Read-Until` before looking for `
 Regression test `test_upload_protocol.ps1` uses **the functions parsed from the actual uploader source** and tests the ANSI prompt and SDRAM hex dump readback, including rejection of a corrupted byte. It must be run in PowerShell on the Windows operator host; a PowerShell runtime is **not** available in the current build environment. The firmware code and its SHA-256 are unchanged. Status: `ROOT_CAUSE_CONFIRMED_BY_LITEX_SOURCE / STATIC_CHECK_PASS / WINDOWS_PROBE_PENDING / BOARD_UPLOAD_PENDING`.
 
 Source: [LiteX historical readline.h](https://github.com/enjoy-digital/litex/blob/b05c3069/litex/soc/software/bios/readline.h).
+## COM25 SDRAM upload incident — parser fix v0.1.2
+
+2026-11-08: operator reported successful transfer of 185 `mem_write` words to SDRAM. First `mem_read 0x40010000 16` yielded code bytes starting `37 34 00 f0 b7 14 01 40`, but verification aborted because the regex required address at LF-anchored line start. New loader uses `Memory dump:` header and whitespace-delimited address without LF anchor. Added `-VerifyOnly` that reads back all 740 bytes without rewriting SDRAM or booting. Test fixture includes the captured response and CR/LF/CRLF/flattened variants. **Hardware verification remains pending until the operator reports PASS.** Binary is unchanged.

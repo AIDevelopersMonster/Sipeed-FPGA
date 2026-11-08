@@ -9,6 +9,7 @@ param(
   [switch]$Upload,
   [switch]$Boot,
   [switch]$Probe,
+  [switch]$VerifyOnly,
   [int]$TimeoutMs = 7000
 )
 $ErrorActionPreference = 'Stop'
@@ -23,12 +24,14 @@ if ($Image.Length -ge 4096) { throw 'Image overlaps snapshot scratch region' }
 if (-not [BitConverter]::IsLittleEndian) { throw 'Expected little-endian Windows host' }
 $LoadAddress = 0x40010000L
 if ($Boot -and (-not $Upload)) { throw 'To boot, use explicit -Upload -Boot. This command does not return to BIOS.' }
-if ($Probe -and ($Upload -or $Boot)) { throw 'Use -Probe alone (without -Upload or -Boot). Probe never writes SDRAM.' }
+if ($Probe -and ($Upload -or $Boot -or $VerifyOnly)) { throw 'Use -Probe alone (without -Upload, -Boot or -VerifyOnly).' }
+if ($VerifyOnly -and ($Upload -or $Boot)) { throw 'Use -VerifyOnly alone (without -Upload or -Boot); readback only.' }
 Write-Host "PiKoSoL LAB-20.6: $($Image.Length) bytes, $($Image.Length / 4) words, SHA256 $ActualHash"
-if ((-not $Upload) -and (-not $Probe)) {
+if ((-not $Upload) -and (-not $Probe) -and (-not $VerifyOnly)) {
   Write-Host "DRY RUN ONLY: no COM operation, no writes, no boot."
   Write-Host "Close any other terminal connected to $PortName, then run:"
   Write-Host "  pwsh -NoProfile -File .\upload.ps1 -PortName $PortName -Probe"
+  Write-Host "  pwsh -NoProfile -File .\upload.ps1 -PortName $PortName -VerifyOnly # existing image: readback only"
   Write-Host "  pwsh -NoProfile -File .\upload.ps1 -PortName $PortName -Upload"
   Write-Host "After verification, boot in LiteX monitor: boot 0x40010000"
   Write-Host "Or explicitly upload+boot in PowerShell: pwsh -NoProfile -File .\upload.ps1 -PortName $PortName -Upload -Boot"
@@ -77,10 +80,17 @@ function Verify-Chunk([int]$Offset, [int]$Length) {
   $addr = $LoadAddress + [long]$Offset
   $dump = Invoke-Bios ('mem_read 0x{0:X8} {1}' -f $addr, $Length)
   $start = ('0x{0:x8}' -f $addr)
-  $rx = '(?im)^' + [regex]::Escape($start) + '\s{2,}((?:[0-9a-f]{2}\s+){' + $Length + '})'
-  $m = [regex]::Match($dump, $rx, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
-  if (-not $m.Success) { throw "Cannot parse SDRAM readback $start : $dump" }
-  $hex = @([regex]::Matches($m.Groups[1].Value, '[0-9a-fA-F]{2}') | ForEach-Object { $_.Value })
+  # LiteX dump_bytes prints Memory dump: before the address and hex bytes.
+  # The serial stream may contain CR-only, LF-only, CRLF or a flattened record.
+  # Do not anchor the address to ^ (linefeeds) and do not parse the echoed command.
+  $marker = 'Memory dump:'
+  $markerIndex = $dump.IndexOf($marker, [System.StringComparison]::OrdinalIgnoreCase)
+  if ($markerIndex -lt 0) { throw "SDRAM readback missing header at $start : $dump" }
+  $body = $dump.Substring($markerIndex + $marker.Length)
+  $rx = '(?i)' + [regex]::Escape($start) + '[ \\t]{2,}(?<hex>(?:[0-9a-f]{2}[ \\t]+){' + $Length + '})'
+  $m = [regex]::Match($body, $rx)
+  if (-not $m.Success) { throw "Cannot parse SDRAM readback $start after header: $body" }
+  $hex = @([regex]::Matches($m.Groups['hex'].Value, '(?i)[0-9a-f]{2}') | ForEach-Object { $_.Value })
   if ($hex.Count -ne $Length) { throw "Invalid number of bytes at $start" }
   for($i=0;$i -lt $Length;$i++) {
     $got = [Convert]::ToByte($hex[$i],16)
@@ -97,20 +107,32 @@ try {
     Write-Host 'No mem_write, mem_read or boot commands were issued.'
     return
   }
-  Write-Host 'BIOS prompt detected. Loading verified SDRAM payload...'
-  for ($offset=0; $offset -lt $Image.Length; $offset += 4) {
-    $word = [BitConverter]::ToUInt32($Image, $offset)
-    $addr = $LoadAddress + [long]$offset
-    $cmd = 'mem_write 0x{0:X8} 0x{1:X8}' -f $addr, $word
-    $response = Invoke-Bios $cmd
-    if ($response -match 'Incorrect|Unknown command') { throw "BIOS rejected $cmd : $response" }
-    if ((($offset / 4) % 32) -eq 0) { Write-Host ('Written word {0}/{1}' -f (1+$offset/4), ($Image.Length/4)) }
+  if ($Upload) {
+    Write-Host 'BIOS prompt detected. Loading verified SDRAM payload...'
+    for ($offset=0; $offset -lt $Image.Length; $offset += 4) {
+      $word = [BitConverter]::ToUInt32($Image, $offset)
+      $addr = $LoadAddress + [long]$offset
+      $cmd = 'mem_write 0x{0:X8} 0x{1:X8}' -f $addr, $word
+      $response = Invoke-Bios $cmd
+      if ($response -match 'Incorrect|Unknown command') { throw "BIOS rejected $cmd : $response" }
+      if ((($offset / 4) % 32) -eq 0) { Write-Host ('Written word {0}/{1}' -f (1+$offset/4), ($Image.Length/4)) }
+    }
+    Write-Host 'All words sent to SDRAM.'
+  } else {
+    Write-Host 'BIOS prompt detected. VERIFY ONLY: no SDRAM writes and no boot.'
   }
-  Write-Host 'All words sent. Full readback, 16-byte blocks...'
+  Write-Host 'Full SDRAM readback, 16-byte blocks...'
   for ($offset=0; $offset -lt $Image.Length; $offset += 16) {
     Verify-Chunk $offset ([Math]::Min(16, $Image.Length-$offset))
+    if ((($offset / 16) % 8) -eq 7 -or ($offset + 16) -ge $Image.Length) {
+      Write-Host ('Readback verified {0}/{1} bytes' -f [Math]::Min($offset+16, $Image.Length), $Image.Length)
+    }
   }
-  Write-Host "PASS: $($Image.Length) bytes SDRAM load/readback verified against SHA256-controlled binary."
+  if ($VerifyOnly) {
+    Write-Host "PASS: $($Image.Length) bytes SDRAM readback match SHA256-controlled binary; NO WRITES / NO BOOT."
+  } else {
+    Write-Host "PASS: $($Image.Length) bytes SDRAM load/readback verified against SHA256-controlled binary."
+  }
   if ($Boot) {
     Write-Host 'STARTING NOW: no automatic return to LiteX BIOS. Hardware RESET restores the BIOS.'
     $Port.DiscardInBuffer()
@@ -120,8 +142,10 @@ try {
     $result += $Port.ReadExisting()
     Write-Host $result
     Write-Host 'Program launched; press hardware RESET to return to factory BIOS.'
-  } else {
+  } elseif ($Upload) {
     Write-Host 'Payload loaded; BIOS remains active. To run, open console and issue: boot 0x40010000'
+  } else {
+    Write-Host 'Verified existing SDRAM image. BIOS remains active; no writes or boot.'
   }
 } finally {
   if ($Port.IsOpen) { $Port.Close() }
