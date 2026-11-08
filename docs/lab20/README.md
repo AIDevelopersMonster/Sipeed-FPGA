@@ -6,7 +6,7 @@
 - FPGA family: **Gowin GW2AR-18**.
 - Proven running configuration: **factory LiteX SoC with VexRiscv_Min**, *not* a PiKoSoL-built FPGA image.
 - First observed UART console: **COM25**, **115200 8N1** on the tested Windows host. **COM24** also opens; its role has not been positively identified.
-- Status: **BOARD PASS (factory LiteX BIOS + SDRAM diagnostic)**. No custom FPGA synthesis, SD boot or user RISC-V application has been verified yet.
+- Status: **BOARD PASS (factory LiteX BIOS + SDRAM diagnostic)**. No custom FPGA synthesis or SD boot has been verified. The user RV32I RAM-only program was **successfully executed on physical hardware** in LAB-20.6.
 
 ## Technical article / Техническая статья
 
@@ -92,6 +92,8 @@ The factory BIOS ROM implements a match for LiteX `uart_init()`: `0x000047A4` lo
 Программный снимок TXEMPTY до первого вывода UART и после него: инструкция `boot 0x40010000` заводского LiteX BIOS передаёт управление RV32I+Zicsr-программе в SDRAM, результаты сохранены по `0x40011000` и напечатаны в UART. Размер BIN — 740 байт, 185 машинных слов. **Компиляция и независимый симуляционный тест PASS, физический запуск ещё не подтверждён.** Flash не меняется, для возврата в BIOS необходим аппаратный RESET.
 
 **2026-11-08 hardware milestone:** PiKoSoL LAB-20.6 now has **full 740-byte SDRAM readback PASS** after 185 BIOS `mem_write` operations. PowerShell `-VerifyOnly` read the complete uploaded binary back without additional writes or CPU program launch. This verifies RAM loading, **not** VexRiscv execution. [Hardware receipt](../../03-LiteX-VexRiscv/lab20-6-ram-diag/SDRAM_HARDWARE_PASS_2026-11-08.md). Next gated step: `boot 0x40010000` and capture UART report.
+
+**2026-11-08 LAB-20.6 HARDWARE EXECUTION PASS:** `boot 0x40010000` executed the canonical 740-byte SDRAM image on Tang Nano 20K. Complete MMIO/CSR UART report confirmed `TXEMPTY=1` before own printing and `TXEMPTY=0` after. No CPU IRQ handler delivery proven yet. [Hardware log](../../03-LiteX-VexRiscv/lab20-6-ram-diag/RV32_HARDWARE_EXECUTION_PASS_2026-11-08.md).
 
 ## Next work / Следующие эксперименты
 

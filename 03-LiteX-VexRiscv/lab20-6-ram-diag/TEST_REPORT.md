@@ -1,6 +1,6 @@
 # LAB-20.6 v0.1.0 — Test receipt (offline only)
 
-**Initial date:** 2026-11-07. **Updated 2026-11-08 status:** `BUILD_PASS / RV32_SIM_PASS / SDRAM_READBACK_HARDWARE_PASS / RV32_APP_BOOT_PENDING`.
+**Initial date:** 2026-11-07. **Updated 2026-11-08 status:** `BUILD_PASS / RV32_SIM_PASS / SDRAM_READBACK_HARDWARE_PASS / RV32_HARDWARE_EXECUTION_PASS`.
 
 ## Build inputs and constraints
 
@@ -66,3 +66,7 @@ Operator's PowerShell v0.1.2 offline test passed prompt normalization, initial r
 ## SDRAM complete hardware readback (2026-11-08)
 
 Operator ran v0.1.3 protocol test on Windows: **all eight PASS checkpoints** including real captured BIOS response, CR/LF variants, the terminal 4-byte block, and bad-command rejection. The host `-VerifyOnly` then read back all 740 bytes from actual SDRAM on Tang Nano 20K with progress 128, 256, 384, 512, 640, 740 and final `PASS: 740 bytes SDRAM readback match SHA256-controlled binary; NO WRITES / NO BOOT.` The prior 185-word upload is therefore hardware verified in full. No program execution/boot has yet been observed. Full readback evidence: [SDRAM_HARDWARE_PASS_2026-11-08.md](SDRAM_HARDWARE_PASS_2026-11-08.md).
+
+## 2026-11-08: HARDWARE EXECUTION PASS
+
+Operator ran `boot 0x40010000` after full 740/740 SDRAM readback PASS. Real VexRiscv_Min executed the uploaded RV32I code, produced a complete UART report and HOLD. `TXEMPTY=1` before any own UART TX and `TXEMPTY_AFTER_PRINT=0` after first heading: observed UART self-observation. `EV_PENDING=1`, `IRQ_MASK=0`, `MSTATUS=0x80`: a pending UART event without active CPU IRQ delivery; handler execution not proven. [Full physical UART log](RV32_HARDWARE_EXECUTION_PASS_2026-11-08.md). Canonical binary and original build-time manifest unchanged.

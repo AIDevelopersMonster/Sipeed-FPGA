@@ -57,7 +57,7 @@
 
 **LAB-20.5 CSR / UART:** [PiKoSoL ROM Explorer v3.3](https://aidevelopersmonster.github.io/Sipeed-FPGA/docs/lab20/rom-explorer/) — различие процессорных CSR и LiteX MMIO, восстановленный UART EventManager на `0xF0003000`, реальная последовательность BIOS `uart_init()`. [Аудит и источники](docs/lab20/rom-explorer/CSR_UART_LAB20_5.md).
 
-**LAB-20.6 / Tang Nano 20K:** [RAM-only программа для VexRiscv_Min, исходники и загрузчик](03-LiteX-VexRiscv/lab20-6-ram-diag/README.md). Программные тесты PASS, аппаратный запуск ожидает проверки на плате; заводская FPGA Flash остаётся неизменной.
+**LAB-20.6 / Tang Nano 20K:** [RAM-only программа для VexRiscv_Min, исходники и загрузчик](03-LiteX-VexRiscv/lab20-6-ram-diag/README.md). **Аппаратный запуск PASS 2026-11-08**: 740 байт в SDRAM, полный readback, собственный UART-отчёт и TXEMPTY 1→0. [Протокол](03-LiteX-VexRiscv/lab20-6-ram-diag/RV32_HARDWARE_EXECUTION_PASS_2026-11-08.md). Заводская FPGA Flash остаётся неизменной.
 
 ## Документация и разработка
 
