@@ -14,7 +14,7 @@
 
 | Пример | Что увидит пользователь | Проверенный источник / техническая основа | Наш статус |
 |---|---|---|---|
-| **EX20-01 HDMI** | Цветовая таблица 1280×720 на HDMI; переключение изображения с кнопок при поддержке образа | [Sipeed HDMI example, исходники и `hdmi.fs`](https://github.com/sipeed/TangNano-20K-example/tree/main/hdmi) | `SOURCE AVAILABLE / BOARD NOT TESTED` |
+| **EX20-01 HDMI** | Цветовая таблица 1280×720 на HDMI; переключение изображения с кнопок при поддержке образа | [Sipeed HDMI example, исходники и `hdmi.fs`](https://github.com/sipeed/TangNano-20K-example/tree/main/hdmi) | `BOARD PASS 2026-11-09 (HDMI/key/LiteX restore)` |
 | **EX20-02 Органы управления** | Нажатие кнопок, LED и WS2812; понятная визуальная реакция | [Sipeed LED](https://github.com/sipeed/TangNano-20K-example/tree/main/led), [WS2812](https://github.com/sipeed/TangNano-20K-example/tree/main/ws2812) | `SOURCE AVAILABLE / BOARD NOT TESTED` |
 | **EX20-03 microSD read-only** | Информация о карте, чтение секторов, MBR/FAT32, список файлов | [Исторический LiteX target 20K](https://github.com/litex-hub/litex-boards/blob/6b8a5d35c03e408f738a9667c0497f31e25bf0b7/litex_boards/targets/sipeed_tang_nano_20k.py) — `--with-sdcard` / `--with-spi-sdcard` включаются при **сборке**, не являются командами заводского BIOS | `PLANNED / BOARD NOT TESTED` |
 | **EX20-04 Звук** | Звуковой сигнал/тест усилителя на плате с заданной длительностью | [Sipeed Audio example с `audio.fs`](https://github.com/sipeed/TangNano-20K-example/tree/main/audio) | `SOURCE AVAILABLE / BOARD NOT TESTED` |
@@ -34,3 +34,8 @@
 У Sipeed на GitHub действительно опубликованы готовые примеры `hdmi.fs` (~4,6 МБ), `audio.fs` (~7,26 МБ), LED, UART и WS2812. Это **подтверждает доступность исходных материалов**, но не подтверждает работу этих образов **на нашей физической плате**. В исторической сборке LiteX 20K HDMI отсутствует как встроенный блок, а SD подключается опционально во время сборки. Не считать разъёмы автоматически работающими через `litex>`.
 
 **На данный момент нет статуса `EX20 BOARD PASS`.** Следующий прикладной выход после закрытия LiteX — EX20-01 HDMI и EX20-02 органы управления; **не** дополнительная цепочка лабораторий FIFO/IRQ/STA ради самих исследований.
+
+
+## EX20-01 — оператор подтвердил BOARD PASS 2026-11-09
+
+Проверены на физической плате: показ HDMI, переключение тестового изображения кнопкой и возвращение заводского LiteX BIOS после выключения и включения питания. SRAM-программирование через CLI завершилось exit 0; SHA-256 исходного Sipeed bitstream `cb024d255692321a9b7fa22cf603dd89d1cd7875930ad57e00fd2bccf6cf9b0a`. [Квитанция](EX20-01-HDMI/EX20-01_BOARD_PASS_2026-11-09.md). Это **независимый образ Sipeed**, не интеграция RISC-V с HDMI.
