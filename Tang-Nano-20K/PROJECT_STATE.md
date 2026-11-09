@@ -1,6 +1,6 @@
 # Tang Nano 20K — единое состояние проекта и передача между сессиями
 
-**Состояние на 2026-11-08.** Этот файл — единая опорная точка при продолжении работы над Sipeed Tang Nano 20K. Обновлять после каждого подтверждённого результата; не полагаться на память чата и не объявлять PASS без протокола с реальной платы.
+**Состояние на 2026-11-09 (обновление Timer0).** Этот файл — единая опорная точка при продолжении работы над Sipeed Tang Nano 20K. Обновлять после каждого подтверждённого результата; не полагаться на память чата и не объявлять PASS без протокола с реальной платы.
 
 ## 1. Зафиксированное назначение проекта
 
@@ -29,7 +29,7 @@
 | 1 | **SDRAM**: шаблоны, обратное чтение, восстановление | **`BOARD PASS`** 2026-11-08 13:29: восемь слов `0x40012000..0x4001201F`, пять шаблонов, **40/40** readback, `RESTORE 8/8 PASS`. Исходные слова предварительно сохранены в локальный JSON, затем восстановлены; за пределами 32 байт дополнительно не испытывали. [Квитанция](LiteX-Closeout/RAM_SCRATCH_BOARD_PASS_2026-11-08.md) |
 | 2 | **Wishbone / CSR**: контролируемый путь CPU → RAM/MMIO и реакции регистров | `PARTIAL BOARD PASS`: новая read-only проверка BIOS + 7 UART CSR **PASS 2026-11-08 11:53**; RAM read/write подтверждены ранее. Полный функциональный тест WB без осциллограммы отдельно не закрыт. [Квитанция](LiteX-Closeout/BIOS_UART_READONLY_PASS_2026-11-08.md) |
 | 3 | **UART IRQ**: подтверждение обработки UART RX в заводском BIOS | **`BOARD PASS` для штатного RX ISR (2026-11-08 14:24):** RX ring producer `0x10000178` увеличился точно на 22/22 и 27/27 байт по входным последовательностям UART; ROM привязывает запись этого счётчика к RX ISR. [Квитанция](LiteX-Closeout/UART_RX_ISR_BOARD_PASS_2026-11-08.md). Собственный trap handler, отдельно наблюдаемые `mcause` и `mret` **не проверялись**. |
-| 4 | **Timer / Boot**: однократный/периодический таймер, возврат/повторная загрузка, ограниченные ошибки | `BOOT BOARD PASS / TIMER UNKNOWN`: `mem_list` подтверждает окно CSR, но **не перечисляет устройства**. Исторический SoCCore имеет `with_timer=True` по умолчанию и опцию `--no-timer`; наличие таймера в именно этой FPGA-конфигурации не доказано. [Протокол mem_list](LiteX-Closeout/MEM_LIST_HARDWARE_PASS_2026-11-08.md) |
+| 4 | **Timer / Boot**: однократный/периодический таймер, возврат/повторная загрузка, ограниченные ошибки | `BOOT BOARD PASS / TIMER0 ONE-SHOT BOARD PASS (2026-11-09)`: `mem_list` подтверждает окно CSR, но **не перечисляет устройства**. Исторический SoCCore имеет `with_timer=True` по умолчанию и опцию `--no-timer`; наличие таймера в именно этой FPGA-конфигурации не доказано. [Протокол mem_list](LiteX-Closeout/MEM_LIST_HARDWARE_PASS_2026-11-08.md) |
 | 5 | **Тесты исходного LiteX**: выбранные модули `test_csr`, `test_wishbone`, `test_timer`, `test_stream` на историческом коммите | **`HOST SOURCE TEST PASS: 17/17` (2026-11-08 12:38)**: CSR 4, Wishbone 5, Timer 3, Stream 5; Python 3.14 / Migen 0.10.0; runner проверил число запусков, `OK` и `exit=0`. [Квитанция](LiteX-Closeout/UPSTREAM_UNITTEST_PASS_2026-11-08.md). `test_cpu`/litex_sim и другие upstream тесты **не выполнялись**; это не аппаратный PASS. |
 | 6 | **Browser Test Bench**: модель BIOS, отчёты и read-only Web Serial | **`BROWSER OPERATOR WORKS / DETAILED COMMAND VERIFICATION PENDING` (2026-11-08)**: оператор сообщил «Работает» после проверки страницы. Подтверждение фактического вывода `help`, `mem_list`, семи UART CSR и сохранения файла не предоставлено. [Квитанция](LiteX-Closeout/BROWSER_OPERATOR_CONFIRMATION_2026-11-08.md) |
 
@@ -103,3 +103,12 @@
 ## 18. Timer0 — аппаратный READONLY PROBE PASS (2026-11-08 23:03)
 
 Оператор на реальной Tang Nano 20K через COM25 выполнил `timer0_bios_test.py --probe`: ROM fingerprint **5/5 PASS**, `LOAD=0x00B71B00` (12 млн тактов/250 мс), `RELOAD=0`, `ENABLE=1`, `EV_PENDING=1`, `EV_ENABLE=0`. Файл локального журнала: `TIMER_TEST_20261108_230352_555688.json`. [Точный вывод](LiteX-Closeout/TIMER0_READONLY_PROBE_PASS_2026-11-08.md). **Timer0 функциональный BOARD PASS ещё не достигнут**: фактический отсчёт и восстановление проверит только `--run`.
+
+
+## 19. Timer0 — functional BOARD PASS (2026-11-09 00:18)
+
+Оператор предоставил полный JSON реального `timer0_bios_test.py --run --port COM25`. Результат: `status=TIMER0_BOARD_PASS`, `oneshot_pass=true`, `restore_pass=true`, `restore_errors=[]`. Измерения `143712764 -> 128384999 -> 0` (из `144000000`), время хоста 3.052 с, `event_status_at_zero=1`. Регистры `load=12000000, reload=0, en=1, ev_pending=1, ev_enable=0` восстановлены. Flash не записывали, IRQ не включали. [Квитанция](LiteX-Closeout/TIMER0_BOARD_PASS_2026-11-09.md).
+
+**Исторические оговорки:** прежние упоминания `TIMER UNKNOWN`/`PENDING` в разделах выше относятся к состоянию до этого опыта; актуальный статус **TIMER0 ONE-SHOT BOARD PASS**. Периодическая перезагрузка и собственный IRQ handler/trap/mret не испытаны. Wishbone и browser остаются частичными до дополнительных доказательств.
+
+**Далее:** краткая итоговая приёмка LiteX с границами доказанного, затем EX20-01 HDMI с временной конфигурацией в FPGA SRAM без записи Flash. [План](Examples/README.md).
