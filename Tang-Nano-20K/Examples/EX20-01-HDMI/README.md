@@ -1,6 +1,6 @@
 # EX20-01 — HDMI 720p on Tang Nano 20K
 
-**Status: SOURCE VERIFIED / BOARD NOT TESTED (2026-11-09).** This is a separate FPGA configuration. It **replaces the running factory LiteX SoC in FPGA SRAM** while loaded. It is not an HDMI peripheral added to the original BIOS.
+**Status: SOURCE DOWNLOAD PREP PASS / BOARD NOT TESTED (2026-11-09).** This is a separate FPGA configuration. It **replaces the running factory LiteX SoC in FPGA SRAM** while loaded. It is not an HDMI peripheral added to the original BIOS.
 
 ## Source provenance
 
@@ -13,7 +13,7 @@
 - RTL top: `video_top`, video timing 1280 x 720 with 1650 total horizontal and 750 total vertical pixels.
 - Original RTL testpattern modes: color bar, grid, gray, solid green, blue, red (button cycles mode register; further values depend on RTL behavior).
 
-The SHA-256 must be calculated **after downloading**; do not confuse Git's blob SHA with the file's SHA-256.
+Operator completed preparation on Windows on 2026-11-09: **4,619,320 bytes; SHA-256 `cb024d255692321a9b7fa22cf603dd89d1cd7875930ad57e00fd2bccf6cf9b0a`; PREP PASS**. The SHA-256 was calculated from the locally downloaded file. Do not confuse Git's blob SHA with SHA-256.
 
 ## Safe Windows preparation — NO hardware programming
 
@@ -21,11 +21,36 @@ In PowerShell, in your checkout:
 
 ```powershell
 Set-Location C:\GitHub\Sipeed-FPGA
-git pull --ff-only origin main
+git fetch origin main
+# On a dirty feature branch, do NOT merge main: extract just required files instead.
+git restore --source=origin/main --worktree -- Tang-Nano-20K/Examples/EX20-01-HDMI/prepare_hdmi.ps1
+# Use a clean checkout/worktree for future updates.
 & ".\Tang-Nano-20K\Examples\EX20-01-HDMI\prepare_hdmi.ps1"
 ```
 
 This script downloads `hdmi.fs` to the local `artifacts` directory, checks the exact byte count, computes SHA-256 and writes `hdmi_source_manifest.json`. No COM/JTAG is accessed, and no FPGA memory or Flash is written.
+
+## Preferred CLI path (Windows, no Gowin GUI)
+
+The repository includes [program_hdmi_sram.ps1](program_hdmi_sram.ps1), matching the proven Gowin CLI workflow. The default invocation is **dry-run only**. `-Scan` executes read-only JTAG discovery; `-Program` runs the explicitly requested **SRAM Program** operation (`--run 2`). This does **not** program nonvolatile Flash, but it does replace the current live FPGA configuration, so the factory LiteX UART will stop responding until the configuration is restored/reloaded.
+
+On a dirty feature branch, avoid `git pull`. Extract this single file from `origin/main`:
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin main
+git restore --source=origin/main --worktree -- Tang-Nano-20K/Examples/EX20-01-HDMI/program_hdmi_sram.ps1
+& ".\Tang-Nano-20K\Examples\EX20-01-HDMI\program_hdmi_sram.ps1"
+& ".\Tang-Nano-20K\Examples\EX20-01-HDMI\program_hdmi_sram.ps1" -Scan
+```
+
+**Review the scan log and confirm `GW2AR-18C` and the intended board** before running a write. Close COM/JTAG users and connect HDMI. Only then, explicitly opt in:
+
+```powershell
+& ".\Tang-Nano-20K\Examples\EX20-01-HDMI\program_hdmi_sram.ps1" -Program
+```
+
+The script checks a pinned byte count and SHA-256, performs a scan, requires the expected device string, and saves the programmer transcript. CLI exit 0 is a *programming-command success*, not a substitute for the monitor test or restoration test. The CLI `--run 2` SRAM operation is documented in Gowin Programmer User Guide SUG502.
 
 ## Physical test procedure (operator)
 
