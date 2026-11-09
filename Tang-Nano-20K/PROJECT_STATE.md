@@ -126,3 +126,8 @@
 После **EX20-01 BOARD PASS** начата работа над интегрированным CPU+HDMI SoC. В [EX20-05-CPU-HDMI](Examples/EX20-05-CPU-HDMI/README.md) опубликованы `rtl/video_wb_overlay.v` (Wishbone B4 video CSR, атомарный COMMIT на границе кадра с CDC), `firmware/video_demo.c` (программный контракт, адрес задаётся новой сборкой), `tests/tb_video_wb_overlay.v` и Windows-скрипт `tests/run_sim.ps1`. **Статус: SOURCE AVAILABLE / SIM NOT YET VERIFIED / BOARD NOT TESTED**. Отдельного готового FPGA bitstream нет, JTAG/Flash на этом этапе не используются.
 
 **Следующее подтверждение:** запустить Icarus `run_sim.ps1` в Windows и получить реальный `SIM PASS`; только затем переходить к интеграции нового LiteX/VexRiscv с видеотрактом Sipeed, новой карте CSR, PLL/SDRAM и STA. Заводской BIOS нельзя использовать с новым несуществующим пока VIDEO_BASE.
+
+
+## 22. EX20-05 Stage A — Video Wishbone overlay SIM PASS (2026-11-09)
+
+Оператор реально запустил Icarus Verilog (`C:\\msys64\\ucrt64\\bin`) на Windows: `SIM PASS EX20-05 overlay Wishbone/CDC/frame boundary`, `EX20-05 VIDEO RTL SIM EXIT 0`; `$finish` штатный. После исправления зарезервированного имени `inside` → `rect_hit` тест прошёл. [Квитанция](Examples/EX20-05-CPU-HDMI/EX20-05_STAGE_A_SIM_PASS_2026-11-09.md). Проверен только самостоятельный Wishbone/CDC видео-модуль в симуляции. **CPU+HDMI на одной FPGA ещё не построены и не испытаны.** Следующий этап: LiteX/VexRiscv интеграция, видео PLL/TMDS, constraints/STA, SRAM-only board test.
