@@ -131,3 +131,8 @@
 ## 22. EX20-05 Stage A — Video Wishbone overlay SIM PASS (2026-11-09)
 
 Оператор реально запустил Icarus Verilog (`C:\\msys64\\ucrt64\\bin`) на Windows: `SIM PASS EX20-05 overlay Wishbone/CDC/frame boundary`, `EX20-05 VIDEO RTL SIM EXIT 0`; `$finish` штатный. После исправления зарезервированного имени `inside` → `rect_hit` тест прошёл. [Квитанция](Examples/EX20-05-CPU-HDMI/EX20-05_STAGE_A_SIM_PASS_2026-11-09.md). Проверен только самостоятельный Wishbone/CDC видео-модуль в симуляции. **CPU+HDMI на одной FPGA ещё не построены и не испытаны.** Следующий этап: LiteX/VexRiscv интеграция, видео PLL/TMDS, constraints/STA, SRAM-only board test.
+
+
+## 23. EX20-05 Stage B — единый LiteX/VexRiscv + Wishbone Video + HDMI, исходники интеграции (2026-11-09)
+
+Добавлены [сборочный прототип](Examples/EX20-05-CPU-HDMI/STAGE_B_INTEGRATION.md), `build_soc.py`, `rtl/video_hdmi_bridge.v`, `prepare_vendor.ps1`, `run_build.ps1`. Назначена предварительная область Video Wishbone `0xB1000000..0xB10000FF`; видео 720p формируется без framebuffer из исходников Stage A SIM PASS; PLL/DVI IP берутся из закреплённого коммита Sipeed. **Status: INTEGRATION SOURCES COMMITTED; SOC GENERATION / GOWIN BUILD / STA / INTEGRATED BOARD — NOT VERIFIED.** Версия шифрованного Gowin DVI IP может быть несовместима с установленной v1.9.9; дифференциальные пины 33–40 требуют проверки Gowin CST. Никакая FPGA не программировалась в ходе подготовки. Следующий необходимый вход: реальный лог Windows `prepare_vendor.ps1`, затем `run_build.ps1` (без `-Build`); после исправления выявленных ошибок — синтез с `-Build` и аудит отчётов перед SRAM-программированием.
