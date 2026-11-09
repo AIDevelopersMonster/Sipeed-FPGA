@@ -6,7 +6,8 @@ Never flashes or programs FPGA. This script only generates/builds locally.
 import argparse
 from pathlib import Path
 
-from migen import Instance, Pins, IOStandard, ClockSignal, ResetSignal
+from migen import Instance, ClockSignal, ResetSignal
+from litex.build.generic_platform import Pins, IOStandard
 from litex.soc.interconnect import wishbone
 from litex.soc.integration.builder import Builder
 from litex.soc.integration.soc import SoCRegion
@@ -68,7 +69,7 @@ def build_soc(args):
     from migen import Cat, Constant
     soc.specials += Instance(
         "video_hdmi_bridge",
-        i_clk27=platform.request("clk27"),
+        i_clk27=platform.lookup_request("clk27"),
         i_cpu_clk=ClockSignal("sys"),
         i_cpu_rst=ResetSignal("sys"),
         i_wb_cyc_i=bus.cyc,
