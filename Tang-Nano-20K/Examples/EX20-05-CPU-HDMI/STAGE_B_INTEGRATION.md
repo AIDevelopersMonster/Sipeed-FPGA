@@ -80,3 +80,8 @@ With default `-Python`, expects `C:\GitHub\litex-b05c3069-test\venv\Scripts\pyth
 - `VIDEO_BASE` must be checked against exact generated SoC address map. The code uses the Wishbone word address shifted two bits to byte offsets.
 - The current clock-domain handshaking is simulation-tested, not formally proven CDC and not FPGA constraints-signed off; resets and asynchronous multibit stable transfers need Gowin CDC/STA review.
 - Video firmware cannot be run on the factory image because that image has **no VIDEO_BASE peripheral**.
+
+
+## Boot ROM compatibility fix — 2026-11-09
+
+Operator generated the integrated LiteX SoC under a dedicated Windows venv successfully as far as address-map construction; LiteX then stopped at `CPU needs reset address 0x00000000 to be in a defined Region.` The current SoCCore default `integrated_rom_size=0` does not create a ROM at the VexRiscv reset vector. In `build_soc.py` we now explicitly set `integrated_rom_size=0x20000` (128 KiB), consistent with the factory BIOS ROM window. **Fix committed but generator rerun pending.** This is a real memory mapping fix, not a bypass of reset-address checks. BIOS compilation size and toolchain compatibility remain subject to the next run.
