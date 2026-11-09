@@ -33,6 +33,10 @@ def build_soc(args):
         with_buttons=False,
         cpu_type="vexriscv",
         cpu_variant="minimal",
+        # Modern LiteX SoCCore defaults integrated_rom_size to zero.
+        # VexRiscv starts at 0x00000000, so this address MUST be backed
+        # by real on-chip ROM. Builder populates it with BIOS at build time.
+        integrated_rom_size=0x20000,
         uart_name="serial",
     )
     platform = soc.platform
