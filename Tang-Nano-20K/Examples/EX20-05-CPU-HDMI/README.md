@@ -1,6 +1,6 @@
 # EX20-05 / Stage A — RISC-V-controlled HDMI overlay
 
-**Status: STAGE A SIM PASS 2026-11-09 (operator-run Icarus) / INTEGRATED BOARD NOT TESTED.**
+**Status: STAGE A SIM PASS / STAGE B INTEGRATION SOURCE COMMITTED (2026-11-09), INTEGRATED GOWIN BUILD AND BOARD NOT YET VERIFIED.**
 
 This is the first component for a *new* SoC combining the VexRiscv/LiteX architecture and Sipeed's validated HDMI path. It is **not** a working integrated FPGA image. EX20-01 independently confirmed an HDMI pattern on the board; LAB-20.6 independently confirmed native RISC-V firmware execution in the factory LiteX. The two images cannot run simultaneously.
 
@@ -66,3 +66,8 @@ No JTAG, Flash or FPGA configuration operations occur in this stage. If `iverilo
 ## Stage A simulation acceptance — 2026-11-09
 
 Operator ran MSYS2 UCRT64 Icarus iverilog/vvp under Windows. Reported `SIM PASS EX20-05 overlay Wishbone/CDC/frame boundary` followed by `EX20-05 VIDEO RTL SIM EXIT 0`. Full evidence and limits: [SIM PASS receipt](EX20-05_STAGE_A_SIM_PASS_2026-11-09.md). The source-only warning in older sections above is historical; **no complete CPU/HDMI FPGA bitstream exists yet**.
+
+
+## Stage B — integrated LiteX/VexRiscv + HDMI source (2026-11-09)
+
+The experimental [integration guide](STAGE_B_INTEGRATION.md) documents the new [LiteX SoC entrypoint](build_soc.py), [Gowin HDMI bridge](rtl/video_hdmi_bridge.v), [pinned vendor downloader](prepare_vendor.ps1), and [Windows generation/build runner](run_build.ps1). This builds a **new** SoC image — it does not add HDMI to the factory BIOS. Source is committed, but neither LiteX generation, Gowin synthesis, final STA nor integrated board test has been observed. See Stage B gate criteria before claiming success.
