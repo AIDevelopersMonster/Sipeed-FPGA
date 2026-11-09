@@ -43,3 +43,21 @@ Both resets must be asserted during startup. Multi-bit stage signals are held co
 - **Flash policy:** SRAM-only for every experimental FPGA bitstream; do not modify factory nonvolatile configuration.
 
 Upstream video source: https://github.com/sipeed/TangNano-20K-example/tree/main/hdmi
+
+
+## Stage A testbench (source published, not yet run)
+
+[Self-checking RTL test](tests/tb_video_wb_overlay.v) drives CPU and pixel clocks independently. It checks ID read, staging writes, BUSY rejection, pre-commit unchanged display, frame-boundary atomic update, rectangle clipping, blanking, acknowledgement and watchdog. [Windows runner](tests/run_sim.ps1) uses Icarus `iverilog -g2012` and `vvp`. **This is not a reported SIM PASS until its actual output has been provided.**
+
+Because the main Windows checkout was on a dirty `feature/picorv32-lab03-uart-trace` branch, do not merge `main` or reset local work. Fetch just these new files:
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin main
+git restore --source=origin/main --worktree -- Tang-Nano-20K/Examples/EX20-05-CPU-HDMI/
+& ".\Tang-Nano-20K\Examples\EX20-05-CPU-HDMI\tests\run_sim.ps1"
+```
+
+No JTAG, Flash or FPGA configuration operations occur in this stage. If `iverilog` or `vvp` is missing from PATH, supply exact executable paths with `-Iverilog` and `-Vvp`.
+
+**Important:** The new peripheral does not yet have a VexRiscv/LiteX wrapper, system clock constraints, HDMI timing/PLL, software linker/startup, firmware toolchain integration, or Gowin build. Do not use `video_demo.c` with the factory BIOS.
