@@ -119,3 +119,10 @@
 После загрузки официального образа Sipeed `hdmi.fs` (4,619,320 байт, SHA-256 `cb024d255692321a9b7fa22cf603dd89d1cd7875930ad57e00fd2bccf6cf9b0a`) через Gowin Programmer CLI в энергозависимую FPGA SRAM оператор подтвердил HDMI-картинку, переключение тестового рисунка кнопкой и восстановление заводского `litex>` после отключения и включения питания. JTAG ID `0x0000081B`, сканирование одного устройства, CLI exit 0. [Квитанция](Examples/EX20-01-HDMI/EX20-01_BOARD_PASS_2026-11-09.md).
 
 **Разделение доказательств:** это рабочее HDMI на независимой FPGA-конфигурации, а не HDMI под управлением VexRiscv. Flash не программировалась в процедуре. Следующая работа — архитектура нового интегрированного образа CPU + видео, с симуляцией и отдельной безопасной загрузкой в SRAM.
+
+
+## 21. EX20-05 Stage A — CPU-controlled video register peripheral SOURCE AVAILABLE (2026-11-09)
+
+После **EX20-01 BOARD PASS** начата работа над интегрированным CPU+HDMI SoC. В [EX20-05-CPU-HDMI](Examples/EX20-05-CPU-HDMI/README.md) опубликованы `rtl/video_wb_overlay.v` (Wishbone B4 video CSR, атомарный COMMIT на границе кадра с CDC), `firmware/video_demo.c` (программный контракт, адрес задаётся новой сборкой), `tests/tb_video_wb_overlay.v` и Windows-скрипт `tests/run_sim.ps1`. **Статус: SOURCE AVAILABLE / SIM NOT YET VERIFIED / BOARD NOT TESTED**. Отдельного готового FPGA bitstream нет, JTAG/Flash на этом этапе не используются.
+
+**Следующее подтверждение:** запустить Icarus `run_sim.ps1` в Windows и получить реальный `SIM PASS`; только затем переходить к интеграции нового LiteX/VexRiscv с видеотрактом Sipeed, новой карте CSR, PLL/SDRAM и STA. Заводской BIOS нельзя использовать с новым несуществующим пока VIDEO_BASE.
