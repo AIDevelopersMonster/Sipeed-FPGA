@@ -124,9 +124,9 @@ module video_wb_overlay #(
 
     wire [15:0] rx = xy_live[15:0], ry = xy_live[31:16];
     wire [15:0] rw = wh_live[15:0], rh = wh_live[31:16];
-    wire inside = (rw != 0 && rh != 0) &&
+    wire rect_hit = (rw != 0 && rh != 0) &&
                   ({4'b0,pix_x} >= rx) && ({4'b0,pix_y} >= ry) &&
                   ({4'b0,pix_x} - rx < rw) && ({4'b0,pix_y} - ry < rh);
-    wire [23:0] rgb = pix_de ? (inside ? rect_live : bg_live) : 24'h000000;
+    wire [23:0] rgb = pix_de ? (rect_hit ? rect_live : bg_live) : 24'h000000;
     assign {pix_r,pix_g,pix_b} = rgb;
 endmodule
