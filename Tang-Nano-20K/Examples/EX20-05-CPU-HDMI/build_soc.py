@@ -12,6 +12,7 @@ from litex.soc.interconnect import wishbone
 from litex.soc.integration.builder import Builder
 from litex.soc.integration.soc import SoCRegion
 from litex_boards.targets.sipeed_tang_nano_20k import BaseSoC
+from ex20_05_sys_crg import install_lock_guard_crg
 
 ROOT = Path(__file__).resolve().parent
 VIDEO_BASE = 0xB1000000
@@ -26,6 +27,7 @@ HDMI_IO = [
 
 
 def build_soc(args):
+    install_lock_guard_crg()
     soc = BaseSoC(
         sys_clk_freq=48e6,
         with_led_chaser=False,
@@ -40,6 +42,42 @@ def build_soc(args):
         uart_name="serial",
     )
     platform = soc.platform
+    # EX20-05.8: extend the single LiteX-generated Gowin SDC.
+    _original_sdc_builder = platform.toolchain.build_timing_constraints
+
+    def _ex20_05_build_sdc(vns):
+        result = _original_sdc_builder(vns)
+
+        if not isinstance(result, tuple) or len(result) != 2:
+            raise RuntimeError("Unexpected Gowin SDC return value")
+
+        if result[1] != "SDC":
+            raise RuntimeError("Unexpected Gowin constraint type")
+
+        sdc_path = Path(result[0]).resolve()
+        waiver_path = ROOT / "constraints" / "reset_recovery_waiver.sdc"
+
+        if not sdc_path.is_file() or not waiver_path.is_file():
+            raise FileNotFoundError("SDC or waiver not found")
+
+        generated = sdc_path.read_text(encoding="utf-8")
+        waiver = waiver_path.read_text(encoding="utf-8")
+
+        if "create_clock -name clk27" not in generated:
+            raise RuntimeError("Base clock constraint missing")
+
+        if generated.count("set_false_path") != 0:
+            raise RuntimeError("Unexpected existing false paths")
+
+        if waiver.count("set_false_path") != 2:
+            raise RuntimeError("Expected exactly two recovery waivers")
+
+        with sdc_path.open("a", encoding="utf-8") as output:
+            output.write("\n" + waiver.strip() + "\n")
+
+        return result
+
+    platform.toolchain.build_timing_constraints = _ex20_05_build_sdc
     platform.add_extension(HDMI_IO)
     # Make all HDMI pins part of this build and fail before any board action if
     # platform constraint generation or Gowin route does not support the pairs.
@@ -49,6 +87,7 @@ def build_soc(args):
     data_n = platform.request("O_tmds_data_n")
 
     sources = [
+        ROOT / "rtl" / "ex20_05_sys_pll_guard.v",
         ROOT / "rtl" / "video_wb_overlay.v",
         ROOT / "rtl" / "video_hdmi_bridge.v",
         ROOT / "vendor" / "TMDS_rPLL.v",

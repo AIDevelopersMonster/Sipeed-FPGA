@@ -1,4 +1,4 @@
-# EX20-05 / Stage A — RISC-V-controlled HDMI overlay
+> **UPDATE — 2026-11-09:** [EX20-05.16 BOARD DEMONSTRATION PASS](EX20-05-16_RELEASE.md) for VexRiscv/LiteX BIOS, HDMI, and CPU-driven color/position updates. The older Stage A/B status below is preserved for chronology, and is superseded for these specific features. Source is published; the exact binary .fs is not yet hosted in this repository. LED control is disabled in this image.\n\n# EX20-05 / Stage A — RISC-V-controlled HDMI overlay
 
 **Status: STAGE A SIM PASS / STAGE B INTEGRATION SOURCE COMMITTED (2026-11-09), INTEGRATED GOWIN BUILD AND BOARD NOT YET VERIFIED.**
 

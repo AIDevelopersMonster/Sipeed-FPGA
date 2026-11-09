@@ -1,6 +1,7 @@
 // EX20-05 stage A: Wishbone B4 slave + atomic frame-boundary video update.
-// CPU and pixel domains may run at different clocks. Reset must be asserted
-// to both domains. Pixel inputs are active-video coordinates, not sync timing.
+// CPU and pixel domains may run at different clocks. Independent video
+// reset is supported by snapshot replay and a pixel-ready interlock.
+// Pixel inputs are active-video coordinates, not sync timing.
 // NO TMDS, PLL, CPU, SDRAM or pin constraints are included in this module.
 module video_wb_overlay #(
     parameter integer XW = 12,
@@ -34,9 +35,37 @@ module video_wb_overlay #(
     reg [23:0] bg_stage, rect_stage;
     reg [31:0] xy_stage, wh_stage;
     reg commit_toggle;
-    reg ack_sync1, ack_sync2;
+    (* async_reg = "true" *) reg ack_sync1, ack_sync2;
     reg ack_toggle;
-    wire busy = commit_toggle != ack_sync2;
+
+    // EX20-05.13: the last COMMIT payload must survive a pixel-only reset.
+    // Stage registers may be edited without COMMIT, so replaying stage is wrong.
+    // This snapshot changes only on an accepted COMMIT, and remains fixed
+    // until the next one (BUSY blocks overlapping commits).
+    reg [23:0] bg_committed, rect_committed;
+    reg [31:0] xy_committed, wh_committed;
+    reg committed_once;
+
+    // Pixel-ready is asserted only AFTER a frame-boundary replay. Assert
+    // readiness loss asynchronously when pix_rst rises, including when the
+    // pixel clock is stopped by PLL loss; release through a CPU 2-FF chain.
+    reg pix_ready;
+    (* async_reg = "true" *) reg pix_ready_sync1, pix_ready_sync2;
+    always @(posedge cpu_clk or posedge pix_rst) begin
+        if (pix_rst) begin
+            pix_ready_sync1 <= 1'b0;
+            pix_ready_sync2 <= 1'b0;
+        end else if (cpu_rst) begin
+            pix_ready_sync1 <= 1'b0;
+            pix_ready_sync2 <= 1'b0;
+        end else begin
+            pix_ready_sync1 <= pix_ready;
+            pix_ready_sync2 <= pix_ready_sync1;
+        end
+    end
+
+    wire busy = (commit_toggle != ack_sync2) ||
+                (committed_once && !pix_ready_sync2);
 
     always @(posedge cpu_clk) begin
         if (cpu_rst) begin
@@ -45,6 +74,11 @@ module video_wb_overlay #(
             xy_stage <= {16'd90, 16'd120};
             wh_stage <= {16'd120, 16'd200};
             commit_toggle <= 1'b0;
+            committed_once <= 1'b0;
+            bg_committed <= 24'h102040;
+            rect_committed <= 24'h00ff80;
+            xy_committed <= {16'd90, 16'd120};
+            wh_committed <= {16'd120, 16'd200};
             ack_sync1 <= 1'b0;
             ack_sync2 <= 1'b0;
             wb_ack_o <= 1'b0;
@@ -68,7 +102,14 @@ module video_wb_overlay #(
                             8'h08: xy_stage <= wb_dat_i;
                             8'h0c: wh_stage <= wb_dat_i;
                             8'h10: rect_stage <= wb_dat_i[23:0];
-                            8'h18: if (wb_dat_i[0]) commit_toggle <= ~commit_toggle;
+                            8'h18: if (wb_dat_i[0]) begin
+                                bg_committed <= bg_stage;
+                                rect_committed <= rect_stage;
+                                xy_committed <= xy_stage;
+                                wh_committed <= wh_stage;
+                                committed_once <= 1'b1;
+                                commit_toggle <= ~commit_toggle;
+                            end
                             default: wb_err_o <= 1'b1;
                         endcase
                         if (wb_adr_i == 8'h04 || wb_adr_i == 8'h08 ||
@@ -95,13 +136,16 @@ module video_wb_overlay #(
         end
     end
 
-    // Two-flop control synchronizer. Stage data is immutable while busy=1
-    // and is sampled only at frame_start after the toggle crosses domains.
+    // Two-flop control synchronizer. The committed snapshot is immutable
+    // while BUSY=1 and across idle pixel reset/replay. Its multi-bit CDC
+    // transfer is bundled-data, captured only after the control synchronizer
+    // has settled, at frame_start. This is NOT an independent bit synchronizer.
     (* async_reg = "true" *) reg commit_sync1, commit_sync2;
     reg [23:0] bg_live, rect_live;
     reg [31:0] xy_live, wh_live;
-    always @(posedge pix_clk) begin
+    always @(posedge pix_clk or posedge pix_rst) begin
         if (pix_rst) begin
+            pix_ready <= 1'b0;
             commit_sync1 <= 1'b0;
             commit_sync2 <= 1'b0;
             ack_toggle <= 1'b0;
@@ -112,12 +156,16 @@ module video_wb_overlay #(
         end else begin
             commit_sync1 <= commit_toggle;
             commit_sync2 <= commit_sync1;
-            if (frame_start && commit_sync2 != ack_toggle) begin
-                bg_live <= bg_stage;
-                rect_live <= rect_stage;
-                xy_live <= xy_stage;
-                wh_live <= wh_stage;
+            // Force replay on the first post-reset frame even if request and
+            // ack toggles happen to be equal. A CPU-side readiness interlock
+            // keeps BUSY asserted until this replay is acknowledged.
+            if (frame_start && (!pix_ready || commit_sync2 != ack_toggle)) begin
+                bg_live <= bg_committed;
+                rect_live <= rect_committed;
+                xy_live <= xy_committed;
+                wh_live <= wh_committed;
                 ack_toggle <= commit_sync2;
+                pix_ready <= 1'b1;
             end
         end
     end
