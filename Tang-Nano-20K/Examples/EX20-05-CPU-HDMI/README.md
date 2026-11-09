@@ -1,6 +1,6 @@
 # EX20-05 / Stage A — RISC-V-controlled HDMI overlay
 
-**Status: RTL SOURCE AVAILABLE / SIM NOT YET VERIFIED / BOARD NOT TESTED.**
+**Status: STAGE A SIM PASS 2026-11-09 (operator-run Icarus) / INTEGRATED BOARD NOT TESTED.**
 
 This is the first component for a *new* SoC combining the VexRiscv/LiteX architecture and Sipeed's validated HDMI path. It is **not** a working integrated FPGA image. EX20-01 independently confirmed an HDMI pattern on the board; LAB-20.6 independently confirmed native RISC-V firmware execution in the factory LiteX. The two images cannot run simultaneously.
 
@@ -61,3 +61,8 @@ git restore --source=origin/main --worktree -- Tang-Nano-20K/Examples/EX20-05-CP
 No JTAG, Flash or FPGA configuration operations occur in this stage. If `iverilog` or `vvp` is missing from PATH, supply exact executable paths with `-Iverilog` and `-Vvp`.
 
 **Important:** The new peripheral does not yet have a VexRiscv/LiteX wrapper, system clock constraints, HDMI timing/PLL, software linker/startup, firmware toolchain integration, or Gowin build. Do not use `video_demo.c` with the factory BIOS.
+
+
+## Stage A simulation acceptance — 2026-11-09
+
+Operator ran MSYS2 UCRT64 Icarus iverilog/vvp under Windows. Reported `SIM PASS EX20-05 overlay Wishbone/CDC/frame boundary` followed by `EX20-05 VIDEO RTL SIM EXIT 0`. Full evidence and limits: [SIM PASS receipt](EX20-05_STAGE_A_SIM_PASS_2026-11-09.md). The source-only warning in older sections above is historical; **no complete CPU/HDMI FPGA bitstream exists yet**.
