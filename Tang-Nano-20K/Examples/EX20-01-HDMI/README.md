@@ -1,6 +1,6 @@
 # EX20-01 — HDMI 720p on Tang Nano 20K
 
-**Status: SOURCE DOWNLOAD PREP PASS / BOARD NOT TESTED (2026-11-09).** This is a separate FPGA configuration. It **replaces the running factory LiteX SoC in FPGA SRAM** while loaded. It is not an HDMI peripheral added to the original BIOS.
+**Status: EX20-01 BOARD PASS, operator-confirmed (2026-11-09).** This is a separate FPGA configuration. It **replaces the running factory LiteX SoC in FPGA SRAM** while loaded. It is not an HDMI peripheral added to the original BIOS.
 
 ## Source provenance
 
@@ -86,3 +86,8 @@ The official example is a raster/video generator plus DVI/TMDS transmitter and P
 - Before/after `litex>` result:
 - Photo/video / logs:
 - Conclusion: `BOARD PASS`, `FAIL` or `INCONCLUSIVE` with reason.
+
+
+## Final operator acceptance 2026-11-09
+
+После успешного `SRAM PROGRAM CLI EXIT 0` и сканирования JTAG (ID `0x0000081B`) оператор подтвердил **оба завершающих этапа**: HDMI-изображение с переключением тестовых режимов кнопкой, а также восстановление `litex>` после выключения и включения питания. [Аппаратная квитанция](EX20-01_BOARD_PASS_2026-11-09.md). Первоначальные формулировки `BOARD NOT TESTED` выше относятся к протоколу до этих испытаний. Измерение точного HDMI refresh/EDID и интеграция CPU не выполнены.
