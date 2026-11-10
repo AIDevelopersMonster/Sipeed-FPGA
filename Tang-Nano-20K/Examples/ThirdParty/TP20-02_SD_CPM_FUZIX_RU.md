@@ -138,3 +138,21 @@ Invoke-WebRequest -Uri $URL -OutFile .\tp20-sd-preflight.ps1
 ```
 
 Результат запуска на ПК оператора пока **не получен**. После определения именно резервной microSD записать образ вручную через GUI с проверкой записи и НЕ принимать предложение Windows отформатировать карту. Далее использовать план разделов 2 и 4.
+
+
+## 8. Выбор карты под запись (Windows preflight)
+
+Оператор предоставил реальный вывод `tp20-sd-preflight.ps1`:
+
+```text
+DISK #2 | NAME=Mass Storage Device | BUS=USB | GB=14,56 | BOOT=False | SYSTEM=False | PARTITION_STYLE=MBR | OFFLINE=False
+   PARTITION #1 | LETTER=F | BYTES=15634792448
+PREFLIGHT COMPLETED; PHYSICAL_DISK_WRITES=NO; BOARD_SD_TEST=NOT YET TESTED
+EVIDENCE: C:\GitHub\TP20-ThirdParty\evidence\TP20_SD_PREFLIGHT_20261111_002628.txt
+```
+
+**Статус: TARGET-CANDIDATE IDENTIFIED / NO IMAGE WRITTEN YET.** Это не подтверждение, что Disk 2 остаётся тем же носителем после переподключения USB. Перед записью подтвердить модель и ёмкость выбранной microSD в GUI, исключить системные диски. Образ `C:\GitHub\TP20-ThirdParty\downloads\nano-z80.img` размер 4 186 112 байт, SHA256 `5B92105D34D0BCE698EA419F2342A4C213EAFAB064C06757A332FC050CF6FA81`, HEAD `6E-61-6E-6F-00-00-00-01-0F-E0-F6-00-00-00-00-00`.
+
+**Дальше:** Raspberry Pi Imager → Use custom → `nano-z80.img` → microSD USB 16 ГБ → WRITE + VERIFY; Windows после записи не должна форматировать носитель. Затем карта в Tang Nano 20K; сохранить действующие MS5351 O0=25.175MHz и O1=12MHz, использовать S2. В ROM Monitor выполнить только безопасный набор `O007F,03`, `I0009,0001`, `I0008,0001`, `I0004,0001`, `O007F,00`. Ожидания SDHC: type `03`, FSM ready `08`, busy `00`. Эти признаки ещё требуют физической квитанции. Только после неё запуск `L` → `MF633,0001` и, при байте `81`, `WF633,83` → `JF600`.
+
+**Важно:** эта квитанция не означает, что SD записана или ОС запущена. Отчёт GUI Verify, аппаратные регистры и приглашение CP/M — отдельные этапы.
