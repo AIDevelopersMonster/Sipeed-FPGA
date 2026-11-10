@@ -39,7 +39,7 @@ function Fetch-Image([string]$url, [string]$path) {
 function Inspect-Image([string]$path, [string]$name, [bool]$requireNano) {
     $file = Get-Item -LiteralPath $path
     if ($file.Length -lt 8192 -or ($file.Length % 512) -ne 0) {
-        throw "$name: length $($file.Length) is not a valid raw block image size"
+        throw "${name}: length $($file.Length) is not a valid raw block image size"
     }
     $s = [System.IO.File]::OpenRead($path)
     try {
@@ -52,7 +52,7 @@ function Inspect-Image([string]$path, [string]$name, [bool]$requireNano) {
     $magic = [System.Text.Encoding]::ASCII.GetString($bytes,0,4)
     $head = [System.BitConverter]::ToString($bytes)
     if ($requireNano -and $magic -cne 'nano') {
-        throw "$name: NO nano ROM boot signature at sector 0. Found HEX=$head. Do not write this image to SD."
+        throw "${name}: NO nano ROM boot signature at sector 0. Found HEX=$head. Do not write this image to SD."
     }
     $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
     $source = if ($requireNano) { $urlCpm } else { $urlFuzix }
