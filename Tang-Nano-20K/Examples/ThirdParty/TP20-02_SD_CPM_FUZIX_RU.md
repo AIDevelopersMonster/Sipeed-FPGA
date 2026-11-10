@@ -187,3 +187,17 @@ MF800,0040
 ```
 
 Для сравнения на Windows использовать [tp20-cpm-image-map.ps1](tp20-cpm-image-map.ps1) — без записи носителей он проверяет SHA-256 исходного `nano-z80.img` и печатает те байты, которые должны оказаться в RAM E000..FDFF после корректного L. Если начало RAM отличается от файла, первоочередная проверка — верно ли переписан RAW образ на microSD и корректно ли происходит секторное чтение (сигнатура `nano` в секторе 0), а не изменение BIOS вслепую.
+
+## 11. balenaEtcher: ошибка источника до записи (2026-11-11)
+
+Оператор показал скриншот Windows balenaEtcher с ошибкой при выборе `C:\GitHub\TP20-ThirdParty\downloads\nano-z80.img`: 
+
+```text
+Error opening source
+Something went wrong while opening C:\GitHub\TP20-ThirdParty\downloads\nano-z80.img.
+Error: (0 , h.requestMetadata) is not a function
+```
+
+**Стадия:** открытие исходного файла, до выбора носителя и начала Flash/Validation. Никакой проверки SD через Etcher пока не получено. Это сообщение совпадает с задокументированным upstream багом balenaEtcher, особенно v2.1.7 (версия конкретной установки оператора на скриншоте не видна): https://github.com/balena-io/etcher/issues/4672 . Пользователи сообщали, что https://github.com/balena-io/etcher/releases/tag/v2.1.6 открывает те же образы без сбоя.
+
+**Порядок исследования без преждевременного перехода к RTL:** либо (A) записать через исправную Etcher 2.1.6 и получить Validation PASS, либо (B) записать Win32 Disk Imager и прочесть с физической SD первые 4 186 112 байт скриптом [tp20-sd-readback-verify.ps1](tp20-sd-readback-verify.ps1), сравнив SHA-256 с `5B92105D34D0BCE698EA419F2342A4C213EAFAB064C06757A332FC050CF6FA81`. При переподключении проверить действительный номер USB-карты по модели и ёмкости; не трогать системные диски. До подтверждения физического образа не менять RTL, не делать вывод о причине паттерна `00 39` в SRAM.
