@@ -112,3 +112,7 @@ NOTES:
 - [Выбор IO и доступ к портам](https://github.com/venomix666/nano-z80/blob/main/src/addr_decoder.v)
 - [UART RTL](https://github.com/venomix666/nano-z80/blob/main/src/UART/uart.v)
 - [HDMI TTY RTL](https://github.com/venomix666/nano-z80/blob/main/src/video/video.v)
+
+## Результат физического запуска 2026-11-10
+
+На данном экземпляре платы **кнопка S2** перезапускает nano-Z80. S1 видимой реакции не дала. В ROM Monitor оператор ввёл `M0000,0040` и получил 64 байта с адресов 0000–003F и `Ready`. После временного включения MS5351 O0 25.175 MHz и O1 12 MHz HDMI стал выводить изображение. В [протоколе BOARD PASS](TP20-01_ROM_MONITOR_BOARD_PASS_2026-11-10.md) отделены реально проверенные CPU/ROM/UART/HDMI от неиспытанных SD, CP/M, MMU, полного SDRAM и LED. Для следующего минимального опыта использовать `I007F,0001`, `O007F,00`, `I007F,0001`, `O0000,3F`, `O0000,00` (только onboard LED); результаты пока не поступили.
