@@ -39,3 +39,33 @@
 Подробности: [матрица переноса](docs/PORTING_MATRIX_RU.md), [проект TERM](docs/TERM_PLAN_RU.md), [ступени аппаратной приёмки](docs/BOARD_ACCEPTANCE_RU.md).
 
 **Точки безопасности:** не трогать `EX20-05-CPU-HDMI/build/`, доказанный `project.fs`, Gowin-проект и Flash; эксперимент хранить отдельно. Никаких новых HDL-модулей к действующему HDMI в этом пакете не подключено.
+
+---
+
+## Дополнение 10.11.2026 — P20-SHELL-01 v0.2.0: защищённая аппаратная приёмка
+
+**Стадия:** `HOST_C_TEST_PASS / PYTHON_LOADER_TEST_PASS / RV32I_BUILD_PASS / BOARD_NOT_TESTED`.
+В исходную оболочку, рабочий `EX20-05.16` и HDMI-RTL изменений нет.
+
+Добавлены независимые от FPGA инструменты:
+
+- `tools/soc_map_guard.py` — проверяет **фактический локальный** `csr.csv` EX20-05.16:
+  точные UART CSR, память SDRAM для кода/стека и видеорегион V201;
+  неполную или несоответствующую карту отвергает.
+- `tools/write_build_manifest.py` — записывает хеш, UART_BASE и адрес загрузки вместе с
+  конкретной RV32I сборкой; при несовпадении с реальным `csr.csv` загрузчик отказывает.
+- `tools/board_accept.py` — **по умолчанию dry-run**; под флагами `--probe`,
+  `--upload`, `--verify-only` открывает COM25; проверяет V201 ID/version/BUSY;
+  пишет только SDRAM с полным readback; умеет перейти к `boot` **только**
+  с двумя флагами `--boot --confirm-boot`. Нужен `pyserial` исключительно для живых COM-операций.
+- `tests/test_soc_map_guard.py`, `tests/test_board_accept.py`, `tests/test_board_cli.py`
+  — позитивные и негативные тесты реального Python-кода c эмулятором LiteX,
+  включая сбой идентификации V201, несоответствие карты, повреждённый readback,
+  неверный SHA256 и запрет не-SDRAM записей.
+
+**Текущая проверка:** 21 Python-тест PASS + 8 групп тестов C PASS.
+Это *не* аппаратная приёмка. Полная инструкция Windows/COM25 и статусы:
+[BOARD_ACCEPTANCE_V02_RU.md](docs/BOARD_ACCEPTANCE_V02_RU.md).
+
+Ничего не запускается автоматически. Экспериментальный `.bin` остаётся
+SDRAM-приложением, а не новым битстримом. `TERM` по-прежнему UART-only.

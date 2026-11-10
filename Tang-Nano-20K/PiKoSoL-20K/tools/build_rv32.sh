@@ -20,5 +20,6 @@ flags=(--target=riscv32-unknown-elf -march=rv32i_zicsr -mabi=ilp32 -mno-relax -m
 "$OBJCOPY" -O binary build/pikosol20k.elf build/pikosol20k.bin
 "$OBJDUMP" -d build/pikosol20k.elf > build/pikosol20k.disasm.txt
 python3 tools/image_to_memwrites.py build/pikosol20k.bin build/load_mem_write_only.txt
+python3 tools/write_build_manifest.py build/pikosol20k.bin "$1" build/pikosol20k_build.json
 sha256sum build/pikosol20k.bin | tee build/pikosol20k.sha256
 printf 'RV32I BUILD PASS (software build only); DO NOT BOOT until map and full readback verified.\n'
