@@ -52,6 +52,29 @@ module pikosol20k_renderer (
         .event_valid(tty_event), .event_byte(tty_byte)
     );
 
+    // GW2AR BSRAM: exactly ONE synchronous physical write port.  The old
+    // parser had independent indexed writes for clear, backspace and chars.
+    // Gowin could not infer BSRAM and expanded text_mem into 131072 FFs.
+    // Multiplex the write address/data before a reset-free RAM write process.
+    wire tty_printable = tty_event && tty_byte >= 8'h20 && tty_byte <= 8'h7e;
+    wire tty_backspace = tty_event && (tty_byte == 8'h08 || tty_byte == 8'h7f)
+                                     && cursor_col != 0;
+    wire [13:0] ram_clear_addr = full_clear ? clear_offset :
+                                   (clear_row_base + {6'd0,clear_col});
+    wire [13:0] ram_char_addr = cursor_row_base + {6'd0,cursor_col};
+    wire ram_wr_en = resetn_pixel && (clearing ||
+                     (tty_printable || tty_backspace));
+    wire [13:0] ram_wr_addr = clearing ? ram_clear_addr :
+                       (tty_backspace ? (ram_char_addr-14'd1) : ram_char_addr);
+    wire [7:0] ram_wr_data = (!clearing && tty_printable) ? tty_byte : 8'h20;
+
+    // No reset or other procedural assignments to text_mem in this design.
+    // One plain-clock write process, one plain-clock synchronous read process:
+    // standard Gowin dual-port RAM inference (read-during-write unspecified).
+    always @(posedge pix_clk) begin
+        if (ram_wr_en) text_mem[ram_wr_addr] <= ram_wr_data;
+    end
+
     always @(posedge pix_clk or negedge resetn_pixel) begin
         if (!resetn_pixel) begin
             terminal_mode <= 1'b1;
@@ -66,11 +89,9 @@ module pikosol20k_renderer (
         end else if (clearing) begin
             // Sequential clear preserves BSRAM inference (no massive reset mux).
             if (full_clear) begin
-                text_mem[clear_offset] <= 8'h20;
                 if (clear_offset == VRAM_BYTES-1) clearing <= 1'b0;
                 else clear_offset <= clear_offset + 14'd1;
             end else begin
-                text_mem[clear_row_base + {6'd0,clear_col}] <= 8'h20;
                 if (clear_col == COLS-1) clearing <= 1'b0;
                 else clear_col <= clear_col + 8'd1;
             end
@@ -97,10 +118,8 @@ module pikosol20k_renderer (
                 end
                 8'h08, 8'h7f: if (cursor_col != 0) begin
                     cursor_col <= cursor_col - 8'd1;
-                    text_mem[cursor_row_base + {6'd0,cursor_col} - 14'd1] <= 8'h20;
                 end
                 default: if (tty_byte >= 8'h20 && tty_byte <= 8'h7e) begin
-                    text_mem[cursor_row_base + {6'd0,cursor_col}] <= tty_byte;
                     if (cursor_col == COLS-1) begin
                         cursor_col <= 8'd0;
                         cursor_row <= next_row;
@@ -222,6 +241,7 @@ module pikosol20k_renderer (
     reg term_a, term_b;
     always @(posedge pix_clk) begin
         if (de && !clearing) char_q <= text_mem[text_addr];
+        // Font ROM has its own synchronous read; neither memory has async reset.
         font_row_q <= font_mem[{char_q[6:0],glyph_y_a}];
     end
     always @(posedge pix_clk or negedge resetn_pixel) begin

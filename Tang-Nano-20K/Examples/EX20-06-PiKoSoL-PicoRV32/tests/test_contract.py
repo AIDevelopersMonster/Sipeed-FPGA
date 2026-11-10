@@ -44,6 +44,20 @@ class Contract(unittest.TestCase):
         self.assertEqual(6, sum('led_n[' in x for x in pins.values()))
         self.assertEqual(18, len(pins))
 
+    def test_single_bram_write_port_and_sync_read(self):
+        s = (ROOT / 'rtl/pikosol20k_renderer.v').read_text()
+        self.assertEqual(1, s.count('text_mem[ram_wr_addr] <= ram_wr_data;'))
+        self.assertEqual(1, s.count('char_q <= text_mem[text_addr];'))
+        self.assertIn('always @(posedge pix_clk) begin\n        if (ram_wr_en)', s)
+        self.assertIn('if (de && !clearing) char_q <= text_mem[text_addr];', s)
+        self.assertNotIn('text_mem[clear_offset] <=', s)
+        self.assertNotIn('text_mem[cursor_row_base', s)
+
+    def test_staged_rom_is_available_to_gowin(self):
+        s = (ROOT / 'tools/stage.py').read_text()
+        self.assertIn("for memory_file in ('lab04_boot.hex', 'lab04_font_8x12.hex'):", s)
+        self.assertIn("out / 'rtl' / memory_file", s)
+
     def test_generated_firmware_hook(self):
         s = (ROOT / 'tools/stage.py').read_text()
         self.assertIn("('CAPACITY = 4096', 'CAPACITY = 8192')", s)

@@ -181,6 +181,17 @@ def stage(repo: Path, out: Path) -> None:
         assembler = replace_once(assembler, before, after)
     (out / 'tools' / 'build_rom.py').write_text(assembler, encoding='utf-8')
     subprocess.run([sys.executable, str(out / 'tools' / 'build_rom.py')], check=True, cwd=out)
+    # GowinSynthesis resolves readmemh relative to its source/current work
+    # directory depending on the version. This must be staged at BOTH paths,
+    # as in the hardware-confirmed 9K LAB-04 build. Without it, Gowin logs
+    # EX3988 Cannot open file 'lab04_boot.hex' and ROM is not initialized.
+    for memory_file in ('lab04_boot.hex', 'lab04_font_8x12.hex'):
+        original = (out / 'firmware' / memory_file) if memory_file == 'lab04_boot.hex' else (out / memory_file)
+        if not original.is_file():
+            raise FileNotFoundError(f'ROM/font not built: {original}')
+        for destination in (out / memory_file, out / 'rtl' / memory_file):
+            if original != destination:
+                shutil.copy2(original, destination)
     manifest = {}
     for file in sorted(out.rglob('*')):
         if file.is_file():
