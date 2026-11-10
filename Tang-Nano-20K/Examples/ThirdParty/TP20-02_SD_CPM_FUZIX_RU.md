@@ -201,3 +201,39 @@ Error: (0 , h.requestMetadata) is not a function
 **Стадия:** открытие исходного файла, до выбора носителя и начала Flash/Validation. Никакой проверки SD через Etcher пока не получено. Это сообщение совпадает с задокументированным upstream багом balenaEtcher, особенно v2.1.7 (версия конкретной установки оператора на скриншоте не видна): https://github.com/balena-io/etcher/issues/4672 . Пользователи сообщали, что https://github.com/balena-io/etcher/releases/tag/v2.1.6 открывает те же образы без сбоя.
 
 **Порядок исследования без преждевременного перехода к RTL:** либо (A) записать через исправную Etcher 2.1.6 и получить Validation PASS, либо (B) записать Win32 Disk Imager и прочесть с физической SD первые 4 186 112 байт скриптом [tp20-sd-readback-verify.ps1](tp20-sd-readback-verify.ps1), сравнив SHA-256 с `5B92105D34D0BCE698EA419F2342A4C213EAFAB064C06757A332FC050CF6FA81`. При переподключении проверить действительный номер USB-карты по модели и ёмкости; не трогать системные диски. До подтверждения физического образа не менять RTL, не делать вывод о причине паттерна `00 39` в SRAM.
+
+## 12. SD sector 0: first byte matches; sequential port 0x0A read does not (2026-11-11)
+
+After the operator reimaged the card using Win32 Disk Imager and verified the write, the operator reported the following ROM Monitor output following the sector-0 read procedure:
+
+```text
+Ready
+I000A,0010
+6E000000000000000000000000000000
+Ready
+```
+
+**Observation:** the first byte (`6E`) matches the known `nano` header, but the remaining 15 values returned through repeated port-0x0A reads are `00`, rather than the expected `61 6E 6F 00 00 00 01 0F E0 F6 00 00 00 00 00`. This is **NOT** SD SECTOR READ PASS and it does not prove the SD media are defective. The ROM `I` command performs repeated IN instructions to the same selected port. The RTL `sd_interface.v` implements an auto-incrementing accessor at port `0x0A`, separate from addressable 128-byte window `0x80–0xFF` (selected by port `0x07`).
+
+**Next read-only isolation** (assuming the sector read already completed and page 0 selected):
+
+```text
+I007F,0001
+I0004,0001
+I0007,0001
+I0080,0001
+I0081,0001
+I0082,0001
+I0083,0001
+I0084,0001
+I0085,0001
+I0086,0001
+I0087,0001
+I0088,0001
+I0089,0001
+I008A,0001
+```
+
+Expected 0x80..0x8A: `6E 61 6E 6F 00 00 00 01 0F E0 F6`. Do not issue `L`, `B`, `WF633,83`, or `JF600` before the read path is isolated. The expected state of port `0x7F` is bank `03`; port `0x04` busy `00`; port `0x07` page `00`. If any of those differs, stop and investigate state before interpreting the data.
+
+**Conclusions deliberately withheld:** no proof yet that sector contents are correctly transferred to FPGA sector RAM, and no basis for diagnosing SDRAM RTL from this one observation. Previous SDRAM pattern `00 39` remains a separate unclassified symptom.
