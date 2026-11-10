@@ -25,6 +25,12 @@
 
 Не требуется переключать ветку или сбрасывать рабочие файлы. **[prepare-tp20.ps1](prepare-tp20.ps1)** можно скачать с GitHub RAW прямо в отдельный каталог `C:\GitHub\TP20-ThirdParty` (вне существующего checkout) и выполнить. Он скачает инструкции, готовый `.fs`, закреплённый по upstream commit архив исходников, зафиксирует SHA-256 и, только по отдельному ключу `-LoadSRAM`, вызовет `openFPGALoader` без `-f`. Внешний PLL он не меняет. Подробнее см. [демонстрационный протокол](NANO_Z80_QUICK_DEMO_RU.md).
 
+## Сбой openFPGALoader на Windows: используем проверенный Gowin CLI
+
+На компьютере оператора `openFPGALoader -b tangnano20k` завершился `unable to open ftdi device: -4 (usb_open failed)` **до конфигурации FPGA**. Это ошибка доступа к FTDI USB/JTAG, не аппаратный FAIL nano-Z80. В EX20-01 (2026-11-09) с тем же Tang Nano 20K успешно работал **Gowin Programmer CLI** (`--scan --cable-index 1`, `--device GW2AR-18C --run 2 --fsFile <path> --cable-index 1`); см. [аппаратную квитанцию](../EX20-01-HDMI/EX20-01_BOARD_PASS_2026-11-09.md).
+
+Поэтому добавлен [program-nano-z80-gowin.ps1](program-nano-z80-gowin.ps1): сверяет **ровно 7 262 008 байт** и SHA-256 `8DD5274B4DA2E85D8877B10D62494802BAE59541B8C964751B5341E1AB055770`, выполняет JTAG scan, подтверждает GW2AR-18C и загружает FPGA **только в SRAM** после явного подтверждения. Логи сохраняются в `evidence/`. **Сначала `-Scan`, затем `-Program`**; внешние PLL-частоты отдельно. Не меняем FTDI-драйвер без дополнительной диагностики.
+
 ## Эксперимент TP20-01: nano-Z80 без SD
 
 **Почему он выбран:** код [romcode/read.z80](https://github.com/venomix666/nano-z80/blob/main/romcode/read.z80) опрашивает USB keyboard и UART A; [romcode/print.z80](https://github.com/venomix666/nano-z80/blob/main/romcode/print.z80) посылает один символ на UART и HDMI TTY; [romcode/nano-z80.z80](https://github.com/venomix666/nano-z80/blob/main/romcode/nano-z80.z80) содержит командный монитор и приветствие. В [UART RTL](https://github.com/venomix666/nano-z80/blob/main/src/UART/uart.v) штатный канал A задан как 115200.
