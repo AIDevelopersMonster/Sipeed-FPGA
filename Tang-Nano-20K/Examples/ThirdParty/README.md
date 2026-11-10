@@ -20,6 +20,11 @@
 
 Непроверенное наличие доступного файла .fs, его хеш и совместимость текущего релиза проверяются скриптом и оператором **до программирования**. Авторская документация не заменяет нашу аппаратную квитанцию.
 
+
+## Если git pull не работает из-за удалённой feature-ветки
+
+Не требуется переключать ветку или сбрасывать рабочие файлы. **[prepare-tp20.ps1](prepare-tp20.ps1)** можно скачать с GitHub RAW прямо в отдельный каталог `C:\GitHub\TP20-ThirdParty` (вне существующего checkout) и выполнить. Он скачает инструкции, готовый `.fs`, закреплённый по upstream commit архив исходников, зафиксирует SHA-256 и, только по отдельному ключу `-LoadSRAM`, вызовет `openFPGALoader` без `-f`. Внешний PLL он не меняет. Подробнее см. [демонстрационный протокол](NANO_Z80_QUICK_DEMO_RU.md).
+
 ## Эксперимент TP20-01: nano-Z80 без SD
 
 **Почему он выбран:** код [romcode/read.z80](https://github.com/venomix666/nano-z80/blob/main/romcode/read.z80) опрашивает USB keyboard и UART A; [romcode/print.z80](https://github.com/venomix666/nano-z80/blob/main/romcode/print.z80) посылает один символ на UART и HDMI TTY; [romcode/nano-z80.z80](https://github.com/venomix666/nano-z80/blob/main/romcode/nano-z80.z80) содержит командный монитор и приветствие. В [UART RTL](https://github.com/venomix666/nano-z80/blob/main/src/UART/uart.v) штатный канал A задан как 115200.
