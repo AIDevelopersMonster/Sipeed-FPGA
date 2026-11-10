@@ -106,3 +106,35 @@ O007F,00
 - Успешность других дисков, FUZIX или файловых операций не утверждать, пока они не проверены.
 
 **Текущий результат:** TP20-01 ROM Monitor BOARD PASS. TP20-02 SD / CP/M / FUZIX — SOURCE-CHECKED, BOARD NOT TESTED.
+
+
+## 7. Подтверждённая подготовка образа на ПК оператора
+
+Оператор запустил исправленный PowerShell-скрипт 2026-11-11. Фактическая квитанция:
+
+```text
+SCRIPT SYNTAX PASS
+[OK] C:\GitHub\TP20-ThirdParty\downloads\nano-z80.img (4186112 bytes)
+NAME=CPMISH
+BYTES=4186112
+SHA256=5B92105D34D0BCE698EA419F2342A4C213EAFAB064C06757A332FC050CF6FA81
+SECTOR0_FIRST16=6E-61-6E-6F-00-00-00-01-0F-E0-F6-00-00-00-00-00
+NANO_BOOT_SIGNATURE=YES
+CPM BOOT SECTOR: source-LBA-bytes 00-00-00-01; page count 15; RAM page 0xE0; jump page 0xF6
+DOWNLOAD PASS: images are files on your Windows PC only; your SD card has NOT been changed.
+```
+
+Итог: **HOST IMAGE DOWNLOAD + SIGNATURE PASS**, SD CARD WRITTEN = NO, FPGA SD READ = NOT TESTED, CP/M BOARD = NOT TESTED. Зафиксирован SHA-256 исходного файла для последующего контроля.
+
+### Безопасная инвентаризация накопителей до записи
+
+[tp20-sd-preflight.ps1](tp20-sd-preflight.ps1) — по умолчанию режим **только чтение**: проверяет SHA-256, размер и поля заголовка, перечисляет физические диски Windows по номеру, имени, интерфейсу, ёмкости и флагам System/Boot; сохраняет квитанцию в evidence. Не форматирует, не выбирает диск автоматически и не пишет данные в карту. Отдельный ключ -InstallImager устанавливает Raspberry Pi Imager через winget, но не записывает карту.
+
+```powershell
+Set-Location C:\GitHub\TP20-ThirdParty
+$URL = 'https://raw.githubusercontent.com/AIDevelopersMonster/Sipeed-FPGA/main/Tang-Nano-20K/Examples/ThirdParty/tp20-sd-preflight.ps1'
+Invoke-WebRequest -Uri $URL -OutFile .\tp20-sd-preflight.ps1
+.\tp20-sd-preflight.ps1
+```
+
+Результат запуска на ПК оператора пока **не получен**. После определения именно резервной microSD записать образ вручную через GUI с проверкой записи и НЕ принимать предложение Windows отформатировать карту. Далее использовать план разделов 2 и 4.
