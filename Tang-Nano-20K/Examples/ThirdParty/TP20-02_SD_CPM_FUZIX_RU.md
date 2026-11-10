@@ -237,3 +237,39 @@ I008A,0001
 Expected 0x80..0x8A: `6E 61 6E 6F 00 00 00 01 0F E0 F6`. Do not issue `L`, `B`, `WF633,83`, or `JF600` before the read path is isolated. The expected state of port `0x7F` is bank `03`; port `0x04` busy `00`; port `0x07` page `00`. If any of those differs, stop and investigate state before interpreting the data.
 
 **Conclusions deliberately withheld:** no proof yet that sector contents are correctly transferred to FPGA sector RAM, and no basis for diagnosing SDRAM RTL from this one observation. Previous SDRAM pattern `00 39` remains a separate unclassified symptom.
+
+## 13. Сектор 0 SD: прямое чтение 11 байт подтверждено аппаратно
+
+Оператор после записи и проверки образа через Win32 Disk Imager прочитал с FPGA сектор 0 через прямое адресное окно SD-контроллера (банк `03`, page `00`, busy `00`). Результат:
+
+```text
+I007F,0001 -> 03
+I0004,0001 -> 00
+I0007,0001 -> 00
+I0080,0001 -> 6E
+I0081,0001 -> 61
+I0082,0001 -> 6E
+I0083,0001 -> 6F
+I0084,0001 -> 00
+I0085,0001 -> 00
+I0086,0001 -> 00
+I0087,0001 -> 01
+I0088,0001 -> 0F
+I0089,0001 -> E0
+I008A,0001 -> F6
+```
+
+**Доказанный результат:** первые 11 байт физического сектора 0, доступные CPU Z80 из внутреннего буфера SD-контроллера, совпадают с исходным образом: `6E 61 6E 6F 00 00 00 01 0F E0 F6`. Это SD BOOT HEADER BOARD PASS (11 bytes), а **не** полный SD/image readback PASS, не OS LOAD PASS, не RAM PASS. Предыдущая последовательная команда `I000A,0010 -> 6E0000...` не исключает правильной работы оконного интерфейса `0x80-0xFF`, который использует загрузчик. Порт `0x0A` требует отдельного исследования.
+
+**Следующий независимый тест SDRAM** — без запуска `L` или `J`, с ограниченными записями в несистемные области RAM:
+
+```text
+W4000,A5
+W4001,5A
+M4000,0002
+WE000,3C
+WE001,C3
+ME000,0002
+```
+
+Ожидаем `4000: A5 5A` и `E000: 3C C3`. `E000` является целевым адресом загрузки CP/Mish; тестовые байты будут перезаписаны при последующей успешной `L`. Никаких выводов о неисправности SDRAM без результатов теста не делать.
