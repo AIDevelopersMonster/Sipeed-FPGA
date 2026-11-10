@@ -57,7 +57,7 @@ Write-Host "== TP20-01: nano-Z80 standalone preparation =="
 Write-Host "ROOT: $root"
 Write-Host "No git pull, no git branch switching, no flash writes."
 
-$docs = @('README.md', 'NANO_Z80_QUICK_DEMO_RU.md', 'EXTENDED_ANALYSIS_RU.md', 'get-nano-z80.ps1')
+$docs = @('README.md', 'NANO_Z80_QUICK_DEMO_RU.md', 'EXTENDED_ANALYSIS_RU.md', 'get-nano-z80.ps1', 'program-nano-z80-gowin.ps1')
 foreach ($doc in $docs) {
     Fetch-File -Uri "$docsBase/$doc" -Target (Join-Path $root $doc) -MinBytes 100
 }
@@ -105,8 +105,10 @@ Write-Host "INSTRUCTION: $(Join-Path $root 'NANO_Z80_QUICK_DEMO_RU.md')"
 if (-not $LoadSRAM) {
     Write-Host ""
     Write-Host "DOWNLOAD COMPLETE; NO PROGRAMMING PERFORMED."
-    Write-Host "After checking PLL O0=25.175 MHz and O1=12 MHz:"
-    Write-Host "  & '$PSCommandPath' -LoadSRAM -SkipSource"
+    Write-Host "Preferred proven Gowin CLI workflow (after checking PLL):"
+    Write-Host "  .\program-nano-z80-gowin.ps1 -Scan"
+    Write-Host "  .\program-nano-z80-gowin.ps1 -Program"
+    Write-Host "Optional experimental openFPGALoader: & '$PSCommandPath' -LoadSRAM -SkipSource"
     exit 0
 }
 
