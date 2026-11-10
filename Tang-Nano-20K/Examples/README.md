@@ -42,4 +42,4 @@
 
 ## Сторонние SoC без дополнительной периферии
 
-**[TP20 — сторонние проекты, быстрый demo nano-Z80 и расширенный анализ](ThirdParty/README.md)**. План запуска только через штатные USB-C/UART и HDMI, без SD-карты и внешней клавиатуры. Подготовлены [пошаговый сценарий](ThirdParty/NANO_Z80_QUICK_DEMO_RU.md), [PowerShell загрузчик SRAM-only](ThirdParty/get-nano-z80.ps1) и [реестр перспективных модулей](ThirdParty/EXTENDED_ANALYSIS_RU.md). **SOURCE-CHECKED / BOARD NOT TESTED**: пока нет физической квитанции оператора. Заводская Flash не изменяется.
+**[TP20 — nano-Z80 + CP/Mish, подтверждённый BOARD PASS](ThirdParty/README.md)**. Оператор запустил CP/Mish 2.2r0 с microSD через COM25 и получил результат `A>DIR`. [Прямой путь запуска](ThirdParty/CPMISH_START_RU.md) содержит только реально работающие команды, без длинных диагностических ответвлений. FPGA загружается временно в SRAM; заводская LiteX Flash не меняется. Отдельный [Nano Commander NC0](ThirdParty/NanoCommander/README.md) — новая программа `.COM`, пока HOST MODEL PASS, ожидает аппаратного теста.
