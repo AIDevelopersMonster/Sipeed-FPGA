@@ -81,8 +81,8 @@ try {
         $null = Send-Line $serial 'pll_clk O0=25175K' 1300
         $null = Send-Line $serial 'pll_clk O1=12M' 1300
         $after = Send-Line $serial 'pll_clk' 1600
-        $o0ok = $after -match '\[EN\]\s*O0:\s*25175000\b'
-        $o1ok = $after -match '\[EN\]\s*O1:\s*12000000\b'
+        $o0ok = $after -match '\[\s*EN\s*\]\s*O0:\s*25175000\b'
+        $o1ok = $after -match '\[\s*EN\s*\]\s*O1:\s*12000000\b'
         Log "VERIFY O0=25.175MHz ENABLED: $o0ok"
         Log "VERIFY O1=12MHz ENABLED: $o1ok"
         if (-not ($o0ok -and $o1ok)) {
