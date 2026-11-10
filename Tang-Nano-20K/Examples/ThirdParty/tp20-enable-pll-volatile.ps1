@@ -1,4 +1,5 @@
 # TP20-01: configure the Nano 20K MS5351 for nano-Z80 WITHOUT persistent save.
+# VERSION 2.1 (2026-11-11): tolerant clock status parsing and corrected S2 reset guidance.
 # Requires an existing nano-Z80 FPGA SRAM image and access to BL616 at COM25.
 # Safe default: read-only. Explicit -Apply sets O0/O1 temporarily.
 # NEVER sends pll_clk -s, never writes FPGA configuration Flash and never programs bitstream.
@@ -39,7 +40,7 @@ function Send-Line([System.IO.Ports.SerialPort]$Serial,[string]$Line,[int]$Ms = 
     $Serial.Write($Line + [char]13)
     return (Read-Response $Serial $Ms $Line)
 }
-Log "== TP20-01 MS5351 configuration =="
+Log "== TP20-01 MS5351 configuration v2.1 =="
 Log "PORT=$Port BAUD=$Baud APPLY=$Apply"
 Log "O0 TARGET: 25175000 Hz / pin 10; O1 TARGET: 12000000 Hz / pin 11"
 Log "NO -s; no BL616 config save; no FPGA flash program."
@@ -81,8 +82,94 @@ try {
         $null = Send-Line $serial 'pll_clk O0=25175K' 1300
         $null = Send-Line $serial 'pll_clk O1=12M' 1300
         $after = Send-Line $serial 'pll_clk' 1600
-        $o0ok = $after -match '\[\s*EN\s*\]\s*O0:\s*25175000\b'
-        $o1ok = $after -match '\[\s*EN\s*\]\s*O1:\s*12000000\b'
+        # Parse the exact response to the final pll_clk query, not pre-change state.
+        # BL616 prints "[ EN]O0: 25175000", including a space after "[".
+        $afterText = ($after | Out-String)
+        $afterLines = $afterText -split "[\r\n]+"
+        $o0ok = $false
+        $o1ok = $false
+        foreach ($line in $afterLines) {
+            $lineClean = [regex]::Replace($line, '\x1b\[[0-9;]*[A-Za-z]', '').Trim()
+            if ($lineClean -match '^\[\s*EN\s*\]\s*O0:\s*25175000\s*
+        Log "VERIFY O0=25.175MHz ENABLED: $o0ok"
+        Log "VERIFY O1=12MHz ENABLED: $o1ok"
+        if (-not ($o0ok -and $o1ok)) {
+            throw "PLL verification did not show both enabled output frequencies. Inspect log before doing anything else."
+        }
+        Log "TP20 PLL VOLATILE PASS. Now returning BL616 serial bridge to FPGA."
+        $success = $true
+    }
+} catch {
+    Log "ERROR: $($_.Exception.GetType().Name): $($_.Exception.Message)"
+    $success = $false
+} finally {
+    if ($null -ne $serial) {
+        if ($serial.IsOpen) {
+            if ($enteredShell) {
+                try {
+                    $null = Send-Line $serial 'choose uart' 950
+                    Log "Requested BL616 -> FPGA UART bridge (choose uart)."
+                } catch {
+                    Log "WARNING: choose uart failed. Restore bridge manually via BL616 shell."
+                    $success = $false
+                }
+            }
+            $serial.Close()
+        }
+        $serial.Dispose()
+    }
+    $transcript | Set-Content -LiteralPath $log -Encoding UTF8
+    Write-Host "EVIDENCE: $log"
+}
+if (-not $success) { throw "TP20 PLL diagnostic/configuration incomplete; see $log" }
+if ($Apply) {
+    Write-Host "PLL outputs verified. FPGA SRAM image was not reprogrammed."
+    Write-Host "NEXT: press/release physical S2 RESET (board-verified) (NOT USB power-cycle),"
+    Write-Host "then open COM25 115200 8N1 and look for 'nano-Z80 monitor v0.3' on UART/HDMI."
+    Write-Host "If there is no monitor, re-run Gowin SRAM Program; do not write Flash."
+}
+) { $o0ok = $true }
+            if ($lineClean -match '^\[\s*EN\s*\]\s*O1:\s*12000000\s*
+        Log "VERIFY O0=25.175MHz ENABLED: $o0ok"
+        Log "VERIFY O1=12MHz ENABLED: $o1ok"
+        if (-not ($o0ok -and $o1ok)) {
+            throw "PLL verification did not show both enabled output frequencies. Inspect log before doing anything else."
+        }
+        Log "TP20 PLL VOLATILE PASS. Now returning BL616 serial bridge to FPGA."
+        $success = $true
+    }
+} catch {
+    Log "ERROR: $($_.Exception.GetType().Name): $($_.Exception.Message)"
+    $success = $false
+} finally {
+    if ($null -ne $serial) {
+        if ($serial.IsOpen) {
+            if ($enteredShell) {
+                try {
+                    $null = Send-Line $serial 'choose uart' 950
+                    Log "Requested BL616 -> FPGA UART bridge (choose uart)."
+                } catch {
+                    Log "WARNING: choose uart failed. Restore bridge manually via BL616 shell."
+                    $success = $false
+                }
+            }
+            $serial.Close()
+        }
+        $serial.Dispose()
+    }
+    $transcript | Set-Content -LiteralPath $log -Encoding UTF8
+    Write-Host "EVIDENCE: $log"
+}
+if (-not $success) { throw "TP20 PLL diagnostic/configuration incomplete; see $log" }
+if ($Apply) {
+    Write-Host "PLL outputs verified. FPGA SRAM image was not reprogrammed."
+    Write-Host "NEXT: press/release physical S1 RESET on the board (NOT USB power-cycle),"
+    Write-Host "then open COM25 115200 8N1 and look for 'nano-Z80 monitor v0.3' on UART/HDMI."
+    Write-Host "If there is no monitor, re-run Gowin SRAM Program; do not write Flash."
+}
+) { $o1ok = $true }
+        }
+        Log 'VERIFY FORMAT: supports [ EN] and [EN] clock status lines.'
         Log "VERIFY O0=25.175MHz ENABLED: $o0ok"
         Log "VERIFY O1=12MHz ENABLED: $o1ok"
         if (-not ($o0ok -and $o1ok)) {
