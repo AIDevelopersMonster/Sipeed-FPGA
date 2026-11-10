@@ -39,3 +39,7 @@
 ## EX20-01 — оператор подтвердил BOARD PASS 2026-11-09
 
 Проверены на физической плате: показ HDMI, переключение тестового изображения кнопкой и возвращение заводского LiteX BIOS после выключения и включения питания. SRAM-программирование через CLI завершилось exit 0; SHA-256 исходного Sipeed bitstream `cb024d255692321a9b7fa22cf603dd89d1cd7875930ad57e00fd2bccf6cf9b0a`. [Квитанция](EX20-01-HDMI/EX20-01_BOARD_PASS_2026-11-09.md). Это **независимый образ Sipeed**, не интеграция RISC-V с HDMI.
+
+## Сторонние SoC без дополнительной периферии
+
+**[TP20 — сторонние проекты, быстрый demo nano-Z80 и расширенный анализ](ThirdParty/README.md)**. План запуска только через штатные USB-C/UART и HDMI, без SD-карты и внешней клавиатуры. Подготовлены [пошаговый сценарий](ThirdParty/NANO_Z80_QUICK_DEMO_RU.md), [PowerShell загрузчик SRAM-only](ThirdParty/get-nano-z80.ps1) и [реестр перспективных модулей](ThirdParty/EXTENDED_ANALYSIS_RU.md). **SOURCE-CHECKED / BOARD NOT TESTED**: пока нет физической квитанции оператора. Заводская Flash не изменяется.
