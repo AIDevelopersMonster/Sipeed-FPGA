@@ -17,7 +17,7 @@ if (-not (Test-Path -LiteralPath $programmer -PathType Leaf)) {
     throw "Gowin Programmer CLI not found: $programmer. This script does not install drivers."
 }
 if (-not (Test-Path -LiteralPath $Bitstream -PathType Leaf)) {
-    throw "nano-z80 bitstream missing: $Bitstream. Run prepare-tp20.ps1 first."
+    throw "nano-z80 bitstream missing: $Bitstream. Place verified nano-z80.fs into downloads (see README.md) first."
 }
 $fs = (Resolve-Path -LiteralPath $Bitstream).Path
 if (-not $fs.EndsWith('.fs',[StringComparison]::OrdinalIgnoreCase)) { throw "Only a .fs file is accepted" }

@@ -8,6 +8,8 @@
 
 **[ОТКРЫТЬ ПРОЕКТ TANG NANO 20K →](Tang-Nano-20K/README.md)**
 
+**[Сторонние SoC / ThirdParty](Tang-Nano-20K/ThirdParty/README.md)** · **[Z80 + CP/Mish на реальной плате: BOARD PASS](Tang-Nano-20K/ThirdParty/Z80/README.md)** · [Видео запуска CP/Mish (Shorts)](https://www.youtube.com/shorts/QhGcYvSqoDw)
+
 **Что это:** заводской LiteX с процессором **VexRiscv_Min (RISC-V)**. Изучаем BIOS, ROM и UART, а затем запускаем **свои программы из SDRAM** — без изменения заводской FPGA-прошивки.
 
 **Реальный результат 08.11.2026:** загрузили собственную программу **740 байт**, подтвердили обратное чтение **740/740**, запустили VexRiscv_Min командой `boot 0x40010000` и получили собственный UART-отчёт. Аппаратный эксперимент подтвердил изменение `TXEMPTY=1 → 0` после начала диагностической печати.
