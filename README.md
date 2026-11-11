@@ -10,6 +10,12 @@
 
 Рабочие исходники и аппаратные эксперименты сгруппированы в `Tang-Nano-9K/`. Сайт прошивки **[WebUSB Loader](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/)** и **[Web Serial](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/)** продолжает использовать прежнюю защищённую директорию `docs/`. Она **не перемещалась и не менялась**.
 
+## Tang Primer 25K — процессорная лаборатория
+
+**[ОТКРЫТЬ TANG PRIMER 25K →](Tang-Primer-25K/README.md)** · **[Начало работы](Tang-Primer-25K/START_HERE_RU.md)** · **[PR25-00: аппаратная аттестация](Tang-Primer-25K/Examples/PR25-00-Board-Bringup/README.md)**
+
+**Комплектация:** Tang Primer 25K + Dock. Новый исследовательский стенд для PicoRV32, VexRiscv, собственного RV32I, системной памяти и процессорных измерений. **Статус: структура создана, аппаратные испытания не проводились.**
+
 ## Tang Nano 20K — начните здесь
 
 **[ОТКРЫТЬ ПРОЕКТ TANG NANO 20K →](Tang-Nano-20K/README.md)**
