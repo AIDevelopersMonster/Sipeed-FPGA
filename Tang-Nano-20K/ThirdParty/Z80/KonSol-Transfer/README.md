@@ -48,3 +48,7 @@
 [CP/Mish — запуск Z80 на Tang Nano 20K](../CPMISH_START_RU.md) · [KonSol RetroStation](https://github.com/AIDevelopersMonster/KonSol-RetroStation) · [CP/Mish](https://github.com/davidgiven/cpmish) · [nano-Z80](https://github.com/venomix666/nano-z80)
 
 Интерпретатор BBC BASIC и исходные сторонние проекты принадлежат их авторам. Конкретная интеграция, графический интерфейс и средства обмена KonSol опубликованы отдельно.
+## Демонстрация графиков в BBC BASIC
+
+[**KonSol BASIC Graph: ASCII-графики и коэффициенты параболы**](examples/basic-graph/README_RU.md) — готовый `GRAPH.TXT` для `*EXEC`, исходник `GRAPH.BAS`, шесть интерактивных режимов.
+
