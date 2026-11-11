@@ -2,11 +2,11 @@ name: LAB-07 PSRAM audit script syntax
 on:
   push:
     paths:
-      - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
       - '.github/workflows/lab07-powershell-audit-syntax.yml'
   pull_request:
     paths:
-      - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
       - '.github/workflows/lab07-powershell-audit-syntax.yml'
   workflow_dispatch:
 jobs:
@@ -17,7 +17,7 @@ jobs:
       - name: Parse Windows/PowerShell audit script without executing it
         shell: pwsh
         run: |
-          $path = 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+          $path = 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
           $tokens = $null
           $errors = $null
           $ast = [System.Management.Automation.Language.Parser]::ParseFile(

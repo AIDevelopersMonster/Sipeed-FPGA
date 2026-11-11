@@ -4,6 +4,12 @@
 
 Здесь собраны **работающие результаты, исходники и воспроизводимые учебные примеры**. Отметка **BOARD PASS** относится только к конкретному испытанному стенду и версии, а не к любой новой сборке.
 
+## Tang Nano 9K — наши проекты в одном каталоге
+
+**[ОТКРЫТЬ TANG NANO 9K — PiKoSoL, PicoRV32, NEORV32, SD, LAB-02–07, Pong, Breakout](Tang-Nano-9K/README.md)**
+
+Рабочие исходники и аппаратные эксперименты сгруппированы в `Tang-Nano-9K/`. Сайт прошивки **[WebUSB Loader](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/)** и **[Web Serial](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/)** продолжает использовать прежнюю защищённую директорию `docs/`. Она **не перемещалась и не менялась**.
+
 ## Tang Nano 20K — начните здесь
 
 **[ОТКРЫТЬ ПРОЕКТ TANG NANO 20K →](Tang-Nano-20K/README.md)**
@@ -32,18 +38,18 @@
 
 **Оператор подтвердил работу на плате 26.10.2026.** Pong реализован в Verilog без CPU PicoRV32, выводит игру по HDMI, управляется клавиатурой через Web Serial (UART, 115200 8N1). Исходники и страница управления опубликованы; бинарный `.fs` пока доступен только локально и **не размещён для автоматической загрузки**. Программирование — **только SRAM**.
 
-**[Открыть управление Pong](https://aidevelopersmonster.github.io/Sipeed-FPGA/pong-rgb/)** · **[Исходники, сборка, лицензии](games/pong-rgb/README.md)** · [WebUSB загрузчик](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/)
+**[Открыть управление Pong](https://aidevelopersmonster.github.io/Sipeed-FPGA/pong-rgb/)** · **[Исходники, сборка, лицензии](Tang-Nano-9K/games/pong-rgb/README.md)** · [WebUSB загрузчик](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/)
 
 ## Что можно использовать
 
 | Результат | Содержимое | Статус |
 | --- | --- | --- |
-| **[PONG RGB v1.2](games/pong-rgb/README.md)** | HDMI Pong, Web Serial, Verilog без CPU | **Оператор: BOARD PASS**; исходники опубликованы, `.fs` локально |
+| **[PONG RGB v1.2](Tang-Nano-9K/games/pong-rgb/README.md)** | HDMI Pong, Web Serial, Verilog без CPU | **Оператор: BOARD PASS**; исходники опубликованы, `.fs` локально |
 | **[PiKoSoL v0.2.0](docs/lab04/README.md)** | Готовая прошивка, PicoRV32, HDMI, UART, WebUSB и Web Serial | **BOARD PASS**, публичный релиз |
 | **[LAB-02: HTML ↔ FPGA ↔ LED](docs/lab02/README.md)** | RU/EN инструкции, исходники, реальное управление LED из HTML | **BOARD PASS** |
 | **[LED1 — декодер RISC-V](docs/interactive/picorv32-led1/README.md)** | Автономная HTML-модель, 4 инструкции и 19 шагов | Готовая учебная модель, не цикл-точный RTL |
-| **[SD-02 — чтение microSD](boards/tang-nano-9k/experiments/sd-multilba/README.md)** | Четыре LBA, CRC16, UART, исходники и тесты | **BOARD PASS**, только чтение |
-| **[SD-06 — секторная запись](boards/tang-nano-9k/experiments/sd06-cmd24/README.md)** | CMD17/CMD24, проверка записи и восстановление сектора | **Ограниченный BOARD PASS**: одна тестовая SD и один разрешённый LBA |
+| **[SD-02 — чтение microSD](Tang-Nano-9K/boards/tang-nano-9k/experiments/sd-multilba/README.md)** | Четыре LBA, CRC16, UART, исходники и тесты | **BOARD PASS**, только чтение |
+| **[SD-06 — секторная запись](Tang-Nano-9K/boards/tang-nano-9k/experiments/sd06-cmd24/README.md)** | CMD17/CMD24, проверка записи и восстановление сектора | **Ограниченный BOARD PASS**: одна тестовая SD и один разрешённый LBA |
 | **[SPI и microSD — учебные материалы](docs/education/README.md)** | PDF, Markdown, RTL и методика проверки | Опубликованные учебные материалы |
 | **[Tang Nano 20K — LAB-20.6](Tang-Nano-20K/README.md)** | Заводской LiteX/VexRiscv, ROM, UART CSR, собственная RAM-only программа, полная инструкция повторения | **BOARD PASS**, RISC-V программа реально выполнена |
 
@@ -55,8 +61,8 @@
 
 - **SD-08 (FAT32 read-only):** на плате получены FS, DIR и TYPE PIKO.TXT, но проверенный бинарный файл **не опубликован для автоматической загрузки**. [Статус SD-08](docs/lab04/web-loader/README_SD08_WEB_LAB.md).
 - **PicoTiny / заводская PicoSoc:** пример PicoTiny не является подтверждённой копией заводской прошивки; восстановление Flash не проверено.
-- **Остальные RTL-эксперименты:** [каталог Tang Nano 9K](boards/tang-nano-9k/experiments/README.md) и [LAB-03](docs/lab03/README.md). Наличие исходников само по себе не означает BOARD PASS.
-- **Другие CPU:** [NEORV32](02-NEORV32/README.md), [Rocket](04-Rocket/README.md) — исследовательские направления. **[LiteX/VexRiscv на Tang Nano 20K](Tang-Nano-20K/README.md) — уже имеет аппаратно подтверждённое исполнение собственной RISC-V программы из SDRAM**, но это не собственный FPGA bitstream.
+- **Остальные RTL-эксперименты:** [каталог Tang Nano 9K](Tang-Nano-9K/boards/tang-nano-9k/experiments/README.md) и [LAB-03](docs/lab03/README.md). Наличие исходников само по себе не означает BOARD PASS.
+- **Другие CPU:** [NEORV32](Tang-Nano-9K/02-NEORV32/README.md), [Rocket](04-Rocket/README.md) — исследовательские направления. **[LiteX/VexRiscv на Tang Nano 20K](Tang-Nano-20K/README.md) — уже имеет аппаратно подтверждённое исполнение собственной RISC-V программы из SDRAM**, но это не собственный FPGA bitstream.
 
 ## LAB-06 — сравнение процессоров и типовых блоков
 

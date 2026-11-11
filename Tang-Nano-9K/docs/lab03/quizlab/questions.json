@@ -1,0 +1,1009 @@
+[
+  {
+    "id": "PQL-001",
+    "type": "single",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Базовый",
+    "evidence": "BOARD",
+    "question": "Что означает зарегистрированное событие FETCH?",
+    "options": [
+      "Принятую выборку инструкции по шине",
+      "Завершение архитектурной инструкции",
+      "Запись данных в GPIO",
+      "Изменение светимости LED"
+    ],
+    "correct": 0,
+    "explanation": "FETCH фиксируется при mem_valid && mem_ready && mem_instr и нулевых mem_wstrb. Retirement не измеряется.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/lab03_trace_capture.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-002",
+    "type": "single",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Базовый",
+    "evidence": "BOARD",
+    "question": "Какой адрес регистрируется как LED_WRITE?",
+    "options": [
+      "0x20000010",
+      "0x20000020",
+      "0x20000000",
+      "0x00000100"
+    ],
+    "correct": 2,
+    "explanation": "0x20000000 — регистр LED MMIO. Адрес 0x100 — PC инструкции sw в ROM.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/lab03_trace_capture.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-003",
+    "type": "single",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Базовый",
+    "evidence": "BOARD",
+    "question": "Какое значение LED_WRITE наблюдается для команды ASCII «4»?",
+    "options": [
+      "0x00000004",
+      "0x00000008",
+      "0x00000010",
+      "0x00000020"
+    ],
+    "correct": 1,
+    "explanation": "Команда 4 выбирает L4, маска 1 << (4−1) = 8.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/data/campaign.json",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-004",
+    "type": "single",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Базовый",
+    "evidence": "BOARD",
+    "question": "Сколько архивных аппаратных захватов содержит подтверждённая кампания LAB-03.3?",
+    "options": [
+      "6",
+      "10",
+      "12",
+      "16"
+    ],
+    "correct": 2,
+    "explanation": "Архив содержит 12 замеров: шесть для команды 4 и шесть для команды 0.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/data/campaign.json",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-005",
+    "type": "single",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Средний",
+    "evidence": "BOARD",
+    "question": "Сколько принятых FETCH суммарно содержат 12 архивных захватов?",
+    "options": [
+      "256",
+      "269",
+      "281",
+      "128"
+    ],
+    "correct": 1,
+    "explanation": "По проверенным T3-файлам наблюдается 269 событий FETCH; это не число retired-инструкций.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-006",
+    "type": "single",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Средний",
+    "evidence": "BOARD",
+    "question": "Чем завершался каждый из 12 успешных T3-захватов?",
+    "options": [
+      "FETCH после последней инструкции",
+      "LED_WRITE по адресу 0x20000000",
+      "Чтением UART_STATUS",
+      "Импульсом внешнего reset"
+    ],
+    "correct": 1,
+    "explanation": "Трассировщик прекращает фиксацию после принятой записи LED MMIO, включив её в буфер.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/lab03_trace_capture.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-007",
+    "type": "single",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Средний",
+    "evidence": "BOARD",
+    "question": "Почему при одинаковой команде число FETCH может отличаться?",
+    "options": [
+      "Разная частота кристалла",
+      "Разная длина инструкции sw",
+      "Разная фаза опроса UART при открытии окна захвата",
+      "Неодинаковое число светодиодов"
+    ],
+    "correct": 2,
+    "explanation": "Префикс UART polling попадает в захват в разной фазе; общую часть сравнивают отдельно.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/LAB03_3_PROTOCOL_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-008",
+    "type": "single",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Средний",
+    "evidence": "BOARD",
+    "question": "Какой факт НЕ следует непосредственно из события LED_WRITE?",
+    "options": [
+      "Шина приняла запись по MMIO",
+      "Адрес записи был 0x20000000",
+      "Значение mem_wdata было захвачено",
+      "Физическая яркость LED была измерена"
+    ],
+    "correct": 3,
+    "explanation": "LED_WRITE — принятая транзакция шины. Оптическое измерение не входит в регистратор.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/lab03_trace_capture.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-009",
+    "type": "multiple",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Средний",
+    "evidence": "BOARD",
+    "question": "Какие утверждения подтверждены архивом LAB-03.3? Выбери все верные.",
+    "options": [
+      "Есть 12 сохранённых T3-захватов",
+      "Измерены retired-инструкции",
+      "Для команды 4 наблюдался LED_WRITE=0x08",
+      "Каждый FETCH доказывает исполнение инструкции"
+    ],
+    "correct": [
+      0,
+      2
+    ],
+    "explanation": "Подтверждены сырые T3 и запись 0x08; данные о retirement отсутствуют.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/data/campaign.json",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-010",
+    "type": "multiple",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Средний",
+    "evidence": "BOARD",
+    "question": "Какие мнемоники реально встретились среди 269 FETCH? Выбери все верные.",
+    "options": [
+      "beq",
+      "sw",
+      "mul",
+      "andi"
+    ],
+    "correct": [
+      0,
+      1,
+      3
+    ],
+    "explanation": "В архиве найдены addi, andi, beq, jal, lw, sw. MUL не включена в конфигурацию ядра.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-011",
+    "type": "match",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Базовый",
+    "evidence": "BOARD",
+    "question": "Сопоставь событие / источник и доказуемый факт.",
+    "options": {
+      "left": [
+        "FETCH",
+        "LED_WRITE",
+        "ROM",
+        "LIVE-наблюдение светодиода"
+      ],
+      "right": [
+        "Машинное слово при принятой выборке",
+        "Принятая запись по MMIO",
+        "Статический состав программы",
+        "Внешний видимый результат"
+      ]
+    },
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Не смешивайте статический ROM, принятые шинные транзакции и визуальное наблюдение.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-012",
+    "type": "order",
+    "section": "LAB-03 · аппаратные данные",
+    "level": "Средний",
+    "evidence": "PROTOCOL",
+    "question": "Упорядочи типовой захват T3 из браузера.",
+    "options": [
+      "Отправить символ C для очистки",
+      "Отправить ASCII-цифру 0…6",
+      "Отправить T для чтения",
+      "Принять строки T3 / E / Z"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Новый цикл начинается с явного re-arm, затем команда, затем запрос снимка.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/LAB03_3_PROTOCOL_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-013",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Базовый",
+    "evidence": "ROM",
+    "question": "Какой формат использует sw t4, 0(t0) (0x01D2A023)?",
+    "options": [
+      "I-type",
+      "S-type",
+      "B-type",
+      "J-type"
+    ],
+    "correct": 1,
+    "explanation": "Store Word использует S-type: imm[11:5], rs2, rs1, funct3, imm[4:0], opcode.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-014",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Базовый",
+    "evidence": "ROM",
+    "question": "Каково opcode для 0x01D2A023 (sw)?",
+    "options": [
+      "0100011",
+      "1100011",
+      "1101111",
+      "0000011"
+    ],
+    "correct": 0,
+    "explanation": "Младшие 7 бит 0x01D2A023 равны 0100011 — семейство Store.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-015",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ROM",
+    "question": "В 0x01D2A023 поле rs2=11101 указывает на какой регистр?",
+    "options": [
+      "t0 / x5",
+      "t4 / x29",
+      "t6 / x31",
+      "s0 / x8"
+    ],
+    "correct": 1,
+    "explanation": "Биты 24…20: 11101₂ = 29; ABI-имя x29 — t4.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-016",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ROM",
+    "question": "В 0x01D2A023 поле rs1=00101 указывает на какой регистр?",
+    "options": [
+      "zero / x0",
+      "ra / x1",
+      "t0 / x5",
+      "t4 / x29"
+    ],
+    "correct": 2,
+    "explanation": "Биты 19…15: 00101₂ = 5; ABI-имя x5 — t0.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-017",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ROM",
+    "question": "Какой формат использует beq t3, s0, +88 (0x048E0C63)?",
+    "options": [
+      "S-type",
+      "B-type",
+      "U-type",
+      "J-type"
+    ],
+    "correct": 1,
+    "explanation": "Условные переходы beq/bne используют B-type со смещением PC-relative.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-018",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ROM",
+    "question": "PC=0x00000084; beq t3, s0, +88 принят. Какой целевой PC?",
+    "options": [
+      "0x00000088",
+      "0x000000DC",
+      "0x00000058",
+      "0x00000100"
+    ],
+    "correct": 1,
+    "explanation": "0x84 + 88₁₀ (0x58) = 0xDC.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-019",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ROM",
+    "question": "PC=0x000000E4; jal zero, +28 принят. Куда перейдёт процессор?",
+    "options": [
+      "0x00000100",
+      "0x000000FC",
+      "0x000000E8",
+      "0x00000104"
+    ],
+    "correct": 0,
+    "explanation": "0xE4 + 0x1C = 0x100. rd=zero означает отказ от записи адреса возврата.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-020",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Базовый",
+    "evidence": "ISA",
+    "question": "Какой формат использует jal zero, +28?",
+    "options": [
+      "B-type",
+      "J-type",
+      "S-type",
+      "I-type"
+    ],
+    "correct": 1,
+    "explanation": "JAL — J-type. JALR — другая команда с I-type кодировкой.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-021",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ISA",
+    "question": "Какой формат имеет jalr zero, 0(ra)?",
+    "options": [
+      "J-type",
+      "B-type",
+      "I-type",
+      "U-type"
+    ],
+    "correct": 2,
+    "explanation": "JALR кодируется в I-type: rd, rs1, immediate; цель вычисляется через базовый регистр.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-022",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Базовый",
+    "evidence": "ISA",
+    "question": "Какая инструкция записывает 32-битное значение из регистра в память?",
+    "options": [
+      "lw",
+      "sw",
+      "lui",
+      "srli"
+    ],
+    "correct": 1,
+    "explanation": "sw читает источник rs2 и передаёт слово по адресу rs1+offset.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-023",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ROM",
+    "question": "Почему sw t4, 0(t0) кодируется одинаково для L4 и L5?",
+    "options": [
+      "В sw зашиты оба значения GPIO",
+      "В светеодиодах нет MMIO",
+      "В sw задан регистр-источник, а не его текущее значение",
+      "SW зависит только от текущего PC"
+    ],
+    "correct": 2,
+    "explanation": "Значение t4 определяется предыдущей программой; код инструкции остаётся 0x01D2A023.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-024",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ROM",
+    "question": "Какая инструкция подготавливает t4=32 для команды ASCII «6»?",
+    "options": [
+      "addi t4, zero, 32",
+      "sw t4, 0(t0)",
+      "jal zero, +28",
+      "lw t6, 0(t0)"
+    ],
+    "correct": 0,
+    "explanation": "По адресу PC=0xF4 находится 0x02000E93: addi t4, zero, 32.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-025",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ROM",
+    "question": "Сколько различных мнемоник встречается в активной части ROM LAB-03?",
+    "options": [
+      "6",
+      "8",
+      "10",
+      "32"
+    ],
+    "correct": 2,
+    "explanation": "В ROM: addi, andi, beq, bne, jal, jalr, lui, lw, srli, sw. 54 nop — заполнение.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-026",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Углублённый",
+    "evidence": "ISA",
+    "question": "Какой младший бит имеет байтовое смещение B-type в базовом RV32I?",
+    "options": [
+      "Всегда 0",
+      "Всегда 1",
+      "Копирует opcode",
+      "Всегда равен rs1[0]"
+    ],
+    "correct": 0,
+    "explanation": "B-immediate кодирует кратные 2 байтам смещения; бит 0 подразумевается равным нулю.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-027",
+    "type": "single",
+    "section": "RV32I · декодирование",
+    "level": "Углублённый",
+    "evidence": "ISA",
+    "question": "Какой регистр обычно хранит адрес возврата после jal ra, offset?",
+    "options": [
+      "x0",
+      "x1",
+      "x5",
+      "x31"
+    ],
+    "correct": 1,
+    "explanation": "ra — это ABI-имя регистра x1. При rd=zero сохранение адреса отбрасывается.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-028",
+    "type": "multiple",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ISA",
+    "question": "Какие инструкции изменяют последовательность PC в зависимости от условия? Выбери все.",
+    "options": [
+      "beq",
+      "bne",
+      "sw",
+      "andi"
+    ],
+    "correct": [
+      0,
+      1
+    ],
+    "explanation": "beq и bne — условные ветвления. sw записывает память, andi вычисляет AND.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-029",
+    "type": "multiple",
+    "section": "RV32I · декодирование",
+    "level": "Углублённый",
+    "evidence": "ROM",
+    "question": "Какие инструкции LAB-03 используют I-type формат? Выбери все.",
+    "options": [
+      "addi",
+      "lw",
+      "jalr",
+      "sw"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "addi, lw и jalr имеют I-type структуру; sw — S-type.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.hex",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-030",
+    "type": "match",
+    "section": "RV32I · декодирование",
+    "level": "Средний",
+    "evidence": "ISA",
+    "question": "Сопоставь тип инструкции и роль immediate.",
+    "options": {
+      "left": [
+        "S-type",
+        "B-type",
+        "J-type",
+        "U-type"
+      ],
+      "right": [
+        "Смещение адреса записи относительно rs1",
+        "PC-относительное смещение условного перехода",
+        "PC-относительное смещение JAL",
+        "Старшие биты 32-битного результата"
+      ]
+    },
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Immediate может иметь принципиально разный смысл даже при 32-битной длине слова.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-031",
+    "type": "match",
+    "section": "RV32I · декодирование",
+    "level": "Базовый",
+    "evidence": "ISA",
+    "question": "Сопоставь мнемонику и действие.",
+    "options": {
+      "left": [
+        "sw",
+        "lw",
+        "beq",
+        "jal"
+      ],
+      "right": [
+        "Записать 32-битное слово в память",
+        "Прочитать 32-битное слово из памяти",
+        "Перейти при равенстве двух регистров",
+        "Выполнить PC-относительный безусловный переход"
+      ]
+    },
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "S/I/B/J выполняют разные операции, хотя каждая инструкция 32-битная.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/docs/lab03/observatory/methodics/ISA_REAL_DATA_RU.md",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-032",
+    "type": "order",
+    "section": "RV32I · декодирование",
+    "level": "Углублённый",
+    "evidence": "ROM",
+    "question": "Упорядочи логические действия программы при UART-команде «4».",
+    "options": [
+      "Сравнить символ с ASCII 52",
+      "Загрузить t4=8",
+      "Перейти jal к общему обработчику",
+      "Выполнить sw в LED MMIO"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "В программе LAB-03 сравнение выполняется при PC=0x84, формирование маски при 0xDC, jal при 0xE4, sw при 0x100.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.S",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-033",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Базовый",
+    "evidence": "RTL",
+    "question": "Какова тактовая частота SoC в проекте Tang Nano 9K?",
+    "options": [
+      "12 МГц",
+      "27 МГц",
+      "50 МГц",
+      "100 МГц"
+    ],
+    "correct": 1,
+    "explanation": "В RTL и генераторах UART указан CLOCK_HZ=27_000_000.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-034",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Базовый",
+    "evidence": "RTL",
+    "question": "Какова скорость UART в нашем LAB-03?",
+    "options": [
+      "9600 бод",
+      "57600 бод",
+      "115200 бод",
+      "921600 бод"
+    ],
+    "correct": 2,
+    "explanation": "Модули uart_rx_8n1 и uart_tx_8n1 настроены на 115200 бод.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-035",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Какой регистр MMIO возвращает DEVICE_ID=0x5A5A0001?",
+    "options": [
+      "0x20000004",
+      "0x20000008",
+      "0x20000018",
+      "0x20000024"
+    ],
+    "correct": 1,
+    "explanation": "DEVICE_ID находится по 0x20000008; адрес +0x04 относится к CYCLES.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-036",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Какова ёмкость входного аппаратного UART FIFO?",
+    "options": [
+      "2 байта",
+      "4 байта",
+      "8 байт",
+      "128 байт"
+    ],
+    "correct": 1,
+    "explanation": "В SoC объявлен rx_fifo[0:3] и трёхбитный счётчик занятости.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-037",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Какой адрес возвращает регистр UART_RX_STATUS?",
+    "options": [
+      "0x20000010",
+      "0x20000014",
+      "0x20000018",
+      "0x2000001C"
+    ],
+    "correct": 3,
+    "explanation": "UART_RX_STATUS размещён по +0x1C; RX_DATA — по +0x18.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-038",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Какое условие делает транзакцию памяти принятой?",
+    "options": [
+      "mem_valid && mem_ready",
+      "mem_instr && !mem_valid",
+      "mem_valid && !mem_ready",
+      "mem_wstrb==0"
+    ],
+    "correct": 0,
+    "explanation": "PicoRV32 native memory bus завершает передачу по совпадению valid и ready.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/lab03_trace_capture.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-039",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Базовый",
+    "evidence": "RTL",
+    "question": "Какой уровень сигнала зажигает встроенный LED на Tang Nano 9K?",
+    "options": [
+      "Высокий",
+      "Низкий",
+      "Только фронт",
+      "Уровень UART_RX"
+    ],
+    "correct": 1,
+    "explanation": "На плате LED активны низким уровнем: assign led_n = ~leds.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-040",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "На каком адресе доступен TRACE_STATUS LAB-03.2?",
+    "options": [
+      "0x20000000",
+      "0x20000018",
+      "0x20000020",
+      "0x20000038"
+    ],
+    "correct": 2,
+    "explanation": "TRACE_STATUS содержит версию, глубину, статусы и число событий, адрес +0x20.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-041",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Какая глубина буфера событий трассировщика по умолчанию?",
+    "options": [
+      "64",
+      "128",
+      "256",
+      "512"
+    ],
+    "correct": 1,
+    "explanation": "В lab03_trace_capture.v DEPTH=128 записей по 82 бита.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/lab03_trace_capture.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-042",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Углублённый",
+    "evidence": "RTL",
+    "question": "Какое событие НЕ попадает в аппаратный регистратор LAB-03.2?",
+    "options": [
+      "Принятый FETCH",
+      "Принятый LED_WRITE",
+      "Обычное чтение данных UART_RX_STATUS",
+      "Завершающая запись LED MMIO"
+    ],
+    "correct": 2,
+    "explanation": "Трассировщик фильтрует принятые инструкционные чтения и запись LED, но не все данные чтений.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/lab03_trace_capture.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-043",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Какое аппаратное расширение ИСКЛЮЧЕНО в этой конфигурации PicoRV32?",
+    "options": [
+      "RV32I",
+      "Счётчики",
+      "Сжатая ISA (C)",
+      "Загрузка из boot ROM"
+    ],
+    "correct": 2,
+    "explanation": "В параметрах .COMPRESSED_ISA(0); инструкции в данном образце 32-битные.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-044",
+    "type": "single",
+    "section": "SoC · шина и периферия",
+    "level": "Углублённый",
+    "evidence": "RTL",
+    "question": "Разрешено ли в данной конфигурации PicoRV32 выполнение умножения через встроенный M-модуль?",
+    "options": [
+      "Да, ENABLE_MUL=1",
+      "Да, ENABLE_DIV=1",
+      "Нет, ENABLE_MUL=0",
+      "Да, PCPI подключён к внешнему умножителю"
+    ],
+    "correct": 2,
+    "explanation": "Параметр ENABLE_MUL=0; PCPI не подключён (ready=0).",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-045",
+    "type": "multiple",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Какие сигналы реально участвуют в определении FETCH в регистраторе? Выбери все.",
+    "options": [
+      "mem_valid",
+      "mem_ready",
+      "mem_instr",
+      "cpu_trap"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "FETCH требует valid, ready, instr и mem_wstrb=0; cpu_trap в определение не входит.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/lab03_trace_capture.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-046",
+    "type": "multiple",
+    "section": "SoC · шина и периферия",
+    "level": "Углублённый",
+    "evidence": "RTL",
+    "question": "Какие флаги предусмотрены в trace_status? Выбери все.",
+    "options": [
+      "done",
+      "truncated",
+      "overlap",
+      "instruction_retired"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "explanation": "done, truncated и overlap присутствуют, как и wrapped/capturing; instruction_retired не наблюдается.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-047",
+    "type": "match",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Сопоставь MMIO-регистр и адрес.",
+    "options": {
+      "left": [
+        "LED",
+        "UART_TX",
+        "UART_RX_DATA",
+        "TRACE_STATUS"
+      ],
+      "right": [
+        "0x20000000",
+        "0x20000010",
+        "0x20000018",
+        "0x20000020"
+      ]
+    },
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Все адреса определены в picorv32_soc_lab03.v.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-048",
+    "type": "match",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Сопоставь сигналы процессорной шины и смысл.",
+    "options": {
+      "left": [
+        "mem_addr",
+        "mem_wdata",
+        "mem_rdata",
+        "mem_wstrb"
+      ],
+      "right": [
+        "Адрес транзакции",
+        "Данные для записи",
+        "Прочитанные данные",
+        "Побайтовая маска записи"
+      ]
+    },
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "PicoRV32 использует нативный интерфейс памяти с сигналами адреса, данных и write-strobes.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/rtl/picorv32_soc_lab03.v",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-049",
+    "type": "order",
+    "section": "SoC · шина и периферия",
+    "level": "Средний",
+    "evidence": "RTL",
+    "question": "Расположи стадии логического пути команды UART «4» к LED.",
+    "options": [
+      "UART RX принимает ASCII-байт",
+      "RX FIFO предоставляет байт программе",
+      "Прошивка вычисляет маску t4=8",
+      "CPU выполняет запись в MMIO LED"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "В SoC нет прямой привязки UART к LED: прошивка обрабатывает байт и пишет MMIO.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.S",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  },
+  {
+    "id": "PQL-050",
+    "type": "order",
+    "section": "SoC · шина и периферия",
+    "level": "Углублённый",
+    "evidence": "PROTOCOL",
+    "question": "Расположи стадии чтения сохранённой трассы через T3.",
+    "options": [
+      "Программа читает TRACE_STATUS",
+      "Выбирает номер события через TRACE_INDEX",
+      "Читает TRACE_META, TRACE_ADDR, TRACE_VALUE",
+      "Передаёт E:... в UART"
+    ],
+    "correct": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "explanation": "Снимок читается из отдельного RAM наблюдателя через MMIO; сырые события пересылаются текстом.",
+    "source": "https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/feature/picorv32-lab03-uart-trace/01-PicoRV32/firmware/lab03_boot.S",
+    "hint": "Сопоставьте утверждение с адресами, кодировкой или поведением устройства."
+  }
+]

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Интерактивная учебная лаборатория FIFO: очередь, адреса read/write, valid/ready, переполнение, чтение и запись за один такт.">
+<title>FIFO — очередь в FPGA | Интерактивная лаборатория</title>
+<style>
+:root{color-scheme:dark;--bg:#07121d;--card:#122437;--card2:#182d42;--line:#30506a;--txt:#f0f7ff;--mut:#a7bed0;--a:#6bdafc;--b:#60e5b6;--warn:#ffd180;--err:#ffa8a3;--vio:#c6adff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#164466,transparent 38%),radial-gradient(ellipse at 3% 1%,#17294d,transparent 32%),var(--bg);color:var(--txt);font:15px/1.55 "Segoe UI",Arial,sans-serif}a{color:var(--a)}button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--warn);outline-offset:3px}
+main{max-width:1190px;margin:auto;padding:22px 25px 70px}header{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-bottom:19px;border-bottom:1px solid var(--line)}.brand{font-size:12px;font-weight:900;letter-spacing:.18em;color:var(--b)}nav{display:flex;flex-wrap:wrap;gap:9px}nav a{padding:6px 12px;border:1px solid var(--line);border-radius:9px;text-decoration:none;color:var(--mut);font-size:13px}nav a[aria-current]{color:var(--bg);background:var(--a);border-color:var(--a);font-weight:800}
+.hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(290px,.8fr);gap:32px;align-items:center;padding:44px 0 22px}.eyebrow{font-size:12px;letter-spacing:.2em;color:var(--b);font-weight:850;text-transform:uppercase}h1{font-size:clamp(46px,6.3vw,77px);line-height:1.04;letter-spacing:-.065em;margin:12px 0}h1 span{color:var(--a)}.lead{font-size:17px;color:var(--mut);max-width:650px}.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.pill{border:1px solid var(--line);padding:6px 11px;border-radius:30px;font-size:12px;color:var(--mut)}.pill.ok{color:var(--b);border-color:#377e69}.mini{padding:22px;background:linear-gradient(135deg,#173448,#0f1b30);border:1px solid var(--line);border-radius:18px}.mini .caption{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--a)}.flow{display:flex;align-items:center;gap:8px;justify-content:space-between;margin:20px 0 8px}.flow span{background:#234158;border:1px solid #42708a;padding:10px 9px;border-radius:9px;font:800 12px Consolas,monospace;text-align:center}.flow b{color:var(--b)}.hint{color:var(--mut);font-size:12px}
+h2{font-size:25px;letter-spacing:-.03em;margin:0 0 13px}h3{font-size:16px;margin:0 0 10px}.panel{background:linear-gradient(145deg,var(--card),#0d1b2a);border:1px solid var(--line);border-radius:16px;padding:22px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:30px 0 14px}.mut{color:var(--mut)}.small{font-size:13px}.mono{font-family:"Cascadia Code",Consolas,monospace}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{padding:16px;border-radius:12px;background:#162b40;border:1px solid var(--line)}.metric strong{display:block;font-size:24px;color:var(--a);font-variant-numeric:tabular-nums}.metric small{color:var(--mut)}.lab{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,.7fr);gap:15px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:13px}label{display:block;color:var(--mut);font-size:13px;font-weight:700;margin-bottom:5px}input,select{width:100%;background:#091827;border:1px solid #466581;color:#f2f9ff;border-radius:9px;padding:10px 12px}.toggles{display:flex;gap:13px;flex-wrap:wrap;margin:15px 0}.switch{display:flex;align-items:center;gap:7px;color:var(--txt);font-size:13px}.switch input{width:17px;height:17px;accent-color:var(--b)}.buttons{display:flex;flex-wrap:wrap;gap:9px;margin:10px 0 16px}.btn{background:#1a526a;border:1px solid #3d88a4;color:#f2fcff;border-radius:9px;padding:10px 15px;font-weight:800}.btn:hover{background:#24708b}.btn.secondary{background:#172c41;border-color:#42627d}.btn.danger{background:#50343c;border-color:#9a5d64}.notice{font-size:13px;border:1px solid #47708e;background:#133047;border-radius:11px;padding:13px 15px;color:#dcecf6}.notice.warn{border-color:#9a6e42;background:#382c20;color:#ffe3bd}.notice.good{border-color:#408777;background:#16372e;color:#caffea}.memory{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:16px}.cell{position:relative;min-height:108px;border:1px solid #385875;border-radius:12px;background:#102034;padding:10px}.cell.used{border-color:#428b9c;background:#173649}.cell.read{box-shadow:inset 0 0 0 2px var(--warn)}.cell.write{outline:2px dashed var(--b);outline-offset:-5px}.addr{font:11px Consolas,monospace;color:var(--mut)}.byte{font:800 23px Consolas,monospace;margin:10px 0 2px;color:var(--a)}.cell:not(.used) .byte{color:#7791a6}.cell small{display:block;color:var(--mut);font-size:10px}.legend{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 0;color:var(--mut);font-size:12px}.sw{display:inline-block;width:11px;height:11px;vertical-align:middle;margin-right:5px;border:2px solid var(--warn)}.sw.w{border-style:dashed;border-color:var(--b)}.queue{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;min-height:58px}.qitem{padding:10px 14px;background:#193d4f;border:1px solid #3f8d94;border-radius:9px;font:700 14px Consolas,monospace}.qitem:first-child{border-color:var(--warn)}.arrow{color:var(--mut)}.signals{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.signal{border:1px solid var(--line);padding:10px;border-radius:9px;background:#102133}.signal code{display:block;color:var(--mut);font-size:11px}.signal strong{color:var(--a);font:800 19px Consolas,monospace}.signal.error strong{color:var(--err)}.signal.live strong{color:var(--b)}.log{max-height:220px;overflow-y:auto;margin-top:10px;background:#071522;padding:12px;border-radius:9px;border:1px solid var(--line);font:12px/1.8 Consolas,monospace;color:#c6e7f7;white-space:pre-wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:10px;border-bottom:1px solid #30506a;text-align:left}.table th{color:var(--a)}.code{background:#071624;border:1px solid var(--line);padding:17px;border-radius:11px;overflow-x:auto;font:12px/1.75 Consolas,monospace;color:#baf6d8}.foot{padding-top:25px;margin-top:34px;border-top:1px solid var(--line);color:var(--mut);font-size:12px}
+@media(max-width:850px){.hero,.lab,.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:510px){main{padding:16px 13px 50px}.memory{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:15px}.controls{grid-template-columns:1fr}h1{font-size:50px}.flow{flex-wrap:wrap;justify-content:flex-start}}
+</style>
+</head>
+<body><main>
+<header><div class="brand">SIPEED FPGA · DIGITAL DESIGN LAB</div><nav aria-label="Лаборатории"><a href="../../../uart-8n1/v1/demo/index.html">UART</a><a href="../../../lifo-sync/v1/demo/index.html">LIFO</a><a aria-current="page" href="index.html">FIFO</a></nav></header>
+<section class="hero">
+<div><div class="eyebrow">Интерактивный учебный атлас · RTL core v1</div><h1>FIFO <span>очередь</span></h1><p class="lead">First In, First Out — первым пришёл, первым вышел. Разберём аппаратную кольцевую очередь, два указателя, протокол <code>valid/ready</code> и операции за один такт FPGA.</p><div class="pills"><span class="pill ok">Реальный модуль: sync_fifo.v</span><span class="pill">Параметры WIDTH / DEPTH</span><span class="pill">Независимо от UART и SDHC</span></div></div>
+<div class="mini"><div class="caption">ПОЧЕМУ FIFO В HOST-00</div><div class="flow"><span>UART RX</span><b>→</b><span>FIFO</span><b>→</b><span>HELLO</span></div><p class="small mut">Байты приходят по порядку. Если обработчик временно занят, FIFO сохраняет их порядок до чтения. Для передачи работает ещё один FIFO.</p><div class="hint">Физически подтверждён HOST-00.1: UART H → HELLO, 3/3. Этот браузерный атлас сам FPGA не опрашивает.</div></div>
+</section>
+<div class="metrics" aria-label="Статус модели"><div class="metric"><small>Заполнено</small><strong id="mCount">0 / 8</strong></div><div class="metric"><small>Указатель записи</small><strong id="mWrite">0</strong></div><div class="metric"><small>Указатель чтения</small><strong id="mRead">0</strong></div><div class="metric"><small>Такт модели</small><strong id="mCycle">0</strong></div></div>
+<div class="section-title"><h2>01. Пошаговая модель FIFO</h2><span class="mut small">Все операции выполняются по нажатию «Один такт»</span></div>
+<div class="lab">
+<section class="panel" aria-label="Управление и память">
+<div class="controls"><div><label for="data">Вход push_data (HEX)</label><input id="data" value="41" maxlength="4" spellcheck="false" aria-describedby="dataHelp"><div class="hint" id="dataHelp">Байт 00…FF, например 41 = «A»</div></div><div><label for="depth">DEPTH — ёмкость</label><select id="depth"><option value="4">4 слова</option><option value="8" selected>8 слов (по умолчанию RTL)</option><option value="16">16 слов</option></select></div></div>
+<div class="toggles"><label class="switch"><input id="push" type="checkbox" checked> push_valid = 1</label><label class="switch"><input id="pop" type="checkbox"> pop_ready = 1</label></div>
+<div class="buttons"><button id="step" class="btn">▶ Один такт CLK</button><button id="example" class="btn secondary">Пример A → B → C</button><button id="reset" class="btn danger">Сброс</button></div>
+<div class="notice" id="status" role="status" aria-live="polite">Очередь пуста. Отметьте нужные сигналы и выполните один такт.</div>
+<h3 style="margin-top:21px">Кольцевой буфер: физические адреса</h3><div class="memory" id="memory" aria-label="Ячейки FIFO"></div><div class="legend"><span><i class="sw"></i> read_ptr — откуда читать</span><span><i class="sw w"></i> write_ptr — куда писать</span><span>Пустая ячейка может хранить старые биты, но они не считаются данными очереди</span></div>
+<h3 style="margin-top:22px">Логическая очередь: сначала выдаётся левый элемент</h3><div id="logical" class="queue" aria-live="polite"></div>
+</section>
+<aside class="panel"><h3>Сигналы на выбранном такте</h3><p class="mut small">Значения <code>push_ready</code> и <code>pop_valid</code> вычисляются перед фронтом CLK; ошибки фиксируются после такта.</p><div id="signals" class="signals"></div><h3 style="margin-top:20px">Журнал тактов</h3><div id="history" class="log" aria-live="polite"></div></aside>
+</div>
+<div class="section-title"><h2>02. Как работает handshake</h2></div>
+<div class="grid2"><section class="panel"><h3>Принятие записи и чтения</h3><div class="code">do_push = push_valid &amp;&amp; push_ready;
+do_pop  = pop_valid  &amp;&amp; pop_ready;
+
+push_ready = !full || (pop_ready &amp;&amp; pop_valid);
+pop_valid  = !empty;</div><p class="mut small" style="margin-top:13px">Если FIFO полностью заполнен, но в этом же такте читается старый элемент, новую запись всё равно можно принять. Если FIFO пуст, чтение недоступно даже при одновременной записи: прямого обхода (bypass) в нашем RTL нет.</p></section>
+<section class="panel"><h3>Специальные ситуации</h3><table class="table"><thead><tr><th>До такта</th><th>push / pop</th><th>Результат</th></tr></thead><tbody><tr><td>Пусто</td><td>1 / 1</td><td>Запись принята; чтение отклонено (underflow)</td></tr><tr><td>Не пусто, не полно</td><td>1 / 1</td><td>Старый head прочитан, новый tail добавлен</td></tr><tr><td>Полно</td><td>1 / 1</td><td>Оба разрешены, count не меняется</td></tr><tr><td>Полно</td><td>1 / 0</td><td>Новая запись отклонена (overflow)</td></tr></tbody></table></section></div>
+<div class="section-title"><h2>03. Соответствие RTL</h2></div>
+<section class="panel"><p>Показана <b>учебная JavaScript-модель поведения</b> модуля <code>cores/fifo-sync/v1/rtl/sync_fifo.v</code>, а не исполнение Verilog в браузере. Текущий RTL содержит кольцевую память, два указателя и счётчик, синхронно обновляемые одним <code>posedge clk</code>.</p><p class="mut">В RTL <code>overflow</code> и <code>underflow</code> — одноклоковые признаки отклонённых запросов. Ширина счётчика: <code>COUNT_W = $clog2(DEPTH+1)</code>. Для небольших глубин используется асинхронный просмотр головы; автоматическое размещение в BSRAM не гарантируется.</p><div class="code">reg [WIDTH-1:0] memory[0:DEPTH-1];
+reg [PW-1:0] write_ptr, read_ptr;
+reg [COUNT_W-1:0] count_reg;
+
+assign pop_data = empty ? 0 : memory[read_ptr];</div><p class="small" style="margin:14px 0 0"><a href="../rtl/sync_fifo.v">Открыть исходник FIFO</a> · <a href="../tests/tb_sync_fifo.v">Посмотреть testbench</a> · <a href="../../../lifo-sync/v1/demo/index.html">Сравнить с LIFO</a></p></section>
+<footer class="foot">Sipeed-FPGA · HOST-00 · Учебная модель, все данные синтетические. Страница работает офлайн и не записывает данные в FPGA, COM или SD-карту.</footer>
+</main>
+<script>
+"use strict";
+(function(){
+ const el=id=>document.getElementById(id);
+ const model={depth:8,mem:Array(8).fill(null),r:0,w:0,n:0,t:0,last:null,log:[]};
+ const hex=v=>v.toString(16).toUpperCase().padStart(2,"0");
+ const label=v=>v===null?"—":hex(v);
+ const validData=()=>{let s=el("data").value.trim().replace(/^0x/i,"");if(!/^[0-9a-fA-F]{1,2}$/.test(s)){el("data").setCustomValidity("Введите один байт HEX: 00…FF");el("data").reportValidity();return null;}el("data").setCustomValidity("");return parseInt(s,16);};
+ function reset(){model.depth=Number(el("depth").value);model.mem=Array(model.depth).fill(null);model.r=0;model.w=0;model.n=0;model.t=0;model.last=null;model.log=[];show("Сброс: пустая очередь, оба указателя = 0.","good");render();}
+ function flags(pv,pr){let popValid=model.n>0;let pushReady=model.n<model.depth||(pr&&popValid);return{pushValid:pv,popReady:pr,popValid,pushReady,full:model.n===model.depth,empty:model.n===0};}
+ function step(pv,pr,v){
+   let f=flags(pv,pr),old=model.n,oldR=model.r,oldW=model.w;
+   let doPush=pv&&f.pushReady,doPop=pr&&f.popValid,popped=doPop?model.mem[model.r]:null;
+   if(doPush){model.mem[model.w]=v;model.w=(model.w+1)%model.depth;}
+   if(doPop)model.r=(model.r+1)%model.depth;
+   model.n+=Number(doPush)-Number(doPop);model.t++;
+   model.last={...f,overflow:pv&&!f.pushReady,underflow:pr&&!f.popValid,doPush,doPop,popped,old,oldR,oldW};
+   let msg="Такт "+model.t+": "+(doPop?"POP "+hex(popped):pr?"POP отклонён":"без POP")+" / "+(doPush?"PUSH "+hex(v):pv?"PUSH отклонён":"без PUSH")+"; count "+old+" → "+model.n;
+   model.log.unshift(msg);model.log=model.log.slice(0,12);
+   show(msg,model.last.overflow||model.last.underflow?"warn":"good");render();
+ }
+ function show(s,type){el("status").textContent=s;el("status").className="notice "+(type||"");}
+ function render(){
+   el("mCount").textContent=model.n+" / "+model.depth;el("mWrite").textContent=model.w;el("mRead").textContent=model.r;el("mCycle").textContent=model.t;
+   const used=new Set(Array.from({length:model.n},(_,j)=>(model.r+j)%model.depth));
+   el("memory").innerHTML=model.mem.map((v,i)=>'<div class="cell '+(used.has(i)?"used ":"")+(i===model.r?"read ":"")+(i===model.w?"write":"")+'"><span class="addr">адрес '+i+'</span><div class="byte">'+(used.has(i)?label(v):"—")+'</div><small>'+(i===model.r?"READ ":"")+(i===model.w?"WRITE ":"")+(used.has(i)?"· данные":"· свободно")+'</small></div>').join("");
+   let queue=Array.from({length:model.n},(_,j)=>model.mem[(model.r+j)%model.depth]);
+   el("logical").innerHTML=queue.length?queue.map((v,j)=>'<span class="qitem">'+hex(v)+(j===0?' <small>HEAD</small>':'')+'</span>'+(j<queue.length-1?'<span class="arrow">→</span>':'')).join(""):'<span class="mut">Очередь пуста: pop_valid = 0</span>';
+   let pv=el("push").checked,pr=el("pop").checked,f=flags(pv,pr),l=model.last;
+   let items=[["push_valid",Number(pv),pv],["push_ready",Number(f.pushReady),f.pushReady],["pop_valid",Number(f.popValid),f.popValid],["pop_ready",Number(pr),pr],["full",Number(f.full),f.full],["empty",Number(f.empty),f.empty],["overflow",l?Number(l.overflow):0,l&&l.overflow],["underflow",l?Number(l.underflow):0,l&&l.underflow]];
+   el("signals").innerHTML=items.map(x=>'<div class="signal '+((x[0]==="overflow"||x[0]==="underflow")&&x[2]?"error":x[2]?"live":"")+'"><code>'+x[0]+'</code><strong>'+x[1]+'</strong></div>').join("");
+   el("history").textContent=model.log.length?model.log.join("\n"):"Пока тактов нет.";
+ }
+ el("step").addEventListener("click",()=>{let v=validData();if(v!==null)step(el("push").checked,el("pop").checked,v);});
+ el("example").addEventListener("click",()=>{reset();step(true,false,0x41);step(true,false,0x42);step(true,false,0x43);el("data").value="44";el("push").checked=false;el("pop").checked=true;show("В очереди A, B, C. Теперь нажмите «Один такт», чтобы получить A.","good");render();});
+ el("reset").addEventListener("click",reset);
+ el("depth").addEventListener("change",reset);
+ ["push","pop"].forEach(id=>el(id).addEventListener("change",render));
+ el("data").addEventListener("change",()=>el("data").setCustomValidity(""));
+ reset();
+ window.FIFODemo={getState:()=>({depth:model.depth,read:model.r,write:model.w,count:model.n,queue:Array.from({length:model.n},(_,j)=>model.mem[(model.r+j)%model.depth]),cycle:model.t}),step,reset};
+})();
+</script>
+</body></html>

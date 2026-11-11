@@ -1,0 +1,3 @@
+b8e5ee8163f15b3165ad6a61950bfb3554e6a88d04dcca6aa12bde85dd6f72f1  docs/lab04/web-loader/vendor/bundle.js
+47b00870df4591df01a1b4228bfb7bf573b0d1866be5a5e296692a059ebc3ebc  docs/lab04/web-loader/vendor/npm-package.json
+9d7bdbbd3122dd61c5779a91828dcdf52709f00f771d7db7cfbf05940a24d62e  docs/lab04/web-loader/vendor/openFPGALoader.wasm

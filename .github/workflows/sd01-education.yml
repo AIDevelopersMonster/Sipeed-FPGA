@@ -2,13 +2,13 @@ name: SD-01 and SPI-01 independent RTL checks
 on:
   push:
     paths:
-      - "boards/tang-nano-9k/experiments/sd-sector0/**"
-      - "examples/peripherals/spi/**"
+      - "Tang-Nano-9K/boards/tang-nano-9k/experiments/sd-sector0/**"
+      - "Tang-Nano-9K/examples/peripherals/spi/**"
       - ".github/workflows/sd01-education.yml"
   pull_request:
     paths:
-      - "boards/tang-nano-9k/experiments/sd-sector0/**"
-      - "examples/peripherals/spi/**"
+      - "Tang-Nano-9K/boards/tang-nano-9k/experiments/sd-sector0/**"
+      - "Tang-Nano-9K/examples/peripherals/spi/**"
       - ".github/workflows/sd01-education.yml"
 jobs:
   iverilog:
@@ -21,8 +21,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          p=boards/tang-nano-9k/experiments/sd-sector0
-          s=examples/peripherals/spi/01-mode0-byte
+          p=Tang-Nano-9K/boards/tang-nano-9k/experiments/sd-sector0
+          s=Tang-Nano-9K/examples/peripherals/spi/01-mode0-byte
           iverilog -g2012 -s tb_lab05_spi_byte -o /tmp/spi01.vvp "$s/rtl/spi_byte.v" "$s/tests/tb_spi_byte.v"
           vvp /tmp/spi01.vvp | tee /tmp/spi01.log
           grep -q "LAB05_SPI_BYTE_TB_PASS" /tmp/spi01.log

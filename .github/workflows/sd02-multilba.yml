@@ -2,11 +2,11 @@ name: SD-02 Multi-LBA regression
 on:
   push:
     paths:
-      - 'boards/tang-nano-9k/experiments/sd-multilba/**'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/sd-multilba/**'
       - '.github/workflows/sd02-multilba.yml'
   pull_request:
     paths:
-      - 'boards/tang-nano-9k/experiments/sd-multilba/**'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/sd-multilba/**'
       - '.github/workflows/sd02-multilba.yml'
 jobs:
   check:
@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          d=boards/tang-nano-9k/experiments/sd-multilba
+          d=Tang-Nano-9K/boards/tang-nano-9k/experiments/sd-multilba
           iverilog -g2012 -s tb_sd02_multilba -o /tmp/sd02.vvp "$d/rtl/spi_byte.v" "$d/rtl/sd_read_sector.v" "$d/tests/tb_sd02_multilba.v"
           vvp /tmp/sd02.vvp | tee /tmp/sd02.log
           grep -q SD02_MULTI_LBA_TB_PASS /tmp/sd02.log

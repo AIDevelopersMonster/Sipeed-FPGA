@@ -2,19 +2,19 @@ name: LAB-07.2 54MHz scripted preflight
 on:
   push:
     paths:
-      - 'boards/tang-nano-9k/experiments/psram07/tools/prepare_psram07.ps1'
-      - 'boards/tang-nano-9k/experiments/psram07/tools/patch_psram_pll54.ps1'
-      - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
-      - 'boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
-      - 'boards/tang-nano-9k/experiments/psram07/tests/tb_lab07_uart_result.v'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/prepare_psram07.ps1'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/patch_psram_pll54.ps1'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tests/tb_lab07_uart_result.v'
       - '.github/workflows/lab07-clock54-preflight.yml'
   pull_request:
     paths:
-      - 'boards/tang-nano-9k/experiments/psram07/tools/prepare_psram07.ps1'
-      - 'boards/tang-nano-9k/experiments/psram07/tools/patch_psram_pll54.ps1'
-      - 'boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
-      - 'boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
-      - 'boards/tang-nano-9k/experiments/psram07/tests/tb_lab07_uart_result.v'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/prepare_psram07.ps1'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/patch_psram_pll54.ps1'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools/inspect_psram07_fit.ps1'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/rtl/lab07_uart_result.v'
+      - 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tests/tb_lab07_uart_result.v'
       - '.github/workflows/lab07-clock54-preflight.yml'
   workflow_dispatch:
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Parse PS scripts without invoking Gowin
         shell: pwsh
         run: |
-          $folder = 'boards/tang-nano-9k/experiments/psram07/tools'
+          $folder = 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07/tools'
           foreach ($name in @('prepare_psram07.ps1','inspect_psram07_fit.ps1','patch_psram_pll54.ps1')) {
             $tokens = $null
             $errors = $null
@@ -54,7 +54,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $root = 'boards/tang-nano-9k/experiments/psram07'
+          $root = 'Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07'
           $src = Join-Path $env:RUNNER_TEMP 'lab07_pinned_upstream'
           git clone -q https://github.com/zf3/psram-tang-nano-9k.git $src
           if ($LASTEXITCODE -ne 0) { throw 'LAB07_UPSTREAM_CLONE_FAIL' }
@@ -83,7 +83,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          d=boards/tang-nano-9k/experiments/psram07
+          d=Tang-Nano-9K/boards/tang-nano-9k/experiments/psram07
           iverilog -g2012 -s tb_lab07_uart_result -o /tmp/lab07_uart.vvp "$d/rtl/lab07_uart_result.v" "$d/tests/tb_lab07_uart_result.v"
           vvp /tmp/lab07_uart.vvp | tee /tmp/lab07_uart.log
           grep -q LAB07_UART_TB_PASS /tmp/lab07_uart.log
