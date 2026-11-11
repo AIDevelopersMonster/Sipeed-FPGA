@@ -1,5 +1,7 @@
 # Tang Nano 20K — nano-Z80 + CP/Mish: прямой запуск (BOARD PASS)
 
+**[KonSol Transfer GUI — Windows ↔ CP/Mish (KX1/KX2)](KonSol-Transfer/README.md)** — передача файлов, полный каталог microSD, управление файлами через COM25.
+
 **[Команда `U` для загрузки CP/Mish через UART — исходный патч](monitor-u/README.md)** (новый FPGA bitstream пока не собран и не проверен).
 
 [← Каталог сторонних процессоров](../README.md) · [Точное воспроизведение запуска CP/Mish](CPMISH_START_RU.md) · [Видео на YouTube Shorts](https://www.youtube.com/shorts/QhGcYvSqoDw)

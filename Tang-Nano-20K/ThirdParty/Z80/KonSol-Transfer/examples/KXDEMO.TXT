@@ -1,0 +1,2 @@
+KonSol Transfer KX1/KX2 demo on Tang Nano 20K
+Windows <-> CP/Mish via USB UART

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+KXFER_STATE.json
+*.log
+*.tmp
