@@ -132,12 +132,24 @@ def _read_prompt(port, seconds: float) -> str:
     return 'UNKNOWN'
 
 
-def boot_receiver(port_name: str, *, port=None, probe_seconds: float = 4) -> str:
-    """Run already-installed B:KXFER from CP/M prompt without reinstalling.
+def rename_known_file(old: str, new: str, path: Path | None = None) -> bool:
+    """Preserve the exact-length transfer metadata after a successful board rename."""
+    old, new = kx.normalized_name(old), kx.normalized_name(new)
+    statefile = path if path is not None else state_path()
+    state = kx._read_state(statefile)
+    if old not in state:
+        return False
+    state[new] = state.pop(old)
+    kx._save_state(statefile, state)
+    return True
 
-    Leaves a running KX1 receiver in BASIC. This is a command, not a background
-    daemon. Never calls NEW, SAVE, FORMAT, or writes a CP/M image.
+
+def boot_receiver(port_name: str, *, port=None, probe_seconds: float = 4) -> str:
+    """Start installed KX22 from CP/M, or recognize one already running.
+
+    Safe for board storage: it never installs, flashes, or overwrites files.
     """
+    from kx2_client import Manager
     own = port is None
     if own:
         port = kx._open_serial(port_name)
@@ -146,17 +158,19 @@ def boot_receiver(port_name: str, *, port=None, probe_seconds: float = 4) -> str
         protocol.putline('')
         mode = _read_prompt(port, probe_seconds)
         if mode == 'READY':
-            return 'KX1 уже запущен и готов к передаче'
+            Manager(port).probe()
+            return 'KX22 уже запущен на FPGA'
         if mode == 'B':
             protocol.putline('A:')
             mode = _read_prompt(port, probe_seconds)
         if mode == 'A':
-            protocol.putline('BBCBASIC B:KXFER')
+            protocol.putline('BBCBASIC B:KX22')
             protocol.expect('KX1:READY', timeout=35)
-            return 'KX1 запущен с диска B:; COM-порт освобождён'
+            Manager(port).probe()
+            return 'KX22 запущен с диска B: на FPGA'
         if mode == 'BASIC':
-            raise kx.TransferError('Сейчас открыт другой экран BASIC (>). Выйдите командой *BYE и повторите.')
-        raise kx.TransferError('Нет приглашения A>/B> или KX1:READY. Проверьте COM25 и состояние FPGA.')
+            raise kx.TransferError('Открыт другой экран BASIC. Выйдите через *BYE и запустите KX22.')
+        raise kx.TransferError('Нет приглашения A>/B> или KX22:READY. Проверьте COM25 и состояние платы.')
     finally:
         if own:
             port.close()

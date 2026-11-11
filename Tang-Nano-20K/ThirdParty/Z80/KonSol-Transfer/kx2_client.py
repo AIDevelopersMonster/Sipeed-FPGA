@@ -144,3 +144,32 @@ class Manager:
         done = self._await('KX2:DONE:RENAME:')
         if done != 'KX2:DONE:RENAME:' + new:
             raise kx.TransferError('Unexpected rename confirmation: ' + done)
+
+
+# BBC BASIC CP/M OSCLI DIR *.* emits padded 8.3 columns, for example
+# "B: SORT     BBC     B: KXFER    BBC" (multiple entries per line).
+_DIR_ENTRY = re.compile(
+    r"(?<![A-Z0-9_])([AB]):[ \t]*([A-Z0-9_\-]{1,8})(?:\.([A-Z0-9_\-]{1,3})|[ \t]+([A-Z0-9_\-]{1,3}))(?=[ \t\r\n]|$)",
+    re.IGNORECASE,
+)
+
+
+def parse_directory(raw: str, drive: str) -> list[str]:
+    """Extract displayed CP/M 8.3 names from the real BBC BASIC DIR output.
+
+    This never uses the Windows history as a proxy for the FPGA directory.
+    Unsupported/non-8.3 names are left out, rather than guessed.
+    """
+    drive = drive.strip().upper().rstrip(':')
+    if drive not in ('A', 'B'):
+        raise kx.TransferError('Only disks A: / B: are supported')
+    found = set()
+    for match in _DIR_ENTRY.finditer(raw):
+        d, stem, ext1, ext2 = match.groups()
+        ext = ext1 or ext2
+        if d.upper() != drive or not ext:
+            continue
+        name = f'{d.upper()}:{stem.upper()}.{ext.upper()}'
+        if kx.NAME_RE.fullmatch(name):
+            found.add(name)
+    return sorted(found)

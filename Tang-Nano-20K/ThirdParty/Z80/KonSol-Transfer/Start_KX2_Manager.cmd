@@ -1,9 +1,3 @@
 @echo off
-setlocal
-cd /d "%~dp0"
-where py >nul 2>&1
-if not errorlevel 1 (py -3 kx2_gui.py & goto END)
-python kx2_gui.py
-:END
-if errorlevel 1 pause
-endlocal
+rem Compatibility alias: the same one-window KonSol File Commander.
+call "%~dp0Start_KonSol_GUI.cmd"
