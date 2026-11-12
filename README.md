@@ -16,6 +16,12 @@
 
 **Комплектация:** Tang Primer 25K + Dock. Новый исследовательский стенд для PicoRV32, VexRiscv, собственного RV32I, системной памяти и процессорных измерений. **Статус: структура создана, аппаратные испытания не проводились.**
 
+## Tang Primer 20K — отдельная FPGA лаборатория
+
+**[ОТКРЫТЬ TANG PRIMER 20K →](Tang-Primer-20K/README.md)** · **[Начало работы](Tang-Primer-20K/START_HERE_RU.md)** · **[PR20-00: первый запуск](Tang-Primer-20K/Examples/PR20-00-Board-Bringup/README.md)**
+
+**Плата:** Sipeed Tang Primer 20K + Dock, FPGA **GOWIN GW2A-LV18**. Отдельная ветка исследований процессоров, видеосистемы, DDR3 и интерфейсов с последующим переносом идей PiKoSoL/KonSol. **Статус: структура создана, испытаний на этой плате ещё нет.** Не путать с Tang Primer 25K (GW5A-LV25) и Tang Nano 20K.
+
 ## Tang Nano 20K — начните здесь
 
 **[ОТКРЫТЬ ПРОЕКТ TANG NANO 20K →](Tang-Nano-20K/README.md)**
