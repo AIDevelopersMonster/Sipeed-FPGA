@@ -445,7 +445,7 @@ A>BBCBASIC
 
 ### Пример 3. Уже готовая программа построения графиков
 
-В нашем репозитории есть интерактивный **[KonSol BASIC Graph](KonSol-Transfer/examples/basic-graph/README_RU.md)**:
+В нашем репозитории есть интерактивный **[KonSol BASIC Graph](KonSol-Transfer/examples/basic-graph/README_RU.md)** и [**VGRAPH — цветные графики и теорема Виета**](KonSol-Transfer/examples/basic-graph/VGRAPH_README_RU.md):
 
 - строит декартовы оси прямо в текстовом терминале;
 - отображает `y = a·x² + b·x + c`;
