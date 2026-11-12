@@ -1,5 +1,7 @@
 # Tang Nano 20K — nano-Z80 + CP/Mish: прямой запуск (BOARD PASS)
 
+**[Диаграммы Эйлера—Венна в цветном терминале](KonSol-Transfer/examples/euler-venn/README_RU.md)** — четыре примера операций над множествами в BBC BASIC (Z80).
+
 **[BASIC — история языка и справочник BBC BASIC (Z80)](BASIC_HISTORY_AND_BBC_Z80_RU.md)** — переменные, команды, файлы, математические функции, ассемблер и ограничения версии CP/Mish.
 
 **[KonSol Transfer GUI — Windows ↔ CP/Mish (KX1/KX2)](KonSol-Transfer/README.md)** — передача файлов, полный каталог microSD, управление файлами через COM25.
