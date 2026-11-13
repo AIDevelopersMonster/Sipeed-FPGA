@@ -16,7 +16,7 @@ module pikosol20k_top (
     TMDS_rPLL u_pll (.clkin(clk27), .clkout(serial_clk), .lock(pll_locked));
     wire resetn_cpu, resetn_pixel, resetn_serializer;
     pikosol20k_reset_ctrl u_reset (
-        .clk27(clk27), .serial_clk(serial_clk), .pix_clk(pix_clk),
+        .clk27(clk27), .pix_clk(pix_clk),
         .pll_locked(pll_locked), .reset_btn(reset_btn),
         .resetn_cpu(resetn_cpu), .resetn_pixel(resetn_pixel),
         .resetn_serializer(resetn_serializer)
