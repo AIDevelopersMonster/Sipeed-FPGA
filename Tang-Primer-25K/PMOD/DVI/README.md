@@ -110,3 +110,16 @@ Observation criteria: visible image or stable sync = video BOARD PASS; CLI 100% 
 - Operator-reported local SHA256: `9036B515AF77CF2FC2E497DF4731FE67399E8668B7D152574AD9924FA47F8A85` (a local integrity fingerprint; no independently authenticated upstream SHA256 obtained yet).
 - Upstream project declares `Device name=GW5A-25A` and `pn=GW5A-LV25MG121NC1/I0` (device ID `gw5a25a-002`), whereas original Sipeed SVO project declares `GW5A-LV25MG121NES` (ID `gw5a25a-000`). Both use MG121N pins but **identical bitstream compatibility is not proven**. The PNR cmd.do for MCR2 confirms `-p GW5A-25A-MBGA121N-1 -pn GW5A-LV25MG121NC1/I0`. Check bitstream header (part/device/version) and let programmer reject incompatible binaries; never bypass device checking.
 - Pending: inspection of file header, controlled **SRAM-only** programming and visual HDMI observation. **Not BOARD PASS**.
+
+### Arcade MCR2 SRAM test result (2026-11-14)
+
+The operator verified a complete third-party MCR2 bitstream downloaded to Windows:
+
+- File `C:\GitHub\Primer25K_DVI_Independent\mcr2_primer25k.fs`, 7,446,623 bytes; SHA256 `9036B515AF77CF2FC2E497DF4731FE67399E8668B7D152574AD9924FA47F8A85`.
+- Bitstream ASCII header: `Bitstream file`, Gowin `V1.9.11.03 Education (81398)`, `Device: GW5A-25`, `Device Version: A`.
+- `programmer_cli.exe --device GW5A-25A --run 2 --fsFile ... --cable-index 1` recognized `Target Device: GW5A-25A (0x0001281B)`, ran `Operation "SRAM Program"` to 100%, `User Code: 0x0000352A`, `Status Code: 0x70026020`, and `EXIT CODE: 0`.
+- Operator states PMOD DVI plugged into **PMOD2/J6**, yet **NO IMAGE** on monitor. Therefore `SRAM PROGRAM PASS`, `VIDEO BOARD FAIL/UNCONFIRMED` (third such trial). Do not repeat bitstream roulette or declare HDMI hardware defective without measurements.
+- Per [Sipeed Dock schematic](https://dl.sipeed.com/fileList/TANG/Primer_25K/02_Schematic/Tang_Primer_25K_Dock_60033_Schematic.pdf), J6 pins 1/2 are +3V3, pins 3/4 GND, pins 5-12 signal pins. The [third-party MCR2 .cst](https://github.com/alanswx/Arcade-MCR2-TangFPGA/blob/main/mcr2_primer25k/src/mcr2_primer25k.cst) matches HDMI clock H5/J5 and D0 H8/H7, D1 G7/G8, D2 F5/G5; therefore **correct TMDS location is already confirmed**.
+- Sipeed PMOD DVI module schematic (not necessarily the user's exact module revision) includes an on-board +3.3V-to-5V converter for HDMI connector pin 18; a power failure is a hypothesis, **not demonstrated**. Do not touch cramped HDMI connector contacts while powered; use a breakout or safe exposed test pad and a DMM, or a technician, if measuring.
+
+**Next diagnostic stage (no additional firmware):** (1) obtain clear top/side photographs of actual DVI module showing BOTH 2x6 header rows fully seated, pin-1/+3.3V orientation, and cable; (2) ascertain monitor's exact on-screen indication (No Signal / Out of Range / sync-black); (3) validate same monitor HDMI input and cable using already-working Tang Nano 9K or 20K; (4) check +3.3V supply and +5V HDMI if accessible without shorts; (5) only then investigate differential TMDS clock with a suitable oscilloscope or logic-level diagnostic build. Protect the device; only power-off reseating.
