@@ -7,6 +7,9 @@
 
 ## Start here
 
+**[Практический порядок: PMOD → DVI → TF → USB → контроллеры → CPU → ОС → игры](QUICK_START_PLAN.md)**
+
+
 - [Начало работы (RU)](START_HERE_RU.md)
 - [Hardware baseline](Hardware/README.md)
 - [PMOD: modules and inventory](PMOD/README.md) — [TF / microSD (available)](PMOD/TF/README.md)
