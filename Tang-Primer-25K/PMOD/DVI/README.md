@@ -1,5 +1,25 @@
 # PR25-PMOD-02 — DVI video test (Tang Primer 25K + Dock)
 
+## J4 / J5 / J6 to PMOD0 / PMOD1 / PMOD2 mapping
+
+**Canonical mapping for Tang Primer 25K Dock, front side up, USB-A to the left and USB-C to the right:**
+
+| Location | Board PMOD legend | Schematic connector | Sipeed HDMI/SVO RTL | TMDS clock FPGA balls |
+|---|---|---|---|---|
+| Left | **PMOD0** | **J4** | \`tmds_*_0\` | C11 / C10 |
+| Centre | **PMOD1** | **J5** | \`tmds_*_1\` | L5 / K5 |
+| Right | **PMOD2** | **J6** | \`tmds_*_2\` | H5 / J5 |
+
+**Important**: J4/J5/J6 are connector designators, **not** PMOD numbers, and FPGA ball \`J5\` is **not** the connector \`J5\`. There is no PMOD3 on this Dock. PMOD0 = J4 is the user's current DVI installation; it does **not** need to be moved merely to match the source's \`_0\` channel.
+
+Cross-check references:
+
+- [Sipeed Dock schematic](https://dl.sipeed.com/fileList/TANG/Primer_25K/02_Schematic/Tang_Primer_25K_Dock_60033_Schematic.pdf) (connector J4/J5/J6 electrical pin map).
+- [Sipeed Dock underside photo](https://wiki.sipeed.com/hardware/en/tang/tang-primer-25k/assets/25k_dock_bot.jpg): left header G11/D11/B11/C11 = J4, centre A11/E11/K11/L5 = J5, right F5/G7/H8/H5 = J6.
+- [Sipeed official HDMI \`hdmi.cst\`](https://github.com/sipeed/TangPrimer-25K-example/blob/main/hdmi/svo/src/hdmi.cst): \`_0\`, \`_1\`, \`_2\` map to J4, J5, J6 respectively.
+- [Sipeed top-side board photo](https://en.wiki.sipeed.com/hardware/en/tang/tang-primer-25k/primer-25k.html), and [pinout study](https://marsee101.blog.fc2.com/blog-entry-6176.html) for physical position.
+
+
 **Status:** READY TO TEST / NOT YET BOARD PASS.
 
 ## Source
