@@ -1,9 +1,8 @@
 `timescale 1ns/1ps
 // Asynchronous assertion and per-domain synchronized release test.
 module tb_reset_ctrl;
-  reg clk27=0, serial_clk=0, pix_clk=0, pll_locked=0, reset_btn=0;
+  reg clk27=0, pix_clk=0, pll_locked=0, reset_btn=0;
   always #18.5 clk27=~clk27;
-  always #1.35 serial_clk=~serial_clk;
   always #6.75 pix_clk=~pix_clk;
   wire resetn_cpu,resetn_pixel,resetn_serializer;
   pikosol20k_reset_ctrl #(.POR_BITS(4)) dut(
