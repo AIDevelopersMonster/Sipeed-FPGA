@@ -82,3 +82,16 @@ Revisited the exact vendor [hdmi/svo](https://github.com/sipeed/TangPrimer-25K-e
 ### Retest scope
 
 Power off; verify DVI module orientation and alignment in **J4** and HDMI cable/input; power on; repeat vendor binary `programmer_cli.exe --device GW5A-25A --run 2 --fsFile <vendor-hdmi.fs> --cable-index 1`; capture whether monitor shows `No signal`, `Out of range` or a synchronized black screen. This re-test is about physical connectivity and monitor behavior, **not** a new build. If same result, do not repeatedly flash the same bitstream: move to a separately validated video implementation or correct/timing-close SVO as an independent development task.
+
+## Independent prebuilt NESTang port mapping (2026-11-14)
+
+The vendor prebuilt **NESTang** bitstream `nestang-25k/nes.fs.7z` is NOT pin-compatible with PMOD0/J4 for video: its [official `nestang.cst`](https://github.com/sipeed/TangPrimer-25K-example/blob/main/nestang-25k/src/nestang.cst) constrains TMDS output pins to H8/H7, G7/G8, F5/G5, H5/J5: the **right PMOD2/J6** connector, when USB-A is left and USB-C is right. Its SD card signals use G11, C11, D11, B11, i.e. **left PMOD0/J4**. Do not blindly transfer SVO's 3-output mapping to NESTang.
+
+Sipeed `hdmi/svo/hdmi.fs` has **three SVO instances** targeting J4/J5/J6, but repeatedly loads successfully without observed image; firmware is not BOARD PASS. For an independent prebuilt test only:
+
+1. **Power off USB-C**, remove all other PMOD modules, place DVI in **right PMOD2/J6**, ensuring exact 2x6 insertion and power/GND orientation; connect known working HDMI cable and input.
+2. `Set-Location C:\GitHub\TangPrimer-25K-example\nestang-25k`; extract `nes.fs.7z` to `nes.fs` using 7-Zip.
+3. Program **SRAM only** using `programmer_cli.exe --device GW5A-25A --run 2 --fsFile <path-to-nes.fs> --cable-index 1`.
+4. If the monitor shows a signal/palette, **DVI hardware PASS**. If it remains blank, **inconclusive**, because the full NES system needs 40-pin SDRAM and MicroSD; the operator currently lacks SDRAM. No further repeats of SVO binary in this test.
+
+Sources: [vendor NESTang source and prebuilt binary](https://github.com/sipeed/TangPrimer-25K-example/tree/main/nestang-25k), [vendor NESTang README](https://github.com/sipeed/TangPrimer-25K-example/blob/main/nestang-25k/README.md), [Sipeed PMOD DVI documentation](https://wiki.sipeed.com/hardware/en/tang/tang-PMOD/FPGA_PMOD).
