@@ -5,7 +5,6 @@ module pikosol20k_reset_ctrl #(
     parameter integer POR_BITS = 16
 )(
     input wire clk27,
-    input wire serial_clk,
     input wire pix_clk,
     input wire pll_locked,
     input wire reset_btn,
@@ -15,18 +14,24 @@ module pikosol20k_reset_ctrl #(
 );
     wire raw_good = pll_locked && !reset_btn;
 
-    // Three serial edges to release the PHY after PLL lock.
-    (* async_reg = "true", syn_keep = 1 *) reg [2:0] ser_release = 0;
-    always @(posedge serial_clk or negedge raw_good) begin
-        if (!raw_good) ser_release <= 3'b000;
-        else ser_release <= {ser_release[1:0], 1'b1};
-    end
-    assign resetn_serializer = ser_release[2];
+    // Match the official Sipeed Tang Nano 20K / hdmi/src/video_top.v:
+    // hdmi4_rst_n = ~I_rst & pll_lock drives BOTH DVI_TX_Top I_rst_n
+    // and CLKDIV RESETN. These Gowin IP blocks use an async reset.
+    //
+    // STA-3's serial-clocked register ser_release[2] became a launch FF
+    // for OSER10 RESET at the opposite 371.25-MHz clock edge, violating
+    // recovery by 0.672 ns and leaving 4 fast-domain setup endpoints.
+    // Driving vendor reset directly from PLL lock removes this fabricated
+    // high-speed register-to-asynchronous-reset timing relationship.
+    //
+    // IMPORTANT: vendor style is not a formal proof of PLL LOCK reset
+    // release timing; verify STA and real PLL lock/button cycling before
+    // declaring hardware acceptance. No timing exception is added.
+    assign resetn_serializer = raw_good;
 
-    // The CPU reset must NOT asynchronously depend on ser_release[2],
-    // which is clocked at 371.25 MHz.  In STA-2 that created recovery
-    // paths from u_reset/ser_release[2] to por_count PRESET/CPU CLEAR
-    // across unrelated fast/27 MHz domains (WNS -2.403 ns).
+    // The CPU reset must NOT asynchronously depend on serializer logic,
+    // where STA-2 originally had recovery paths to por_count PRESET/CPU
+    // CLEAR across unrelated high-speed/27 MHz domains (WNS -2.403 ns).
     // raw_good asynchronously asserts reset; CPU counter and release
     // deassert synchronously under clk27 after power-on qualification.
     wire sys_raw_good = raw_good;
@@ -44,9 +49,8 @@ module pikosol20k_reset_ctrl #(
     assign resetn_cpu = cpu_release[1];
 
     // Pixel reset similarly has no asynchronous combinational reset input
-    // sourced from the fast serializer or from cpu_release[1].
-    // CLKDIV itself remains disabled until the serializer release signal,
-    // so a valid pixel clock cannot arrive prematurely at power-on.
+    // sourced from CPU or the fast serializer domain. CLKDIV itself is
+    // disabled until PLL lock, per the upstream Sipeed wiring.
     wire pixel_raw_good = raw_good;
     (* async_reg = "true", syn_keep = 1 *) reg [1:0] pixel_release = 0;
     always @(posedge pix_clk or negedge pixel_raw_good) begin
