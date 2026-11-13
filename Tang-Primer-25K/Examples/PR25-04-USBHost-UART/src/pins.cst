@@ -1,0 +1,18 @@
+// Tang Primer 25K Dock 60033, GW5A-25A.
+// Source: Sipeed Dock schematic + official UART example.
+// USB-A is direct to FPGA, 15K hardware pull-downs on D+/D-.
+IO_LOC "clk_50m" E2;
+IO_PORT "clk_50m" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+
+IO_LOC "usb_dp" L6;
+IO_PORT "usb_dp" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+
+IO_LOC "usb_dn" K6;
+IO_PORT "usb_dn" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+
+// USB-C onboard debugger virtual COM bridge (NOT the USB-A host).
+IO_LOC "uart_tx" C3;
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+
+IO_LOC "uart_rx" B3;
+IO_PORT "uart_rx" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
