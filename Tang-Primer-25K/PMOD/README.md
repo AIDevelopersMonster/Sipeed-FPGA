@@ -6,11 +6,13 @@
 
 | PMOD | Назначение | Статус |
 | --- | --- | --- |
-| BTN | Кнопки, GPIO input | Имеется; NOT TESTED |
+| BTN | Кнопки, GPIO input | **BOARD PASS** (в комплекте PMOD-01) |
 | [TF](TF/README.md) | microSD, SPI | Имеется; NOT TESTED |
-| LED | Светодиоды, GPIO output | Имеется; NOT TESTED |
-| DT / DIGTUBE | Цифровой индикатор | Имеется; NOT TESTED |
-| DVI | Видеовывод | Имеется; NOT TESTED |
+| LED | Светодиоды, GPIO output | **BOARD PASS** (PMOD-01) |
+| DT / DIGTUBE | Цифровой индикатор | **BOARD PASS** (PMOD-01) |
+| [DVI](DVI/README.md) | Видеовывод | Имеется; READY TO TEST |
+
+[PMOD-01: аппаратный BOARD PASS и видео](PR25-PMOD-01_SRAM_PROGRAM_PASS_2026-11-13.md) · [YouTube](https://youtu.be/M-A6kIbpd1M)
 
 ## Очередность
 
