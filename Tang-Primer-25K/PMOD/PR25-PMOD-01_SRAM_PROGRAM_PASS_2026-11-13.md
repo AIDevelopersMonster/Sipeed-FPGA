@@ -34,7 +34,7 @@ EXIT CODE: 0
 
 - **JTAG DETECT PASS:** GW5A-25A ID 0x0001281B.
 - **SRAM PROGRAM PASS:** `--run 2`, 100%, exit code 0.
-- **PMOD functional BOARD PASS: PENDING.** Operator has not yet reported DT digits, BTN increment and LED/DIP behavior.
+- **PMOD functional BOARD PASS: CONFIRMED BY OPERATOR.** DT displayed 0; BTN caused digit changes; LED responded to DIP switches (operator confirmed both in the next message).
 - **FPGA Flash:** no Flash operation was requested; operation type explicitly reports SRAM Program.
 - No synthesis/STA result asserted for the prebuilt vendor image.
 
@@ -52,7 +52,13 @@ The expected behavior is taken from [Sipeed's reference README](https://github.c
 
 After SRAM programming, the operator reported that the seven-segment display initially showed `8`, then `0`. In the supplied photograph, the right digit visibly illuminates `0`; the left digit appears dark with passive outlines of the seven segments. This is consistent with successful initialization of the DT display and **confirms a basic displayed output on real hardware**. The reason for the transient `8` has not been established.
 
-**BTN function:** not yet reported.  
-**LED PMOD function:** not yet reported.  
-**Whole PMOD example BOARD PASS:** pending BTN and LED checks.  
+**BTN function:** operator confirmed that digits change upon button presses.  
+**LED PMOD function:** operator confirmed LED response to switches.  
+**Whole PMOD example BOARD PASS: YES** (functional confirmation by operator; detailed independent per-button measurements were not recorded).  
 This observation does not imply verification of all digital-tube segments or all PMOD signals.
+
+## Final closeout
+
+2026-11-13: After reviewing the real DT output, the operator answered **Да** to the combined question whether the digits changed with BTN presses **and** the LEDs reacted to the switches. Thus the vendor's three-module demonstration is marked **BOARD PASS (operator confirmed)**. Exact sequences for all four buttons and all DIP switch combinations were not logged individually and should not be invented.
+
+**Next experiment:** DVI/HDMI PMOD video test using official `hdmi/svo/hdmi.fs.7z` and CLI SRAM-only programming.
