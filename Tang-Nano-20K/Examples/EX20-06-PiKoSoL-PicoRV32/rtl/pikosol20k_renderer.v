@@ -9,6 +9,7 @@ module pikosol20k_renderer (
     input wire de,
     input wire [10:0] px,
     input wire [9:0] py,
+    input wire frame_start, // vertical blanking: raw raster (0,0)
     input wire char_valid,
     output wire char_ready,
     input wire [7:0] char_data,
@@ -145,6 +146,9 @@ module pikosol20k_renderer (
     reg [11:0] ow_live [0:7], oh_live [0:7];
     reg [23:0] color_live [0:7];
     reg [2:0] mode_live [0:7];
+    reg [12:0] x_end_live [0:7], y_end_live [0:7];
+    reg [12:0] x_left_border_live [0:7], y_top_border_live [0:7];
+    reg [12:0] x_right_border_live [0:7], y_bottom_border_live [0:7];
     reg commit_pending;
     integer i;
     always @(posedge pix_clk or negedge resetn_pixel) begin
@@ -157,6 +161,9 @@ module pikosol20k_renderer (
                 ox_live[i] <= 0; oy_live[i] <= 0;
                 ow_live[i] <= 0; oh_live[i] <= 0;
                 color_live[i] <= 0; mode_live[i] <= 0;
+                x_end_live[i] <= 0; y_end_live[i] <= 0;
+                x_left_border_live[i] <= 0; y_top_border_live[i] <= 0;
+                x_right_border_live[i] <= 0; y_bottom_border_live[i] <= 0;
             end
         end else begin
             if (gfx_valid) begin
@@ -174,12 +181,18 @@ module pikosol20k_renderer (
                     endcase
                 end
             end
-            if (de && px == 0 && py == 0 && commit_pending) begin
+            if (frame_start && commit_pending) begin
                 for (i=0; i<8; i=i+1) begin
                     ox_live[i] <= ox_stage[i]; oy_live[i] <= oy_stage[i];
                     ow_live[i] <= ow_stage[i]; oh_live[i] <= oh_stage[i];
                     color_live[i] <= color_stage[i];
                     mode_live[i] <= mode_stage[i];
+                    x_end_live[i] <= {1'b0,ox_stage[i]} + {1'b0,ow_stage[i]};
+                    y_end_live[i] <= {1'b0,oy_stage[i]} + {1'b0,oh_stage[i]};
+                    x_left_border_live[i] <= {1'b0,ox_stage[i]} + 13'd2;
+                    y_top_border_live[i] <= {1'b0,oy_stage[i]} + 13'd2;
+                    x_right_border_live[i] <= {1'b0,ox_stage[i]} + {1'b0,ow_stage[i]} - 13'd2;
+                    y_bottom_border_live[i] <= {1'b0,oy_stage[i]} + {1'b0,oh_stage[i]} - 13'd2;
                 end
                 commit_pending <= (gfx_valid &&
                                   (gfx_index == 6'd15 || gfx_index == 6'd63));
@@ -187,84 +200,124 @@ module pikosol20k_renderer (
         end
     end
 
-    // Graphic selection and LED HUD are combinational; one pixel register
-    // follows before synchronous text RAM/font pipeline and the HDMI PHY.
-    reg [23:0] background;
-    reg shape_hit, shape_border;
-    integer obj;
+    // Native 1280x720 graphics + text pipeline.
+    // Stage 1: eight independent hit tests and text RAM address.
+    // Stage 2: color priority mux and synchronous character BSRAM read.
+    // Stage 3: font ROM read and final color/character alignment.
+    // One coordinate register in the top precedes these three stages.
+    // Frame COMMIT is during blanking, before any active pixel.
+    wire [12:0] x13 = {2'd0,px};
+    wire [12:0] y13 = {3'd0,py};
+    reg [7:0] object_hit_s1;
+    genvar obj;
+    generate for (obj=0;obj<8;obj=obj+1) begin : hit_gen
+        wire inside = mode_live[obj][0] && (ow_live[obj] != 0) &&
+            (oh_live[obj] != 0) &&
+            (x13 >= {1'b0,ox_live[obj]}) &&
+            (x13 < x_end_live[obj]) &&
+            (y13 >= {1'b0,oy_live[obj]}) &&
+            (y13 < y_end_live[obj]);
+        wire border = (x13 < x_left_border_live[obj]) ||
+            (x13 >= x_right_border_live[obj]) ||
+            (y13 < y_top_border_live[obj]) ||
+            (y13 >= y_bottom_border_live[obj]);
+        wire visible = inside && (!mode_live[obj][1] || border) &&
+            (!mode_live[obj][2] || (px[3] ^ py[3]) || border);
+        always @(posedge pix_clk or negedge resetn_pixel) begin
+            if (!resetn_pixel) object_hit_s1[obj] <= 1'b0;
+            else object_hit_s1[obj] <= de && !terminal_mode && visible;
+        end
+    end endgenerate
+
+    reg hud_match_comb, hud_on_comb;
     integer led_idx;
     always @* begin
-        background = 24'h201810;
-        shape_hit = 1'b0;
-        shape_border = 1'b0;
-        if (!terminal_mode) begin
-            background = 24'h302018;
-            for (obj=0; obj<8; obj=obj+1) begin
-                shape_hit = mode_live[obj][0] &&
-                    (ow_live[obj] != 0 && oh_live[obj] != 0) &&
-                    ({1'b0,px} >= {1'b0,ox_live[obj]}) &&
-                    ({1'b0,py} >= {1'b0,oy_live[obj]}) &&
-                    ({1'b0,px} - {1'b0,ox_live[obj]} < {1'b0,ow_live[obj]}) &&
-                    ({1'b0,py} - {1'b0,oy_live[obj]} < {1'b0,oh_live[obj]});
-                shape_border = shape_hit &&
-                    ((px - ox_live[obj] < 2) ||
-                     (py - oy_live[obj] < 2) ||
-                     (ox_live[obj] + ow_live[obj] - px <= 2) ||
-                     (oy_live[obj] + oh_live[obj] - py <= 2));
-                if (shape_hit && (!mode_live[obj][1] || shape_border) &&
-                    (!mode_live[obj][2] || px[3] ^ py[3] || shape_border))
-                    background = color_live[obj];
-            end
-            // Native 720p LED overlay: six bars at top right.
-            for (led_idx=0; led_idx<6; led_idx=led_idx+1) begin
-                if (px >= 11'd862 + led_idx*63 &&
-                    px < 11'd910 + led_idx*63 &&
-                    py >= 10'd20 && py < 10'd54)
-                    background = leds[led_idx] ? 24'h30E030 : 24'h505050;
+        hud_match_comb = 1'b0;
+        hud_on_comb = 1'b0;
+        for (led_idx=0;led_idx<6;led_idx=led_idx+1) begin
+            if (px >= 11'd862 + led_idx*63 &&
+                px < 11'd910 + led_idx*63 &&
+                py >= 10'd20 && py < 10'd54) begin
+                hud_match_comb = 1'b1;
+                hud_on_comb = leds[led_idx];
             end
         end
     end
-
+    reg hud_match_s1, hud_on_s1;
     wire [5:0] text_row = py / 12;
     wire [3:0] glyph_y = py % 12;
     wire [5:0] physical_row = view_base + text_row;
     wire [13:0] text_addr = ({8'd0,physical_row} << 7) +
                             ({8'd0,physical_row} << 5) + {6'd0,px[10:3]};
     wire text_region = terminal_mode || py >= 10'd624;
+    reg [13:0] text_addr_s1;
+    reg [3:0] glyph_y_s1, glyph_y_s2;
+    reg [2:0] bit_s1, bit_s2, bit_s3;
+    reg text_s1, text_s2, text_s3;
+    reg term_s1, term_s2, term_s3;
+    reg [23:0] background_s2, background_s3;
+    reg [7:0] char_q, font_row_q;
 
-    reg [7:0] char_q;
-    reg [7:0] font_row_q;
-    reg [3:0] glyph_y_a;
-    reg [2:0] char_bit_a, char_bit_b;
-    reg [23:0] background_a, background_b;
-    reg text_a, text_b;
-    reg term_a, term_b;
+    // Highest object index wins; no eight-level priority chain between
+    // pixel coordinates and the first pipeline register.
+    reg [23:0] selected_rgb;
+    always @* begin
+        selected_rgb = 24'h302018;
+        casez (object_hit_s1)
+            8'b1???????: selected_rgb = color_live[7];
+            8'b01??????: selected_rgb = color_live[6];
+            8'b001?????: selected_rgb = color_live[5];
+            8'b0001????: selected_rgb = color_live[4];
+            8'b00001???: selected_rgb = color_live[3];
+            8'b000001??: selected_rgb = color_live[2];
+            8'b0000001?: selected_rgb = color_live[1];
+            8'b00000001: selected_rgb = color_live[0];
+            default: ;
+        endcase
+    end
+
+    // Reset-free RAM read process retains Gowin BSRAM and font ROM inference.
     always @(posedge pix_clk) begin
-        if (de && !clearing) char_q <= text_mem[text_addr];
-        // Font ROM has its own synchronous read; neither memory has async reset.
-        font_row_q <= font_mem[{char_q[6:0],glyph_y_a}];
+        if (text_s1) char_q <= text_mem[text_addr_s1];
+        font_row_q <= font_mem[{char_q[6:0],glyph_y_s2}];
     end
     always @(posedge pix_clk or negedge resetn_pixel) begin
         if (!resetn_pixel) begin
-            background_a <= 0; background_b <= 0;
-            char_bit_a <= 0; char_bit_b <= 0; glyph_y_a <= 0;
-            text_a <= 0; text_b <= 0; term_a <= 1; term_b <= 1;
+            hud_match_s1 <= 0; hud_on_s1 <= 0;
+            text_addr_s1 <= 0;
+            glyph_y_s1 <= 0; glyph_y_s2 <= 0;
+            bit_s1 <= 0; bit_s2 <= 0; bit_s3 <= 0;
+            text_s1 <= 0; text_s2 <= 0; text_s3 <= 0;
+            term_s1 <= 1; term_s2 <= 1; term_s3 <= 1;
+            background_s2 <= 0; background_s3 <= 0;
         end else begin
-            // Stage A: address synchronous character RAM and capture scene.
-            background_a <= background;
-            text_a <= de && text_region && !clearing;
-            term_a <= terminal_mode;
-            char_bit_a <= px[2:0];
-            glyph_y_a <= glyph_y;
-            // Stage B: align glyph ROM access with the scene and text bit.
-            background_b <= background_a;
-            text_b <= text_a;
-            term_b <= term_a;
-            char_bit_b <= char_bit_a;
+            hud_match_s1 <= de && !terminal_mode && hud_match_comb;
+            hud_on_s1 <= hud_on_comb;
+            text_addr_s1 <= text_addr;
+            glyph_y_s1 <= glyph_y;
+            bit_s1 <= px[2:0];
+            text_s1 <= de && text_region && !clearing;
+            term_s1 <= terminal_mode;
+
+            if (term_s1)
+                background_s2 <= 24'h201810;
+            else if (hud_match_s1)
+                background_s2 <= hud_on_s1 ? 24'h30E030 : 24'h505050;
+            else
+                background_s2 <= selected_rgb;
+            glyph_y_s2 <= glyph_y_s1;
+            bit_s2 <= bit_s1;
+            text_s2 <= text_s1;
+            term_s2 <= term_s1;
+
+            background_s3 <= background_s2;
+            bit_s3 <= bit_s2;
+            text_s3 <= text_s2;
+            term_s3 <= term_s2;
         end
     end
-    wire ink = font_row_q[7-char_bit_b];
-    assign bgr_out = text_b ?
-        (ink ? 24'hF0F0F0 : (term_b ? 24'h201810 : 24'h181818)) :
-        background_b;
+    wire ink = font_row_q[7-bit_s3];
+    assign bgr_out = text_s3 ?
+        (ink ? 24'hF0F0F0 : (term_s3 ? 24'h201810 : 24'h181818)) :
+        background_s3;
 endmodule
