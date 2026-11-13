@@ -68,6 +68,8 @@ class Contract(unittest.TestCase):
         self.assertIn('always @(posedge serial_clk or negedge raw_good)', reset)
         self.assertIn('wire pixel_raw_good = raw_good;', reset)
         self.assertIn('wire sys_raw_good = raw_good;', reset)
+        self.assertIn('assign resetn_serializer = raw_good;', reset)
+        self.assertNotIn('reg [2:0] ser_release', reset)
         self.assertNotIn('raw_good && resetn_serializer', reset)
         self.assertNotIn('resetn_serializer && resetn_cpu', reset)
         self.assertIn('pikosol20k_reset_ctrl.v', (ROOT / 'gowin_build.tcl').read_text())
