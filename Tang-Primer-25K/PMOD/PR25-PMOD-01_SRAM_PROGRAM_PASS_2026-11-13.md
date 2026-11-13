@@ -47,3 +47,12 @@ EXIT CODE: 0
 The expected behavior is taken from [Sipeed's reference README](https://github.com/sipeed/TangPrimer-25K-example/tree/main/pmod_digitalTube-2bit). For connector order, check [upstream issue #17](https://github.com/sipeed/TangPrimer-25K-example/issues/17).
 
 **Next only after functional confirmation:** PMOD DVI display test.
+
+## Subsequent visual observation (operator photo, 2026-11-13)
+
+After SRAM programming, the operator reported that the seven-segment display initially showed `8`, then `0`. In the supplied photograph, the right digit visibly illuminates `0`; the left digit appears dark with passive outlines of the seven segments. This is consistent with successful initialization of the DT display and **confirms a basic displayed output on real hardware**. The reason for the transient `8` has not been established.
+
+**BTN function:** not yet reported.  
+**LED PMOD function:** not yet reported.  
+**Whole PMOD example BOARD PASS:** pending BTN and LED checks.  
+This observation does not imply verification of all digital-tube segments or all PMOD signals.
