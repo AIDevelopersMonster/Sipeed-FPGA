@@ -66,7 +66,10 @@ class Contract(unittest.TestCase):
         self.assertIn('.I_rst_n(resetn_serializer)', top)
         self.assertNotIn('pix_reset_request_n', top)
         self.assertIn('always @(posedge serial_clk or negedge raw_good)', reset)
-        self.assertIn('wire pixel_raw_good = resetn_serializer && resetn_cpu;', reset)
+        self.assertIn('wire pixel_raw_good = raw_good;', reset)
+        self.assertIn('wire sys_raw_good = raw_good;', reset)
+        self.assertNotIn('raw_good && resetn_serializer', reset)
+        self.assertNotIn('resetn_serializer && resetn_cpu', reset)
         self.assertIn('pikosol20k_reset_ctrl.v', (ROOT / 'gowin_build.tcl').read_text())
 
     def test_six_narrow_cdc_exceptions(self):
