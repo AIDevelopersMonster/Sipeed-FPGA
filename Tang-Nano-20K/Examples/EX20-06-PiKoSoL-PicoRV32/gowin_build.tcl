@@ -3,6 +3,7 @@ set_device -name GW2AR-18C GW2AR-LV18QN88C8/I7
 add_file constraints/pikosol20k.cst
 add_file constraints/pikosol20k.sdc
 add_file rtl/pikosol20k_top.v
+add_file rtl/pikosol20k_reset_ctrl.v
 add_file rtl/pikosol20k_renderer.v
 add_file rtl/pikosol20k_cpu_soc.v
 add_file rtl/pikosol20k_video_cmd_cdc.v
