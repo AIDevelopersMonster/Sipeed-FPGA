@@ -11,38 +11,23 @@ module pikosol20k_top (
     output wire tmds_clk_p, output wire tmds_clk_n,
     output wire [2:0] tmds_d_p, output wire [2:0] tmds_d_n
 );
-    // Keep the CPU running on its validated 27 MHz crystal initially.
-    // ROM/RAM/video descriptors are enlarged; future PLL clock is independent.
-    reg [15:0] por_count = 16'hffff;
-    reg [1:0] cpu_release = 2'b00;
-    always @(posedge clk27 or posedge reset_btn) begin
-        if (reset_btn) begin
-            por_count <= 16'hffff;
-            cpu_release <= 2'b00;
-        end else begin
-            if (por_count != 0) por_count <= por_count - 1'b1;
-            cpu_release <= {cpu_release[0], (por_count == 0)};
-        end
-    end
-    wire resetn_cpu = cpu_release[1];
-
-    // Pin-compatible Sipeed 20K HDMI PHY, unchanged from EX20-05.16.
+    // Retain PicoRV32 at 27 MHz; the 720p video/serializer clock is separate.
     wire serial_clk, pix_clk, pll_locked;
     TMDS_rPLL u_pll (.clkin(clk27), .clkout(serial_clk), .lock(pll_locked));
-    wire pix_reset_request_n = pll_locked && resetn_cpu;
+    wire resetn_cpu, resetn_pixel, resetn_serializer;
+    pikosol20k_reset_ctrl u_reset (
+        .clk27(clk27), .serial_clk(serial_clk), .pix_clk(pix_clk),
+        .pll_locked(pll_locked), .reset_btn(reset_btn),
+        .resetn_cpu(resetn_cpu), .resetn_pixel(resetn_pixel),
+        .resetn_serializer(resetn_serializer)
+    );
+    // CLKDIV and TMDS 8b/10b reset no longer depend on CPU release timing.
     CLKDIV u_clkdiv (
-        .RESETN(pix_reset_request_n),
+        .RESETN(resetn_serializer),
         .HCLKIN(serial_clk), .CLKOUT(pix_clk), .CALIB(1'b1)
     );
     defparam u_clkdiv.DIV_MODE = "5";
     defparam u_clkdiv.GSREN = "false";
-
-    reg [1:0] pixel_release = 2'b00;
-    always @(posedge pix_clk or negedge pix_reset_request_n) begin
-        if (!pix_reset_request_n) pixel_release <= 2'b00;
-        else pixel_release <= {pixel_release[0], 1'b1};
-    end
-    wire resetn_pixel = pixel_release[1];
 
     wire [5:0] led_mask_cpu, led_mask_pixel;
     wire wr_valid, wr_ready, pix_gfx_valid;
@@ -98,13 +83,23 @@ module pikosol20k_top (
     wire vs = vcount < 12'd5;
     wire de = hcount >= 12'd260 && hcount < 12'd1540 &&
               vcount >= 12'd25 && vcount < 12'd745;
-    wire [10:0] px = hcount - 12'd260;
-    wire [9:0] py = vcount - 12'd25;
-
+    // Register the active pixel coordinates BEFORE the object comparators.
+    reg [10:0] px_q;
+    reg [9:0] py_q;
+    reg de_q;
+    always @(posedge pix_clk or negedge resetn_pixel) begin
+        if (!resetn_pixel) begin px_q<=0; py_q<=0; de_q<=0; end
+        else begin
+            px_q <= hcount - 12'd260;
+            py_q <= vcount - 12'd25;
+            de_q <= de;
+        end
+    end
+    wire frame_start = hcount == 12'd0 && vcount == 12'd0;
     wire [23:0] bgr;
     pikosol20k_renderer u_scene (
         .pix_clk(pix_clk), .resetn_pixel(resetn_pixel),
-        .de(de), .px(px), .py(py),
+        .de(de_q), .px(px_q), .py(py_q), .frame_start(frame_start),
         .char_valid(tty_valid), .char_ready(tty_ready),
         .char_data(tty_byte), .cpu_clk(clk27), .resetn_cpu(resetn_cpu),
         .gfx_valid(pix_gfx_valid), .gfx_index(pix_gfx_index),
@@ -112,23 +107,25 @@ module pikosol20k_top (
         .bgr_out(bgr)
     );
 
-    // The text renderer has two synchronous video pipeline stages.
-    reg hs_d1, hs_d2, vs_d1, vs_d2, de_d1, de_d2;
+    // One registered coordinate stage + three renderer stages = 4 cycles.
+    reg hs_d1, hs_d2, hs_d3, hs_d4;
+    reg vs_d1, vs_d2, vs_d3, vs_d4;
+    reg de_d1, de_d2, de_d3, de_d4;
     always @(posedge pix_clk or negedge resetn_pixel) begin
         if (!resetn_pixel) begin
-            hs_d1<=0; hs_d2<=0;
-            vs_d1<=0; vs_d2<=0;
-            de_d1<=0; de_d2<=0;
+            hs_d1<=0; hs_d2<=0; hs_d3<=0; hs_d4<=0;
+            vs_d1<=0; vs_d2<=0; vs_d3<=0; vs_d4<=0;
+            de_d1<=0; de_d2<=0; de_d3<=0; de_d4<=0;
         end else begin
-            hs_d1<=hs; hs_d2<=hs_d1;
-            vs_d1<=vs; vs_d2<=vs_d1;
-            de_d1<=de; de_d2<=de_d1;
+            hs_d1<=hs; hs_d2<=hs_d1; hs_d3<=hs_d2; hs_d4<=hs_d3;
+            vs_d1<=vs; vs_d2<=vs_d1; vs_d3<=vs_d2; vs_d4<=vs_d3;
+            de_d1<=de; de_d2<=de_d1; de_d3<=de_d2; de_d4<=de_d3;
         end
     end
     DVI_TX_Top u_hdmi (
-        .I_rst_n(pix_reset_request_n),
+        .I_rst_n(resetn_serializer),
         .I_serial_clk(serial_clk), .I_rgb_clk(pix_clk),
-        .I_rgb_vs(vs_d2), .I_rgb_hs(hs_d2), .I_rgb_de(de_d2),
+        .I_rgb_vs(vs_d4), .I_rgb_hs(hs_d4), .I_rgb_de(de_d4),
         .I_rgb_r(bgr[7:0]), .I_rgb_g(bgr[15:8]), .I_rgb_b(bgr[23:16]),
         .O_tmds_clk_p(tmds_clk_p), .O_tmds_clk_n(tmds_clk_n),
         .O_tmds_data_p(tmds_d_p), .O_tmds_data_n(tmds_d_n)
