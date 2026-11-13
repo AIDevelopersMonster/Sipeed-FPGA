@@ -9,6 +9,7 @@
 
 - [Начало работы (RU)](START_HERE_RU.md)
 - [Hardware baseline](Hardware/README.md)
+- [PMOD: modules and inventory](PMOD/README.md) — [TF / microSD (available)](PMOD/TF/README.md)
 - [PR25-00: Board Bring-up](Examples/PR25-00-Board-Bringup/README.md)
 - [PR25-01: PicoRV32](Examples/PR25-01-PicoRV32/README.md)
 - [PR25-02: VexRiscv](Examples/PR25-02-VexRiscv/README.md)
