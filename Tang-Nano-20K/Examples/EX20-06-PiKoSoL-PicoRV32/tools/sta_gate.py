@@ -40,6 +40,23 @@ def analyze(report_path, log_path, sdc_path, fs_path):
     hold_viol = int(number(r'Numbers of Hold Violated Endpoints\s+(\d+)', 'hold violations'))
     pix_fmax = number(r'pix_clk\s+74\.250\(MHz\)\s+([\d.]+)\(MHz\)', 'pixel Fmax')
     slacks = {name:first_slack(data,name) for name in ('Setup','Hold','Recovery','Removal')}
+    # The first twenty-five report_timing paths can be positive even when
+    # the global STA tool summary records violations. Inspect the per-clock
+    # Total Negative Slack (TNS) table INDEPENDENTLY of the first listed path.
+    tns_table = re.search(
+        r'Total Negative Slack Summary:\s*Clock Name Analysis Type '
+        r'Endpoints TNS Number of Endpoints\s*(.*?)\s*Timing Details',
+        data, flags=re.S)
+    if not tns_table:
+        raise ValueError('Missing per-clock TNS summary')
+    tns_rows = re.findall(
+        r'(clk27|pix_clk|u_pll/rpll_inst/CLKOUT\.default_gen_clk)\s+'
+        r'(Setup|Hold)\s+(-?\d+(?:\.\d+)?)\s+(\d+)',
+        tns_table.group(1))
+    if len(tns_rows) != 6:
+        raise ValueError(f'Incomplete TNS table ({len(tns_rows)}/6 clocks x types)')
+    clock_tns = {clock+'_'+kind.lower():{'tns_ns':float(tns),'violated_endpoints':int(count)}
+                 for clock,kind,tns,count in tns_rows}
     expected = [line.strip() for line in sdc.splitlines() if line.strip().startswith('set_false_path')]
     if len(expected) != 6 or any('get_clocks' in line for line in expected):
         raise ValueError('Unexpected CDC SDC policy; expected 6 first-stage exceptions')
@@ -52,6 +69,7 @@ def analyze(report_path, log_path, sdc_path, fs_path):
     active = {entry['command'] for entry in exceptions if entry['state']=='Actived'}
     checks={
         'setup_zero':setup_viol==0,
+        'all_clock_TNS_zero':all(row['tns_ns'] >= 0 and row['violated_endpoints'] == 0 for row in clock_tns.values()),
         'hold_zero':hold_viol==0,
         'setup_WNS_nonnegative':slacks['Setup']>=0,
         'hold_WNS_nonnegative':slacks['Hold']>=0,
@@ -71,6 +89,7 @@ def analyze(report_path, log_path, sdc_path, fs_path):
         'hold_violated_endpoints':hold_viol,
         'pixel_fmax_MHz':pix_fmax,
         'worst_slacks_ns':slacks,
+        'clock_tns':clock_tns,
         'cdc_exceptions':exceptions,
         'routing_warnings':[w for w in ('PR1014','TA1117') if w in log],
         'checks':checks,
