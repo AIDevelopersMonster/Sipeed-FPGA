@@ -211,7 +211,7 @@ module pikosol20k_renderer (
     reg [7:0] object_hit_s1;
     genvar obj;
     generate for (obj=0;obj<8;obj=obj+1) begin : hit_gen
-        wire inside = mode_live[obj][0] && (ow_live[obj] != 0) &&
+        wire obj_inside = mode_live[obj][0] && (ow_live[obj] != 0) &&
             (oh_live[obj] != 0) &&
             (x13 >= {1'b0,ox_live[obj]}) &&
             (x13 < x_end_live[obj]) &&
@@ -221,7 +221,7 @@ module pikosol20k_renderer (
             (x13 >= x_right_border_live[obj]) ||
             (y13 < y_top_border_live[obj]) ||
             (y13 >= y_bottom_border_live[obj]);
-        wire visible = inside && (!mode_live[obj][1] || border) &&
+        wire visible = obj_inside && (!mode_live[obj][1] || border) &&
             (!mode_live[obj][2] || (px[3] ^ py[3]) || border);
         always @(posedge pix_clk or negedge resetn_pixel) begin
             if (!resetn_pixel) object_hit_s1[obj] <= 1'b0;
