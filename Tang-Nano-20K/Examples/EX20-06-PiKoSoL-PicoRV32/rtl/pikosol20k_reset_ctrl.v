@@ -23,9 +23,13 @@ module pikosol20k_reset_ctrl #(
     end
     assign resetn_serializer = ser_release[2];
 
-    // CPU cannot start (or keep pending CDC toggles) while pixel PLL is
-    // unlocked. ROM and UART are released after the power-on qualification.
-    wire sys_raw_good = raw_good && resetn_serializer;
+    // The CPU reset must NOT asynchronously depend on ser_release[2],
+    // which is clocked at 371.25 MHz.  In STA-2 that created recovery
+    // paths from u_reset/ser_release[2] to por_count PRESET/CPU CLEAR
+    // across unrelated fast/27 MHz domains (WNS -2.403 ns).
+    // raw_good asynchronously asserts reset; CPU counter and release
+    // deassert synchronously under clk27 after power-on qualification.
+    wire sys_raw_good = raw_good;
     reg [POR_BITS-1:0] por_count = {POR_BITS{1'b1}};
     (* async_reg = "true", syn_keep = 1 *) reg [1:0] cpu_release = 0;
     always @(posedge clk27 or negedge sys_raw_good) begin
@@ -39,7 +43,11 @@ module pikosol20k_reset_ctrl #(
     end
     assign resetn_cpu = cpu_release[1];
 
-    wire pixel_raw_good = resetn_serializer && resetn_cpu;
+    // Pixel reset similarly has no asynchronous combinational reset input
+    // sourced from the fast serializer or from cpu_release[1].
+    // CLKDIV itself remains disabled until the serializer release signal,
+    // so a valid pixel clock cannot arrive prematurely at power-on.
+    wire pixel_raw_good = raw_good;
     (* async_reg = "true", syn_keep = 1 *) reg [1:0] pixel_release = 0;
     always @(posedge pix_clk or negedge pixel_raw_good) begin
         if (!pixel_raw_good) pixel_release <= 2'b00;
