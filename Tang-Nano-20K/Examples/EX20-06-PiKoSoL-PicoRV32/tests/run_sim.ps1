@@ -1,55 +1,43 @@
-# Icarus renderer smoke simulation. No Gowin IP and no FPGA programming.
+# PiKoSoL 20K: two Icarus tests, never programs FPGA.
 [CmdletBinding()]
-param(
-  [string]$Iverilog = '',
-  [string]$Vvp = ''
-)
-$ErrorActionPreference = 'Stop'
-
-# The project used MSYS2 UCRT64 Icarus Verilog 13.0 on the 9K labs.
-# Worktrees and fresh PowerShell windows may not inherit the old PATH.
-function Resolve-IcarusTool {
-  param([string]$Name, [string]$Explicit)
-  if ($Explicit) {
-    if (-not (Test-Path -LiteralPath $Explicit -PathType Leaf)) {
-      throw "Specified $Name does not exist: $Explicit"
-    }
-    return (Resolve-Path -LiteralPath $Explicit).Path
+param([string]$Iverilog='', [string]$Vvp='')
+$ErrorActionPreference='Stop'
+function Resolve-HdlTool([string]$name,[string]$specified) {
+  if ($specified) {
+    if(-not(Test-Path -LiteralPath $specified -PathType Leaf)){throw "Missing $name : $specified"}
+    return (Resolve-Path -LiteralPath $specified).Path
   }
-  $command = Get-Command $Name -CommandType Application -ErrorAction SilentlyContinue
-  if ($command) { return $command.Source }
-  $known = "C:\msys64\ucrt64\bin\$Name.exe"
-  if (Test-Path -LiteralPath $known -PathType Leaf) { return $known }
-  throw "Cannot find $Name.exe. Expected C:\msys64\ucrt64\bin\$Name.exe, or supply -$Name <full-path>."
+  $c=Get-Command $name -CommandType Application -ErrorAction SilentlyContinue
+  if($c){return $c.Source}
+  $known="C:\msys64\ucrt64\bin\$name.exe"
+  if(Test-Path -LiteralPath $known -PathType Leaf){return $known}
+  throw "Missing $name.exe, expected $known or use -$name full-path"
 }
-
-$Compiler = Resolve-IcarusTool -Name 'iverilog' -Explicit $Iverilog
-$Runner   = Resolve-IcarusTool -Name 'vvp' -Explicit $Vvp
-Write-Host "ICARUS_COMPILER=$Compiler"
-Write-Host "ICARUS_RUNNER=$Runner"
-# Ensure MSYS2 dependencies are discoverable for both executables.
-$env:Path = "$(Split-Path -Parent $Compiler);$(Split-Path -Parent $Runner);$env:Path"
-
-$root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$repo = (Resolve-Path (Join-Path $root '..\..\..')).Path
-$font = Join-Path $repo '01-PicoRV32\lab04\rtl\lab04_font_8x12.hex'
-$cdc = Join-Path $repo '01-PicoRV32\lab04\rtl\lab04_tty_byte_cdc.v'
-foreach ($source in @($font, $cdc, (Join-Path $root 'tests\tb_renderer.v'), (Join-Path $root 'rtl\pikosol20k_renderer.v'))) {
-  if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "RTL input missing: $source" }
-}
-$temp = Join-Path $root 'build\icarus'
+$compiler=Resolve-HdlTool 'iverilog' $Iverilog
+$runner=Resolve-HdlTool 'vvp' $Vvp
+$env:Path="$(Split-Path -Parent $compiler);$(Split-Path -Parent $runner);$env:Path"
+$root=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$repo=(Resolve-Path (Join-Path $root '..\..\..')).Path
+$font=Join-Path $repo '01-PicoRV32\lab04\rtl\lab04_font_8x12.hex'
+$cdc=Join-Path $repo '01-PicoRV32\lab04\rtl\lab04_tty_byte_cdc.v'
+$temp=Join-Path $root 'build\icarus'
 New-Item -ItemType Directory -Force -Path $temp | Out-Null
+if(-not(Test-Path -LiteralPath $font)){throw "Missing font: $font"}
+if(-not(Test-Path -LiteralPath $cdc)){throw "Missing CDC: $cdc"}
 Copy-Item -LiteralPath $font -Destination (Join-Path $temp 'lab04_font_8x12.hex') -Force
 Push-Location $temp
 try {
-  $output = Join-Path $temp 'renderer.vvp'
-  if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -Force }
-  & $Compiler -g2012 -s tb_renderer -o $output `
-      (Join-Path $root 'tests\tb_renderer.v') `
-      (Join-Path $root 'rtl\pikosol20k_renderer.v') $cdc
-  if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $output -PathType Leaf)) {
-    throw 'Icarus compile failed; no successful simulation may be claimed'
+  foreach($test in @('renderer','reset_ctrl')){
+    $out=Join-Path $temp "$test.vvp"
+    if(Test-Path $out){Remove-Item $out -Force}
+    if($test -eq 'renderer'){
+      $sources=@((Join-Path $root 'tests\tb_renderer.v'),(Join-Path $root 'rtl\pikosol20k_renderer.v'),$cdc)
+    } else {
+      $sources=@((Join-Path $root 'tests\tb_reset_ctrl.v'),(Join-Path $root 'rtl\pikosol20k_reset_ctrl.v'))
+    }
+    & $compiler -g2012 -s "tb_$test" -o $out @sources
+    if($LASTEXITCODE -ne 0 -or -not(Test-Path -LiteralPath $out -PathType Leaf)){throw "Icarus compile failed: $test"}
+    & $runner $out
+    if($LASTEXITCODE -ne 0){throw "Icarus simulation failed: $test"}
   }
-  & $Runner $output
-  if ($LASTEXITCODE -ne 0) { throw 'Icarus RTL simulation failed' }
-} finally { Pop-Location }
+} finally {Pop-Location}
