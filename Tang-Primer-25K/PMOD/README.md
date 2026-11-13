@@ -14,7 +14,7 @@
 
 ## Очередность
 
-1. Быстрый тест LED, BTN, DT.
+1. Быстрый тест BTN, DT, LED: [официальный проект Sipeed](https://github.com/sipeed/TangPrimer-25K-example/tree/main/pmod_digitalTube-2bit). При USB-A слева, USB-C справа и PMOD снизу: BTN слева, DT по центру, LED справа ([уточнение порядка](https://github.com/sipeed/TangPrimer-25K-example/issues/17)).
 2. Проверка DVI (тестовая картинка).
 3. Проверка TF/microSD (чтение через SPI).
 4. USB-A Dock (USB Host при наличии и проверке RTL).
@@ -23,3 +23,5 @@
 [Практический план](../QUICK_START_PLAN.md).
 
 Не использовать неподтвержденную распиновку. FPGA сначала программировать в SRAM. Отчёты SIM / BUILD / STA / BOARD PASS фиксируются только после соответствующих проверок.
+
+**SDRAM:** модуль TANG SDRAM V1.3 заказан, ожидается ориентировочно через две недели. Это не PMOD, испытания PMOD не задерживаются.
