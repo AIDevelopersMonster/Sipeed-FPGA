@@ -1,10 +1,10 @@
 # Tang Primer 25K — быстрый практический запуск
 
-**Имеется:** Primer 25K + Dock и ровно пять типов PMOD: BTN, TF, LED, DT (DIGTUBE), DVI. Количество экземпляров каждого типа не уточняется. OV5640 отсутствует. USB-A расположен на Dock.
+**Заказано, пока не получено:** TANG SDRAM V1.3, ориентировочная доставка через две недели; не блокирует проверку PMOD.\n\n**Имеется:** Primer 25K + Dock и ровно пять типов PMOD: BTN, TF, LED, DT (DIGTUBE), DVI. Количество экземпляров каждого типа не уточняется. OV5640 отсутствует. USB-A расположен на Dock.
 
 | Шаг | Что запускаем | Результат |
 |---|---|---|
-| 1 | PMOD LED, BTN, DIGTUBE через GPIO платы | Светодиод, кнопки, цифры |
+| 1 | Официальный Sipeed `pmod_digitalTube-2bit`: BTN слева, DT по центру, LED справа (USB-A слева, USB-C справа, PMOD снизу) | Проверка кнопок, индикатора и LED |
 | 2 | PMOD DVI | Картинка на мониторе |
 | 3 | PMOD TF / microSD | Прочитан сектор CMD17 |
 | 4 | USB-A Dock / USB Host | Обнаружена HID клавиатура, получены события |
@@ -19,3 +19,5 @@
 USB-A как разъём сам по себе не доказывает работоспособность host-контроллера: потребуется соответствующее RTL и тест на плате. Внешняя SDRAM не подтверждена. Программировать сначала только SRAM.
 
 **Status: PLAN / NOT TESTED.**
+
+**Источник первого теста:** https://github.com/sipeed/TangPrimer-25K-example/tree/main/pmod_digitalTube-2bit . Исправленный порядок модулей: https://github.com/sipeed/TangPrimer-25K-example/issues/17 . Отдельный `pmod_led` имеет замечания к pinout: https://github.com/sipeed/TangPrimer-25K-example/issues/11 . Сверить constraints перед программированием, загрузка только в SRAM.
