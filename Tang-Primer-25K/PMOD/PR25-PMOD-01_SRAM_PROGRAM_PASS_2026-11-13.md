@@ -62,3 +62,7 @@ This observation does not imply verification of all digital-tube segments or all
 2026-11-13: After reviewing the real DT output, the operator answered **Да** to the combined question whether the digits changed with BTN presses **and** the LEDs reacted to the switches. Thus the vendor's three-module demonstration is marked **BOARD PASS (operator confirmed)**. Exact sequences for all four buttons and all DIP switch combinations were not logged individually and should not be invented.
 
 **Next experiment:** DVI/HDMI PMOD video test using official `hdmi/svo/hdmi.fs.7z` and CLI SRAM-only programming.
+
+## Видео аппаратной демонстрации
+
+- [Tang Primer 25K — первый BOARD PASS, BTN + DT + LED (YouTube)](https://youtu.be/M-A6kIbpd1M) — ссылка предоставлена оператором 2026-11-13. Содержание ролика отдельно не проверялось.
