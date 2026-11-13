@@ -47,9 +47,9 @@ class Contract(unittest.TestCase):
     def test_single_bram_write_port_and_sync_read(self):
         s = (ROOT / 'rtl/pikosol20k_renderer.v').read_text()
         self.assertEqual(1, s.count('text_mem[ram_wr_addr] <= ram_wr_data;'))
-        self.assertEqual(1, s.count('char_q <= text_mem[text_addr];'))
+        self.assertEqual(1, s.count('char_q <= text_mem[text_addr_s1];'))
         self.assertIn('always @(posedge pix_clk) begin\n        if (ram_wr_en)', s)
-        self.assertIn('if (de && !clearing) char_q <= text_mem[text_addr];', s)
+        self.assertIn('if (text_s1) char_q <= text_mem[text_addr_s1];', s)
         self.assertNotIn('text_mem[clear_offset] <=', s)
         self.assertNotIn('text_mem[cursor_row_base', s)
 
@@ -57,6 +57,38 @@ class Contract(unittest.TestCase):
         s = (ROOT / 'tools/stage.py').read_text()
         self.assertIn("for memory_file in ('lab04_boot.hex', 'lab04_font_8x12.hex'):", s)
         self.assertIn("out / 'rtl' / memory_file", s)
+
+    def test_pipeline_and_independent_reset(self):
+        top = (ROOT / 'rtl/pikosol20k_top.v').read_text()
+        reset = (ROOT / 'rtl/pikosol20k_reset_ctrl.v').read_text()
+        self.assertIn('.de(de_q), .px(px_q), .py(py_q)', top)
+        self.assertIn('hs_d4', top)
+        self.assertIn('.I_rst_n(resetn_serializer)', top)
+        self.assertNotIn('pix_reset_request_n', top)
+        self.assertIn('always @(posedge serial_clk or negedge raw_good)', reset)
+        self.assertIn('wire pixel_raw_good = resetn_serializer && resetn_cpu;', reset)
+        self.assertIn('pikosol20k_reset_ctrl.v', (ROOT / 'gowin_build.tcl').read_text())
+
+    def test_six_narrow_cdc_exceptions(self):
+        s = (ROOT / 'constraints/pikosol20k.sdc').read_text()
+        cmds = [line.strip() for line in s.splitlines() if line.strip().startswith('set_false_path')]
+        self.assertEqual(len(cmds), 6)
+        self.assertTrue(all('-through [get_pins {' in line for line in cmds))
+        self.assertTrue(all(('ack_meta_sys' in line or 'req_meta_pixel' in line) for line in cmds))
+        self.assertFalse(any('get_clocks' in line for line in cmds))
+
+    def test_stage_cdc_attribute(self):
+        s = (ROOT / 'tools/stage.py').read_text()
+        self.assertIn('async_reg', s)
+        self.assertIn('original.replace(a0, a1)', s)
+
+    def test_new_simulation_testbenches(self):
+        t = (ROOT / 'tests/tb_renderer.v').read_text()
+        r = (ROOT / 'tests/tb_reset_ctrl.v').read_text()
+        self.assertIn('sample_pixel(11\'d1279,10\'d500', t)
+        self.assertIn("write_gfx(6'd63,24'd1)", t)
+        self.assertIn('pll_locked=0;', r)
+        self.assertIn('reset_btn=1;', r)
 
     def test_generated_firmware_hook(self):
         s = (ROOT / 'tools/stage.py').read_text()
