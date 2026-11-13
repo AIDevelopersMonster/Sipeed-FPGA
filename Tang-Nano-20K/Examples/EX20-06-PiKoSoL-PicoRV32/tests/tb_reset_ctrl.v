@@ -7,7 +7,7 @@ module tb_reset_ctrl;
   always #6.75 pix_clk=~pix_clk;
   wire resetn_cpu,resetn_pixel,resetn_serializer;
   pikosol20k_reset_ctrl #(.POR_BITS(4)) dut(
-    .clk27(clk27),.serial_clk(serial_clk),.pix_clk(pix_clk),
+    .clk27(clk27),.pix_clk(pix_clk),
     .pll_locked(pll_locked),.reset_btn(reset_btn),
     .resetn_cpu(resetn_cpu),.resetn_pixel(resetn_pixel),
     .resetn_serializer(resetn_serializer)
@@ -17,10 +17,10 @@ module tb_reset_ctrl;
     if ({resetn_cpu,resetn_serializer,resetn_pixel} !== 3'b000)
       $fatal(1,"Initial reset incorrect");
     pll_locked=1;
-    repeat(2) @(negedge serial_clk);
-    if (resetn_serializer !== 0) $fatal(1,"Early serializer release");
-    repeat(3) @(negedge serial_clk);
-    if (resetn_serializer !== 1) $fatal(1,"Serializer never released");
+    #0.2;
+    if (resetn_serializer !== 1) $fatal(1,"Vendor HDMI reset did not follow PLL LOCK");
+    if (resetn_cpu !== 0 || resetn_pixel !== 0)
+      $fatal(1,"CPU/pixel reset released without qualification");
     repeat(30) @(negedge clk27);
     if ({resetn_cpu,resetn_pixel} !== 2'b11)
       $fatal(1,"CPU or pixel reset not released");
