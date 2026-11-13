@@ -68,3 +68,17 @@ Known limits: boot-protocol keyboards first; some composite, wireless and NKRO k
 ## Reserve option: microSD over SPI
 
 A simple SPI-mode microSD reader is a viable follow-on using a physical microSD/TF PMOD and a small FPGA controller (no external SDRAM). Track separately under `Tang-Primer-25K/PMOD/TF` after the USB-UART test.
+
+## User test evidence — source preparation
+
+On 2026-11-14 the operator executed `Prepare_USBH01.ps1` on Windows PowerShell and reported:
+
+```text
+USBH01 PREPARE: PASS
+UPSTREAM REV: cce99075f06d0946c8a70c221118df2c4b57fe2a
+PROJECT: C:\GitHub\TangPrimer25K_USBHost_UART\usb_keyboard_uart.gprj
+UART: 115200 8N1
+BUILD: NOT RUN; BOARD: NOT TESTED
+```
+
+**Verdict:** Source preparation confirmed. Synthesis, timing, bitstream generation, SRAM programming, UART link and USB keyboard enumeration remain untested. Next required evidence: Gowin IDE Run All output and .fs file and synthesis/PNR logs from *USBH01 project*.
