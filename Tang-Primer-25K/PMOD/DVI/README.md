@@ -103,3 +103,10 @@ After the vendor SVO no-picture outcome (SRAM upload PASS) and the NESTang no-pi
 [The upstream `mcr2_primer25k.cst`](https://github.com/alanswx/Arcade-MCR2-TangFPGA/blob/main/mcr2_primer25k/src/mcr2_primer25k.cst) drives TMDS clock H5/J5 and data H8/H7, G7/G8, F5/G5, which maps to **J6/right PMOD2** exactly like NESTang. **DVI may stay in its current J6 position** for this test. The `mcr2_primer25k.gprj` uses GW5A-25A family and MG121N package but a different part-number suffix from the Sipeed example; confirm device compatibility before programming. Only use programmer operation `--run 2` (SRAM), never Flash. Check download size and file signature before loading.
 
 Observation criteria: visible image or stable sync = video BOARD PASS; CLI 100% alone = SRAM PROGRAM PASS; no monitor sync = still unresolved (DVI module seating/orientation, cable/sink, TMDS pin mapping, or bitstream compatibility). Note that the author claims standalone operation; the physical test on our board has not yet happened.
+
+### Arcade MCR2 file retrieved on operator PC (2026-11-14)
+
+- Windows PowerShell 7.6.10 obtained `C:\GitHub\Primer25K_DVI_Independent\mcr2_primer25k.fs` from `alanswx/Arcade-MCR2-TangFPGA` with HTTP download success and local size **7,446,623 bytes**, matching published GitHub file metadata.
+- Operator-reported local SHA256: `9036B515AF77CF2FC2E497DF4731FE67399E8668B7D152574AD9924FA47F8A85` (a local integrity fingerprint; no independently authenticated upstream SHA256 obtained yet).
+- Upstream project declares `Device name=GW5A-25A` and `pn=GW5A-LV25MG121NC1/I0` (device ID `gw5a25a-002`), whereas original Sipeed SVO project declares `GW5A-LV25MG121NES` (ID `gw5a25a-000`). Both use MG121N pins but **identical bitstream compatibility is not proven**. The PNR cmd.do for MCR2 confirms `-p GW5A-25A-MBGA121N-1 -pn GW5A-LV25MG121NC1/I0`. Check bitstream header (part/device/version) and let programmer reject incompatible binaries; never bypass device checking.
+- Pending: inspection of file header, controlled **SRAM-only** programming and visual HDMI observation. **Not BOARD PASS**.
