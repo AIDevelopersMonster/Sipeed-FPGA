@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW5A-25A" pn="GW5A-LV25MG121NES">gw5a25a-000</Device>
+    <FileList>
+        <File path="src/top.sv" type="file.verilog" enable="1"/>
+        <File path="src/gowin/pll_usb.v" type="file.verilog" enable="1"/>
+        <File path="src/usb_host/rv32i.v" type="file.verilog" enable="1"/>
+        <File path="src/usb_host/usb11_phy.v" type="file.verilog" enable="1"/>
+        <File path="src/usb_host/usb11_regs.v" type="file.verilog" enable="1"/>
+        <File path="src/usb_host/usb11_sie.v" type="file.verilog" enable="1"/>
+        <File path="src/usb_host/usb_host.v" type="file.verilog" enable="1"/>
+        <File path="src/usb_host/ucmem/mem.hex" type="file.other" enable="1"/>
+        <File path="src/pins.cst" type="file.cst" enable="1"/>
+        <File path="src/timing.sdc" type="file.sdc" enable="1"/>
+    </FileList>
+</Project>
