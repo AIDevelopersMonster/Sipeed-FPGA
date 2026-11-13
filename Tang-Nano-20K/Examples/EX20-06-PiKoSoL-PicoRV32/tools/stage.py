@@ -85,7 +85,18 @@ def stage(repo: Path, out: Path) -> None:
     ]
     for before, after in cdc_edits:
         cdc = replace_once(cdc, before, after)
+    # Preserve CDC protocol; annotate only the first and second
+    # metastability synchronizer stages in this 20K staged copy.
+    a0 = '(* syn_keep = 1 *) reg '
+    a1 = '(* syn_keep = 1, async_reg = "true" *) reg '
+    assert cdc.count(a0) == 4
+    cdc = cdc.replace(a0, a1)
     (out / 'rtl' / 'pikosol20k_video_cmd_cdc.v').write_text(cdc, encoding='utf-8')
+    for fname in ('lab04_led_mask_cdc.v', 'lab04_tty_byte_cdc.v'):
+        f = out / 'rtl' / fname
+        original = f.read_text(encoding='utf-8')
+        assert original.count(a0) == 4, fname
+        f.write_text(original.replace(a0, a1), encoding='utf-8')
 
     # The source shell itself is extended: all 8 objects become addressable
     # through OBJ A..H, and graphic movement is not confined to the 9K panel.
