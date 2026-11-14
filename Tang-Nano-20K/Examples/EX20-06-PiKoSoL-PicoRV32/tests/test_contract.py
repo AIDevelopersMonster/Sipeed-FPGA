@@ -43,6 +43,10 @@ class Contract(unittest.TestCase):
                 pins[pin] = sig
         self.assertEqual(6, sum('led_n[' in x for x in pins.values()))
         self.assertEqual(18, len(pins))
+        # The official Sipeed Tang Nano 20K HDMI CST sets RESET pin 88
+        # to LVCMOS33 with bank VCCIO=3.3. Do not silently regress.
+        self.assertIn('IO_LOC "reset_btn" 88;', c)
+        self.assertIn('IO_PORT "reset_btn" IO_TYPE=LVCMOS33 PULL_MODE=DOWN SINGLE_RESISTOR=ON BANK_VCCIO=3.3;', c)
 
     def test_single_bram_write_port_and_sync_read(self):
         s = (ROOT / 'rtl/pikosol20k_renderer.v').read_text()
