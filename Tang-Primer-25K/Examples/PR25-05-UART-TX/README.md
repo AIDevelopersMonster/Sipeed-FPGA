@@ -104,3 +104,16 @@ Invoke-WebRequest "$base/Build_UARTTX.ps1" -OutFile 'C:\GitHub\Build_UARTTX.ps1'
 ```
 
 The external USB Hub / USB Host work remains parked until this UART diagnosis completes; no Flash changes.
+
+## 2026-11-14 9600-baud build and hardware capture
+
+User uploaded Gowin/Programmer/COM log for the new 9600-baud build:
+
+- Gowin CLI `EXIT 0`; synthesis/placement/routing/timing analysis and bitstream generation completed; expected FS SHA256 `DA042C80F4D68D0B61C86AFA4641C932641C30213AE94584DF004880C7FE4CA1`.
+- Programmer target `GW5A-25A`, JTAG ID `0x0001281B`, operation `SRAM Program` 100%, `SRAM PROGRAM EXIT: 0`.
+- COM25 at 9600 8N1 captured **5152 bytes during 10-second read**. Most data consists of intact `PR25 UART TX TEST\\r\\n` frames, but one interruption contains a truncated frame and a run of zero bytes (raw sequence `...50523250 50523235... 0000...`). **9600 does not eliminate the anomaly.** An intact message is 19 bytes, and 5152 bytes correspond to >270 message lengths, far more than the ~19 expected frames in 10 seconds from `GAP_CYCLES=25000000` and 50MHz clock.
+- No precise timestamp for individual bytes was collected; a receive-buffer backlog, BL616 USB bridge behavior, actual FPGA output timing, and tool-reporting issues remain separate hypotheses. Do not equate observation with proof of an FPGA clock/CDC failure.
+
+**Clock-domain audit:** PR25-05 `top.v` has only `posedge clk_50m`, no PLL or internal CDC. Asynchronous UART reception occurs in the external BL616/USB interface. A PR25-04 USB Host CDC review remains relevant separately (48/96 MHz PLL and BRAM phase alignment).
+
+New reproducible controls: [Capture_UART_Stable.ps1](./Capture_UART_Stable.ps1) opens COM25 once at user-selected rate, settles, flushes Windows receive buffer and timestamps complete messages. Separate [PR25-06 UART-IDLE](../PR25-06-UART-IDLE/README.md) drives C3 permanently HIGH with no clock, CDC or UART transmit state; any *newly* reported serial bytes after flushing its input cannot originate from that RTL. These are diagnostic experiments, **not hardware PASS** yet.
