@@ -1,0 +1,14 @@
+// PR25-08. Exact TP25K TMDS P/N locations from proven A2600Nano v2.5.
+// PMOD DVI = USB-A-side connector; S2/H11 is active-high reset.
+IO_LOC "tmds_clk_p" H5,J5;
+IO_PORT "tmds_clk_p" PULL_MODE=NONE DRIVE=8 IO_TYPE=LVCMOS33D;
+IO_LOC "tmds_d_p[0]" H8,H7;
+IO_PORT "tmds_d_p[0]" PULL_MODE=NONE DRIVE=8 IO_TYPE=LVCMOS33D;
+IO_LOC "tmds_d_p[1]" G7,G8;
+IO_PORT "tmds_d_p[1]" PULL_MODE=NONE DRIVE=8 IO_TYPE=LVCMOS33D;
+IO_LOC "tmds_d_p[2]" F5,G5;
+IO_PORT "tmds_d_p[2]" PULL_MODE=NONE DRIVE=8 IO_TYPE=LVCMOS33D;
+IO_LOC "clk_50mhz" E2;
+IO_PORT "clk_50mhz" PULL_MODE=NONE IO_TYPE=LVCMOS33 BANK_VCCIO=3.3;
+IO_LOC "key_reset" H11;
+IO_PORT "key_reset" PULL_MODE=DOWN DRIVE=OFF IO_TYPE=LVCMOS33 BANK_VCCIO=3.3;
