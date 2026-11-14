@@ -82,3 +82,17 @@ BUILD: NOT RUN; BOARD: NOT TESTED
 ```
 
 **Verdict:** Source preparation confirmed. Synthesis, timing, bitstream generation, SRAM programming, UART link and USB keyboard enumeration remain untested. Next required evidence: Gowin IDE Run All output and .fs file and synthesis/PNR logs from *USBH01 project*.
+
+## Automated CLI build (preferred)
+
+User preference: **PowerShell/Gowin CLI for routine builds and SRAM programming**. Reserve Gowin IDE GUI for actual educational/engineering inspection of synthesized logic, memory, clock networks, floorplanning, timing and physical routing—not merely pressing Run All to obtain a bitstream.
+
+The new [`Build_USBH01.ps1`](./Build_USBH01.ps1) produces a deterministic local Tcl using `set_device`, `set_option`, `add_file`, `run all` and invokes the installed `gw_sh.exe` in the project working directory, capturing `evidence/USBH01_BUILD_*.log`. This is **not yet tested on the operator's local Gowin installation**. Failure should be investigated from the log, not treated as board failure. No Flash writes or SRAM programming are performed.
+
+```powershell
+$build = 'C:\GitHub\Build_USBH01.ps1'
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/AIDevelopersMonster/Sipeed-FPGA/main/Tang-Primer-25K/Examples/PR25-04-USBHost-UART/Build_USBH01.ps1' -OutFile $build
+& $build
+```
+
+After an actual successful build, select a meaningful component (e.g. UART divider/shift register, USB SIE finite-state machine, RV32I and BRAM) and use Gowin GUI to inspect and compare the RTL/synthesis/physical implementations and constraints.
