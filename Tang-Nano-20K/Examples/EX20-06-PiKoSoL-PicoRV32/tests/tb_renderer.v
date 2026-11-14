@@ -61,8 +61,36 @@ module tb_renderer;
     resetn_cpu=1; resetn_pixel=1;
     repeat(10245) @(negedge clk_pixel);
     if (dut.clearing !== 1'b0) $fatal(1,"VRAM full clear did not finish");
+    // TEXT zoom2 is the default, and each physical 16x24 cell maps
+    // to one 8x12 ROM glyph. Mode switch must preserve the single BSRAM.
+    if (dut.font_zoom2 !== 1'b1)
+      $fatal(1,"FONT 2 must be default");
+    @(negedge clk_pixel); px=11'd15; py=10'd23; de=1;
+    #1;
+    if (dut.text_col !== 8'd0 || dut.text_row !== 6'd0 ||
+        dut.glyph_x !== 3'd7 || dut.glyph_y !== 4'd11)
+      $fatal(1,"FONT 2 glyph last-pixel mapping wrong");
+    @(negedge clk_pixel); px=11'd16; py=10'd24;
+    #1;
+    if (dut.text_col !== 8'd1 || dut.text_row !== 6'd1 ||
+        dut.glyph_x !== 3'd0 || dut.glyph_y !== 4'd0)
+      $fatal(1,"FONT 2 next cell mapping wrong");
+
     send_char("A");
     if (dut.text_mem[0] !== 8'h41) $fatal(1,"Text VRAM did not capture A");
+    send_char(8'h1c); // FONT 1 control; screen is cleared
+    repeat(10245) @(negedge clk_pixel);
+    if (dut.font_zoom2 !== 1'b0 || dut.clearing)
+      $fatal(1,"FONT 1 switch / clear failed");
+    @(negedge clk_pixel); px=11'd15; py=10'd23; de=1;
+    #1;
+    if (dut.text_col !== 8'd1 || dut.text_row !== 6'd1 ||
+        dut.glyph_x !== 3'd7 || dut.glyph_y !== 4'd11)
+      $fatal(1,"FONT 1 mapping wrong");
+    send_char(8'h1d); // FONT 2 control
+    repeat(10245) @(negedge clk_pixel);
+    if (dut.font_zoom2 !== 1'b1 || dut.clearing)
+      $fatal(1,"FONT 2 switch / clear failed");
     send_char(8'h0f);
     if (dut.terminal_mode !== 1'b0) $fatal(1,"GFX mode switch failed");
     write_gfx(6'd0,24'd100);
