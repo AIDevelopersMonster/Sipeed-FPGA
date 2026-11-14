@@ -1,6 +1,6 @@
 # PR25-04 USBH01: USB keyboard -> UART terminal (no SDRAM)
 
-**Status:** sources prepared in GitHub; no bitstream built; no hardware test yet.
+**Status (2026-11-14):** CLI bitstream BUILD PASS; SRAM programming was attempted (operator reports UART text after loading FPGA), but an explicit programmer exit report was not supplied; UART text was garbled, COM24/COM25 were not yet confirmed as functional. USB enumeration / HID unverified. Historical milestones below remain preserved.
 
 Goal: connect a *wired USB boot-HID keyboard* to Tang Primer 25K Dock USB-A (USB host), read enumeration and HID events in a Windows terminal via the board's USB-C debugger COM. No HDMI, DVI, external SDRAM, microSD, or extra PMOD.
 
@@ -132,3 +132,11 @@ STATUS: CLI BUILD FILE PASS; TIMING AND BOARD NOT YET VERIFIED
 ```
 
 **Evidence classification:** build file PASS; independent STA/timing review NOT yet completed; **SRAM programming NOT YET performed; UART/USB hardware NOT YET tested**. No Flash writes. The generated bitstream is *not* stored in the repo. Next: verify local bitstream SHA-256, program *SRAM only* via `programmer_cli.exe --device GW5A-25A --run 2 --fsFile <path> --cable-index 1`, identify the board's actual debugger COM port, inspect UART at 115200 8N1, and connect a directly wired boot keyboard to Dock USB-A (external hub test follows after direct attach). The UART debug banner should start with `start` but this is an expectation based on upstream source, not yet observed on this board.
+
+## 2026-11-14: serial garbling on BL616 debugger
+
+Operator reported `▒` replacement/garbage characters in COM terminal after loading FPGA; no meaningful responses at COM24 or COM25. Do not infer USB/CPU failure until debugger UART is isolated. Primary candidate: **old BL616 onboard debugger baudrate divisor bug**, explicitly described by Sipeed in [Primer25K FAQ](https://wiki.sipeed.com/hardware/en/tang/tang-primer-25k/primer-25k.html) and in [issue #14](https://github.com/sipeed/TangPrimer-25K-example/issues/14). Measurements reported on affected firmware: host set 115200 → line ~28826; host set 460800 → line ~115562. Our independent FPGA UART clock is about 48 MHz and its `BAUDCNT 416` targets ~115385 baud; **try opening the BL616 converter-B virtual COM at host setting 460800 8N1, no flow control**. On corrected debugger firmware, normal 115200 should work instead. Do not change both UART divider and host rate at once.
+
+COM24/COM25 must be mapped to the actual BL616 virtual serial channel: [Sipeed serial FAQ](https://wiki.sipeed.com/hardware/en/tang/common-doc/questions.html) identifies **USB Converter B / Load VCP** as serial in the FTDI-compatible interface; infer port association from Windows PnP details, not numeric order. This firmware outputs boot/enumeration/HID diagnostics; it is **not a command shell**, so lack of echo for typed terminal commands is not a failure. Open capture before a fresh SRAM program for one-time boot banner, or connect/disconnect USB-A keyboard after opening COM to create enumeration messages; never reboot by unplugging USB-C after SRAM programming because SRAM is volatile.
+
+Only if baud adjustment fails: isolate the UART using a separate, periodically transmitting FPGA-only UART diagnostic (no USB/RV32I), then consider Sipeed's **official BL616 debugger firmware update guide** after checking existing debugger firmware revision: [Update debugger](https://en.wiki.sipeed.com/hardware/en/tang/common-doc/update_debugger). Updating debugger firmware is a distinct, risk-bearing process and must not be conflated with SRAM-only FPGA programming. The already verified C3=FPGA TX / B3=FPGA RX pinout is **correct** according to the board schematic and issue #14.
