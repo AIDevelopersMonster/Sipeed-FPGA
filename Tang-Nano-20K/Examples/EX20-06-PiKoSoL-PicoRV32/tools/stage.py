@@ -131,9 +131,7 @@ def stage(repo: Path, out: Path) -> None:
         else:
             firmware = replace_once(firmware, before, after)
 
-    # FONT 1 / FONT 2 switches the renderer via UART TX control bytes.
-    # The bridge carries these to HDMI; ASCII FS 0x1c and GS 0x1d are
-    # reserved here for display scale, not serial flow control.
+    # FONT 1 / FONT 2: ASCII FS/GS CPU TX codes are mirrored into video.
     firmware = replace_once(
         firmware,
         '    .match "TERM", cmd_term\n',
@@ -141,7 +139,7 @@ def stage(repo: Path, out: Path) -> None:
     )
     font_cmd = (
         'cmd_font:\n'
-        '    lw t4, 20(s8)\n'          # FONT 1 => char at offset 5
+        '    lw t4, 20(s8)\n'       # command char after "FONT "
         '    lw t5, 24(s8)\n'
         '    bne t5, zero, invalid_arg\n'
         '    addi t5, zero, 49\n'
@@ -151,11 +149,11 @@ def stage(repo: Path, out: Path) -> None:
         '    jal zero, invalid_arg\n'
         'font_one:\n'
         '    .emit "\\u001c"\n'
-        '    .emit "FONT 1: 160x60 (8x12)\\\r\\\n"\n'
+        '    .emit "FONT 1: 160x60 (8x12)\\r\\n"\n'
         '    jal zero, shell_done\n'
         'font_two:\n'
         '    .emit "\\u001d"\n'
-        '    .emit "FONT 2: 80x30 (16x24)\\\r\\\n"\n'
+        '    .emit "FONT 2: 80x30 (16x24)\\r\\n"\n'
         '    jal zero, shell_done\n'
     )
     firmware = replace_once(firmware, 'cmd_cls:\n', font_cmd + 'cmd_cls:\n')
