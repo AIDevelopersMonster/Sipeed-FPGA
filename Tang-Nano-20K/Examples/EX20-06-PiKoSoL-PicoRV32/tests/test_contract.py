@@ -65,7 +65,10 @@ class Contract(unittest.TestCase):
         self.assertIn('hs_d4', top)
         self.assertIn('.I_rst_n(resetn_serializer)', top)
         self.assertNotIn('pix_reset_request_n', top)
-        self.assertIn('always @(posedge serial_clk or negedge raw_good)', reset)
+        # STA-4 matches the Sipeed vendor HDMI reset connection, not the
+        # retired STA-3 serial_clk shift register.
+        self.assertIn('assign resetn_serializer = raw_good;', reset)
+        self.assertNotIn('posedge serial_clk', reset)
         self.assertIn('wire pixel_raw_good = raw_good;', reset)
         self.assertIn('wire sys_raw_good = raw_good;', reset)
         self.assertIn('assign resetn_serializer = raw_good;', reset)
