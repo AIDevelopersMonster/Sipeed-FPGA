@@ -41,3 +41,9 @@
 3. HDMI source uses SystemVerilog `logic`, `parameter int` and unpacked audio ports. Use project toolchain that supports SV, and examine parser output.
 4. `hdmi` uses a parameterized 720p display; DVI-only mode does not require audio.
 5. Mixed board-level PMOD pin options may require selecting the correct physical header; pin list is copied from a specific reference implementation and **not separately verified on our hardware**.
+
+## 2026-11-14: first Gowin parser failure and remedy
+
+User's initial synthesis log: `EX3863`, `EX3444` on SystemVerilog `logic`/`int`/`always_ff`, plus `EX3998` on `audio_silence`. The project was treated as **Verilog 2001**, which is the default in GowinSynthesis. This is not yet an HDMI or BRAM hardware result. Before changing vendor RTL, set **Project -> Configuration -> Synthesize -> General -> Verilog Language = System Verilog 2017**. Alternately, run `Synthesize_SV2017.ps1`; this invokes `gw_sh.exe` with `set_option -verilog_std sysv2017` as documented in official Gowin SUG1220. Script only synthesizes and does not touch FPGA.
+
+SystemVerilog mode is necessary; it has **not** been proved sufficient: review any remaining `EX3998` and implementation errors in subsequent log. No BUILD PASS claim until reports actually pass.
