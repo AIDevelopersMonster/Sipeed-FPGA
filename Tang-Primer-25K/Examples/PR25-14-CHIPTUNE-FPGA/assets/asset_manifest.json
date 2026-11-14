@@ -1,0 +1,9 @@
+{
+  "width": 160,
+  "height": 90,
+  "colors": 64,
+  "format": "palette_rgb888_192bytes_followed_by_14400_palette_indices",
+  "uncompressed_sha256": "f54154294533176a85f0bae30fecfa030c7860950864de7e5f1758ff48e4f48c",
+  "compressed_sha256": "6535449a626d3aec8231b5f8b58b35c711fb78b998f94b9c92d0024e1a229cea",
+  "source": "original GPT-generated pixel scene previously shown in this chat"
+}
