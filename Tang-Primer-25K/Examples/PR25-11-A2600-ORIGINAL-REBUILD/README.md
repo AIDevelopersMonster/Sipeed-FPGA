@@ -1,6 +1,6 @@
 # PR25-11 — untouched original A2600Nano v2.5 source build (HDMI AUDIO A/B)
 
-**Status: SOURCE PASS + BUILD PASS / REBUILT BOARD FAIL (NO VIDEO, NO AUDIO) / GOLDEN RESTORED VIDEO+AUDIO PASS; STA SETUP FAIL (3 VIOLATED ENDPOINTS), HOLD REPORTED 0.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
+**Status: SOURCE PASS + BUILD PASS / REBUILT BOARD FAIL (NO VIDEO, NO AUDIO) / GOLDEN RESTORED VIDEO+AUDIO PASS; STA REPORT INCONSISTENCY: 3 SETUP VIOLATED ENDPOINTS, BUT ALL LISTED CLOCK TNS = 0.000.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
 
 ## Verified original reference
 
@@ -116,3 +116,13 @@ Gowin generated `a2600nano_tp25k_tr_content.html` (415,773 bytes) and `a2600nano
 This is **not a full STA PASS**. No numeric WNS/TNS or endpoints/path details have been provided yet. With original Golden still giving both HDMI image and sound, the rebuilt bitstream's no-image/no-sound behavior is consistent with (but not proven caused by) timing/implementation differences from Gowin 1.9.12.02. Do not claim a specific failing clock domain without the detailed paths. Keep original Golden loaded; **do not reprogram the known-failing Rebuilt image**.
 
 Next read-only evidence: extract the `Setup_Slack_Table` rows from the HTML report (starting at the `Setup_Slack_Table` anchor, ending before `Hold_Slack_Table`) to identify worst negative slack, startpoints/endpoints and clock groups. Also inspect PLL lock and Gowin compatibility. Preserve full reports in local evidence; do not commit potentially large generated PnR reports without need.
+
+
+## STA TNS result from operator — 15 Nov 2026 (read-only, same PR25-11 build)
+
+The operator extracted the **Total Negative Slack Summary** from `a2600nano_tp25k_tr_content.html`. Every listed Setup and Hold TNS is **0.000**, with `Number of Endpoints = 0` per clock:
+`clk_cpu`, `clk`, `clk_50mhz`, `clk_pixel_x5`, `clk_14`, `clk_audio`, `spi_sclk`, `rLockOut`, `mcu_spi_inst/n4_24`. Setup Paths Table's worst *displayed* slack was **+13.842 ns** for `mainclock/u_pll_init` in `clk_50mhz`. However, STA Tool Run Summary separately says **`Numbers of Setup Violated Endpoints | 3`** and **`Numbers of Hold Violated Endpoints | 0`**. This is **not reconciled** by the excerpts, and no timing PASS should be claimed.
+
+Per [Gowin SUG940 timing reporting guide](https://cdn.gowinsemi.com.cn/SUG940E.pdf) §4.1, the violated-endpoint count is global for setup; TNS table covers negative slack grouped by specific clock and only worst path per endpoint, while path tables list at most 25 paths by default. Potential causes of the discrepancy (e.g. generated/unconstrained clocks, different analysis scopes, report quirks) are only **hypotheses**. In particular, positive PLL_INIT paths do NOT prove the PLL locks properly in hardware.
+
+**Action:** keep known-working Golden loaded; inspect `Clock Summary`, `Max Frequency Summary`, all clock paths and tool warning messages. More promising than arbitrarily increasing PCM loudness is comparing **Gowin 1.9.9Beta-4 vs the author's 1.9.12.02** and generated PLL/bitstream configuration, while preserving same upstream RTL. No additional programming necessary.
