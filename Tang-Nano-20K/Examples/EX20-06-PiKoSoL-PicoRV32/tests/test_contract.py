@@ -19,7 +19,7 @@ class Contract(unittest.TestCase):
         self.assertIn('obj<8', s)
         self.assertIn('gfx_index[5:3]', s)
         self.assertIn('gfx_index == 6\'d15', s)
-        self.assertIn('glyph_y = py % 12', s)
+        self.assertIn('glyph_y = text_y_logical % 12', s)
 
     def test_native_terminal_and_led(self):
         s = (ROOT / 'rtl/pikosol20k_renderer.v').read_text()
@@ -27,6 +27,22 @@ class Contract(unittest.TestCase):
         self.assertIn('localparam integer RING_ROWS = 64;', s)
         self.assertIn('py >= 10\'d624', s)
         self.assertIn('leds[led_idx]', s)
+
+    def test_switchable_1x_2x_text_and_uart_protocol(self):
+        rtl = (ROOT / 'rtl/pikosol20k_renderer.v').read_text()
+        stage = (ROOT / 'tools/stage.py').read_text()
+        self.assertIn("font_zoom2 <= 1'b1; // Large 16x24", rtl)
+        self.assertIn("8'h1c, 8'h1d: begin", rtl)
+        self.assertIn("font_zoom2 ? 8'd79 : 8'd159", rtl)
+        self.assertIn("font_zoom2 ? 6'd29 : 6'd59", rtl)
+        self.assertIn("font_zoom2 ? {1'b0, py[9:1]} : py", rtl)
+        self.assertIn("font_zoom2 ? {1'b0, px[10:4]} : px[10:3]", rtl)
+        self.assertIn("font_zoom2 ? px[3:1] : px[2:0]", rtl)
+        self.assertIn("if (cursor_col == last_visible_col)", rtl)
+        self.assertEqual(1, rtl.count('text_mem[ram_wr_addr] <= ram_wr_data;'))
+        self.assertIn('.verb "FONT", cmd_font', stage)
+        self.assertIn("font_one:", stage)
+        self.assertIn("font_two:", stage)
 
     def test_only_sram_build_script(self):
         s = (ROOT / 'build.ps1').read_text()
