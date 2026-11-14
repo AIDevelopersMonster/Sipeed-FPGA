@@ -1,6 +1,6 @@
 # PR25-11 — untouched original A2600Nano v2.5 source build (HDMI AUDIO A/B)
 
-**Status: SOURCE PASS; original TCL build failed on Gowin 1.9.9Beta-4 unsupported `-loading_rate 70.000`; compatibility-retry script prepared. Rebuilt FPGA NOT YET TESTED.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
+**Status: SOURCE PASS + BUILD PASS (Gowin EXIT 0, 2026-11-14 23:27:38); STA NOT REVIEWED; REBUILT AUDIO BOARD NOT TESTED.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
 
 ## Verified original reference
 
@@ -64,3 +64,27 @@ The updated build runner retries only for this exact error, from a separate comp
 ```
 
 Do not program the rebuilt .fs unless the new build succeeds and STA setup/hold is checked. The original Golden file and the FPGA configuration currently loaded from it are not modified by the build.
+
+## BUILD PASS — operator report, 2026-11-14 23:27:38
+
+- Build driver used: `build_tp25k_compat199.tcl` (only unsupported `set_option -loading_rate 70.000` omitted from a temporary Tcl copy).
+- Gowin result: **final EXIT 0**, compiled author original RTL, HDMI modules, PLL, IP and board constraints.
+- New independent bitstream: `artifacts/a2600nano_tp25k_REBUILT.fs`.
+- SHA256: `8d4c22cc08e66d4397cf2cf90f0400b36679c1ed84386d250ace63b0dca460fa`.
+- Build log: `evidence/PR25_11_COMPAT199_20261114_232526889.log`.
+- Manifest: `artifacts/rebuild_manifest.json`.
+- **STA setup/hold not reviewed**, no board observation of the new bitstream yet; NOT Audio Board PASS.
+- Official source release GOLDEN SHA256 remains `531b786061cc3b428d829e9f445787d20c6f847645031e3a0a57f64d58ba4aff`; a different SHA for a separately compiled build under Gowin 1.9.9 is not itself evidence of error.
+
+### Minimal read-only timing report inventory (PowerShell)
+
+```powershell
+$pr = ".\Tang-Primer-25K\Examples\PR25-11-A2600-ORIGINAL-REBUILD"
+$m = Get-Content "$pr\artifacts\rebuild_manifest.json" -Raw | ConvertFrom-Json
+$pnr = Join-Path $m.workspace "impl\pnr"
+Get-ChildItem -LiteralPath $pnr -Recurse -File |
+  Where-Object { $_.Name -match '(?i)(tr_content|timing|sta|\.rpt$|_tr\.)' } |
+  Select-Object Name, Length, FullName
+```
+
+Review actual **setup/hold slack, violating paths, clocks** in the reported file(s) (typically `*_tr_content.html`) or Gowin Timing Analyzer; the list alone is NOT a timing pass. Do not run `Program_SRAM.ps1 -Variant Rebuilt` until reports have been reviewed. FPGA SRAM-only Golden restore remains available.
