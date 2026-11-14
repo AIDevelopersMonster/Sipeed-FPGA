@@ -83,3 +83,24 @@ Next: with no serial probe open, program PR25-04 USBH01 while a separate COM25/1
 After prior captures showed alternating valid ASCII `PR25 UART TX TEST` frames and deterministic garbled UART bytes, the operator reported: **"После выставления правильной скорости у меня нормально показывает терминал"** — after selecting the correct serial baud setting the interactive terminal displays the beacon normally. The **exact selected terminal baud rate was not supplied**; do not assume 115200 or 460800. This is direct functional evidence for a readable FPGA C3 → BL616 → Windows COM terminal link at the chosen rate, in addition to the prior SRAM programming PASS.
 
 **Evidence status:** UART-TX functional PASS in terminal at corrected baud setting (exact baud and prolonged stability not yet logged); RX path NOT tested; USB Host/USB-A keyboard/HID NOT tested. Next restore the existing `PR25-04-USBHost-UART` bitstream via FPGA SRAM only, capture `COM25` at the actual *working* host-side baud rate, and check the original firmware boot messages first, then boot-keyboard enumeration directly on the Dock's USB-A connector, finally optional external USB hub. The host firmware's UART divider targets ~115200 baud physically and changing the host COM baud on BL616 might not correspond to the physical baud if the debugger firmware has a divider defect.
+
+## 2026-11-14: 9600 baud next test
+
+Operator requested reducing the standalone TX UART baud to **9600** after seeing initial garbage on terminal attach. The most recent 10-second COM25 capture at **115200 8N1** returned **1805 bytes**, precisely **95 complete copies** of the expected 19-byte `PR25 UART TX TEST\r\n` line, with no non-frame bytes; this independently confirms a clean captured byte stream in that test window. The user's terminal still displays occasional garbage at attachment/start, which was not reproduced in that 10-second programmatic capture. Do not interpret the 1805-byte capture as evidence of current persistent corruption.
+
+Updated `src/top.v` default `BAUD_RATE` from 115200 to 9600, and the CLI build's printed expectation to 9600. **A fresh FPGA bitstream build and SRAM download are required**: the previously built .fs remains 115200. The actual bit-clock divider with 50 MHz clock is `round(50,000,000/9,600)=5208`, yielding about 9600.6 baud. Keep COM25 at **9600 8N1**, none flow control for first trial. Only if capture is garbled may a debugger UART baud-divisor issue motivate further testing; do not assume the BL616 firmware version or rate ratio.
+
+Technical caveat: 95 complete frames in ten seconds differs from the intended ~0.5-second inter-message delay. The source `src/top.v` uses a 25,000,000-cycle gap at `char_index==0`. Actual observed cadence must be measured independently (COM output counts alone may reflect buffering or a different clock). This does not prevent testing byte integrity at 9600.
+
+Suggested PowerShell:
+
+```powershell
+$base='https://raw.githubusercontent.com/AIDevelopersMonster/Sipeed-FPGA/main/Tang-Primer-25K/Examples/PR25-05-UART-TX'
+Invoke-WebRequest "$base/Build_UARTTX.ps1" -OutFile 'C:\GitHub\Build_UARTTX.ps1'
+& 'C:\GitHub\Build_UARTTX.ps1'
+# Check UARTTX BUILD PASS before replacing running SRAM design.
+& 'C:\GitHub\Program_SRAM_UARTTX.ps1'
+& 'C:\GitHub\Probe_UARTTX.ps1' -Ports COM25 -Bauds 9600 -Seconds 10
+```
+
+The external USB Hub / USB Host work remains parked until this UART diagnosis completes; no Flash changes.
