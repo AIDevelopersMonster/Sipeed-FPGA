@@ -4,4 +4,5 @@
 open_project pikosol_term_dvi.gprj
 set_option -top_module pikosol_term_dvi
 set_option -verilog_std sysv2017
+set_option -use_cpu_as_gpio 1
 run syn

@@ -6,9 +6,7 @@ module pikosol_term_dvi (
     input wire uart_rx_pin,
     output wire uart_tx_pin,
     output wire [2:0] hdmi_tx_tmds,
-    output wire hdmi_tx_tmds_clk,
-    output wire led_ready,
-    output wire led_done
+    output wire hdmi_tx_tmds_clk
 );
 wire pll_lock;
 wire pixclk, pixclk5;
@@ -106,6 +104,4 @@ always @(posedge pixclk) begin
     glyph_line <= glyph_rom[{read_char[6:0],glyph_line_1}];
     rgb <= (pixel_valid_2 && glyph_line[7-pix_bit_2]) ? 24'h4fffd6 : 24'h101427;
 end
-assign led_ready = pll_lock;
-assign led_done = pll_lock;
 endmodule

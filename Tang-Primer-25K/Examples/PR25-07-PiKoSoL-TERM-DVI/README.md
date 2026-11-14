@@ -5,7 +5,7 @@
 ## Status (2026-11-14)
 
 - Source integrated with vendor-derived PLL, DVI encoder and PiKoSoL font.
-- **NOT BUILT, NOT PROGRAMMED, NOT BOARD-VERIFIED.** The source is an engineering candidate, not a tested firmware.
+- **SYNTHESIS PASS 2026-11-14; PnR and BITSTREAM NOT YET PASS; NOT PROGRAMMED or BOARD-VERIFIED.** The source is an engineering candidate, not a tested firmware.
 - On-board HDMI output is *not* used; connect Sipeed DVI PMOD to the pins mapped in `pins.cst`. Physical connector alignment still must be checked. Previous HDMI test had no image.
 - Configuration Flash is not required. Use only `SRAM Program` for the first run.
 
@@ -16,7 +16,7 @@
 - Initial top line: `PiKoSoL 25K TERM-DVI`.
 - No scrolling (wraps from last line to line 1); no ANSI escape sequences, command parser, GFX or fonts beyond ASCII 0-127.
 - Pixel pipeline latency can shift origin by ~2 pixel clocks; accepted only for first bring-up.
-- Two output LED signals reflect PLL lock, **not** the device's hardware READY/DONE status. Do not equate them to configuration LEDs.
+- The configuration READY (E8) and DONE (D7) pins remain dedicated and are not driven by PiKoSoL.
 
 ## Build on Windows / Gowin IDE
 
@@ -55,3 +55,7 @@ The next synthesis log reached `Extracting RAM` for both memories and stopped at
 ## 2026-11-14: Gowin TMDS serializer selection (`EX2000` / `EX1999`)
 
 Subsequent synthesis log confirms text/ROM extraction, HDMI encoder, PLL and UART RX compilation. It then failed in `vendor/hdmi/serializer.sv` at lines 281/283 because the *generic* serializer branch drove the same `tmds[2]` from both clock edges. The donor's `src/top.sv` declares `GW_IDE`, selecting the **Gowin `OSER10` branch** of `serializer.sv`, but the PiKoSoL project didn't set that macro. The local vendored `serializer.sv` now explicitly defines `GW_IDE` at its top so the correct Gowin primitive branch is selected without reliance on cross-source-file macro propagation. This is a **documented integration patch to the vendored copy**, not an upstream source fix. Upstream preserved below the added header. Result is **not yet re-synthesized or board-verified**.
+
+## 2026-11-14: PnR PR2017 on special pins (fixed in source)
+
+Latest Gowin log: GowinSynthesis successfully generated `pikosol_term_dvi.vg` and its report (SYNTHESIS PASS). PnR then failed with `PR2017` / `PR2028`: `clk_50m` E2 is a CPU/SSPI dual-purpose pin, `led_ready` E8 is dedicated READY, and `led_done` D7 is dedicated DONE. Removed both unnecessary LED output ports and corresponding constraints: E8/D7 stay reserved for the FPGA configuration status. Clock E2 stays because it is the actual board 50 MHz oscillator; select **Use CPU as regular IO** in `Project > Configuration > Place & Route > Dual-Purpose Pin`. The companion `Build_TERM_DVI.tcl` enables the setting with `set_option -use_cpu_as_gpio 1`, keeps SSPI GPIO enabled, and requests BRAM initialization in the bitstream. `Build_TERM_DVI.ps1` calls that script. No RTL changes to HDMI or PLL. New PnR attempt and timing analysis still required; no FPGA/hardware pass claimed.

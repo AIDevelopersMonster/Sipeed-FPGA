@@ -1,4 +1,6 @@
-// Tang Primer 25K Dock; HDMI PMOD mapping copied from thisiseth.
+// Tang Primer 25K Dock; HDMI PMOD mapping adapted from thisiseth.
+// E8 READY and D7 DONE are dedicated config pins; leave them reserved.
+// E2 clk_50m requires Use CPU as regular IO in Gowin PnR.
 IO_LOC "clk_50m" E2;
 IO_LOC "uart_rx_pin" B3;
 IO_LOC "uart_tx_pin" C3;
@@ -6,8 +8,6 @@ IO_LOC "hdmi_tx_tmds[0]" H8;
 IO_LOC "hdmi_tx_tmds[1]" G7;
 IO_LOC "hdmi_tx_tmds[2]" F5;
 IO_LOC "hdmi_tx_tmds_clk" H5;
-IO_LOC "led_ready" E8;
-IO_LOC "led_done" D7;
 IO_PORT "clk_50m" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
 IO_PORT "uart_rx_pin" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
 IO_PORT "uart_tx_pin" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
@@ -15,5 +15,3 @@ IO_PORT "hdmi_tx_tmds[0]" IO_TYPE=LVCMOS33D PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.
 IO_PORT "hdmi_tx_tmds[1]" IO_TYPE=LVCMOS33D PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 IO_PORT "hdmi_tx_tmds[2]" IO_TYPE=LVCMOS33D PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 IO_PORT "hdmi_tx_tmds_clk" IO_TYPE=LVCMOS33D PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
-IO_PORT "led_ready" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
-IO_PORT "led_done" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
