@@ -114,3 +114,22 @@ Only if a real scan detects GW5A-25A should operator retry the PR25-13 `Program_
 ## Operator monitor observation (15 Nov 2026)
 
 After the attempted PR25-13 SRAM test the operator reported **no working HDMI picture or audio**, but observed the monitor briefly change **black → grey → black**. This is an observable display transition, **not a video/audio board PASS**. The only console transcript supplied for the PR25-13 SRAM operation has `Cable open failed` / `SRAM PROGRAM EXIT: 50`, which **does not establish that the PR25-13 bitstream was loaded**; no later successful `EXIT 0` was supplied. Thus the grey flash is not yet evidence of PR25-13 TMDS output, PLL lock, or HDMI link negotiation. Preserve Golden as known-good control. **Before interpreting a board fail, first verify successful cable opening and SRAM program EXIT 0.** Do not alter RTL/SDC or flash as a consequence of this ambiguous observation.
+
+
+## JTAG cable recovered — operator scan, 15 Nov 2026
+
+After the previous `Cable open failed` / exit code 50, operator ran the read-only cable scan:
+
+```text
+programmer_cli.exe --scan --cable-index 1
+Scanning!
+Target Cable: Gowin USB Cable(FT2CH)/0/0/null@2.5MHz
+Device Info:
+    Family: GW5A
+    Name: GW5A-25A
+    ID: 0x0001281B
+1 device(s) found!
+Cost 0.58 second(s)
+```
+
+The programmer **can now open the FT2CH cable and identify the FPGA**. This is JTAG SCAN PASS, **not SRAM PROGRAM PASS**; the previously attempted PR25-13 load is still unproven. The operator also described the earlier monitor's black-grey-black transition as possibly its **backlight switching on and off**, not HDMI video. Therefore do not count that transition as TMDS evidence. Next run PR25-13 `Program_SRAM.ps1 -Program` once while cable is free, confirm **SRAM PROGRAM EXIT 0**, and only then observe VIDEO/AUDIO. If no working picture, reprogram verified PR25-11 `-Variant Golden` to restore original release, still SRAM only.
