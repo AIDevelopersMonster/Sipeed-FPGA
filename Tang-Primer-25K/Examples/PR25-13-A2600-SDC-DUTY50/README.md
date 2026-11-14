@@ -1,6 +1,6 @@
 # PR25-13 — SDC clock waveform 50% hypothesis (A2600Nano TP25K)
 
-**STATUS: SOURCE PASS + BUILD PASS (Gowin 1.9.9, EXIT 0); GLOBAL SETUP/HOLD = 0/0; SELECTED NEGATIVE RECOVERY PATHS = 0; BOARD OPERATOR REPORTS PR25-13 'ЗАРАБОТАЛА' AFTER JTAG RECOVERY; EXACT VIDEO/AUDIO ACCEPTANCE NOT YET SEPARATELY DOCUMENTED. TA1123 PERSISTS.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
+**STATUS: SOURCE PASS + BUILD PASS / JTAG SRAM PROGRAM 100% / BOARD VIDEO PASS + AUDIO PASS (operator confirmed, 2026-11-15).** Gowin 1.9.9Beta-4; global Setup/Hold violated endpoints 0/0; selected negative Recovery paths 0; **TA1123/TA1117 clock warnings remain**. This is the first operator-verified VIDEO+AUDIO functional rebuild, while the root cause and timing model remain under investigation.
 
 ## Grounded evidence from operator on 15 Nov 2026
 
@@ -113,7 +113,7 @@ Only if a real scan detects GW5A-25A should operator retry the PR25-13 `Program_
 
 ## Operator monitor observation (15 Nov 2026)
 
-After the attempted PR25-13 SRAM test the operator reported **no working HDMI picture or audio**, but observed the monitor briefly change **black → grey → black**. This is an observable display transition, **not a video/audio board PASS**. The only console transcript supplied for the PR25-13 SRAM operation has `Cable open failed` / `SRAM PROGRAM EXIT: 50`, which **does not establish that the PR25-13 bitstream was loaded**; no later successful `EXIT 0` was supplied. Thus the grey flash is not yet evidence of PR25-13 TMDS output, PLL lock, or HDMI link negotiation. Preserve Golden as known-good control. **Before interpreting a board fail, first verify successful cable opening and SRAM program EXIT 0.** Do not alter RTL/SDC or flash as a consequence of this ambiguous observation.
+After the attempted PR25-13 SRAM test the operator reported **no working HDMI picture or audio**, but observed the monitor briefly change **black → grey → black**. This is an observable display transition, **not a video/audio board PASS**. At the time of this earlier observation, the only available console transcript was a failed cable-open attempt; the grey flash alone was not HDMI evidence. **Superseded by the successful program transcript and VIDEO+AUDIO PASS later in this README.** Preserve Golden as known-good control. **Before interpreting a board fail, first verify successful cable opening and SRAM program EXIT 0.** Do not alter RTL/SDC or flash as a consequence of this ambiguous observation.
 
 
 ## JTAG cable recovered — operator scan, 15 Nov 2026
@@ -132,13 +132,50 @@ Device Info:
 Cost 0.58 second(s)
 ```
 
-The programmer **can now open the FT2CH cable and identify the FPGA**. This is JTAG SCAN PASS, **not SRAM PROGRAM PASS**; the previously attempted PR25-13 load is still unproven. The operator also described the earlier monitor's black-grey-black transition as possibly its **backlight switching on and off**, not HDMI video. Therefore do not count that transition as TMDS evidence. Next run PR25-13 `Program_SRAM.ps1 -Program` once while cable is free, confirm **SRAM PROGRAM EXIT 0**, and only then observe VIDEO/AUDIO. If no working picture, reprogram verified PR25-11 `-Variant Golden` to restore original release, still SRAM only.
+The programmer **can now open the FT2CH cable and identify the FPGA**. This was JTAG SCAN PASS, not itself SRAM PROGRAM PASS. **The later successful SRAM program result is recorded below.** The operator also described the earlier monitor's black-grey-black transition as possibly its **backlight switching on and off**, not HDMI video. Therefore do not count that transition as TMDS evidence. Next run PR25-13 `Program_SRAM.ps1 -Program` once while cable is free, confirm **SRAM PROGRAM EXIT 0**, and only then observe VIDEO/AUDIO. If no working picture, reprogram verified PR25-11 `-Variant Golden` to restore original release, still SRAM only.
 
 
-## PR25-13 operator reports working after JTAG recovered — 2026-11-15
+## PR25-13 VERIFIED ON BOARD — VIDEO PASS + AUDIO PASS, 15 Nov 2026
 
-After the failed first attempt (`Cable open failed`, exit 50), a read-only JTAG scan **PASS** confirmed the device `GW5A-25A / 0x0001281B`. Operator was instructed to retry `Program_SRAM.ps1 -Program`; their subsequent exact report was **«Заработала»** (“It works”). This is the first positive **operator-observed** board result for a locally rebuilt A2600Nano experimental bitstream. **Do not conflate this with a captured programmer EXIT 0** (not separately pasted) or claim AUDIO PASS until operator confirms audible sound. VIDEO operation is strongly suggested but was not separately broken out; obtain two acceptance flags: VIDEO? AUDIO?
+**Previous provisional note misread the operator and treated the report as Golden, but the explicitly supplied programmer output establishes the actual .fs path. This section supersedes the provisional interpretations above.**
 
-**Causal limits:** PR25-13 differs from failing original PR25-11 in both three-stage OSER10 reset release synchronization **and** `clk_pixel_x5` SDC waveform model (1.000 ns -> 3.492 ns falling edge). A positive board result for their combination does **not** isolate which change, or whether routing seed/implementation effects, was necessary. `TA1123` PLL frequency mismatch warning and `TA1117` unresolved interclock relationships remain, so do not declare production STA closure. Official v2.5 Golden is still verified baseline and must be preserved; SRAM only, never Flash.
+Exact operator invocation:
 
-**Immediate next checkpoint:** ask operator explicitly whether both HDMI picture **and** audio are present. If both: record separate VIDEO PASS, AUDIO PASS, optionally confirm sustained operation and expected frame/audio mode; pin exact SHA256 `22cabb286d0b2ffb0973ae5109c872239782d341cfe46a8792921ed5be37580a` in experiment manifest. If only video, continue analyzing packetized HDMI audio without altering working video path.
+```powershell
+& .\Tang-Primer-25K\Examples\PR25-13-A2600-SDC-DUTY50\Program_SRAM.ps1 -Program
+```
+
+Operator-provided Gowin output:
+
+```text
+PR25-13 SDC50 EXPERIMENTAL IMAGE, NOT GOLDEN.
+FS: C:\GitHub\Sipeed-FPGA\Tang-Primer-25K\Examples\PR25-13-A2600-SDC-DUTY50\artifacts\a2600nano_tp25k_SDC50.fs
+SHA256: 22cabb286d0b2ffb0973ae5109c872239782d341cfe46a8792921ed5be37580a
+FPGA SRAM --run 2 ONLY; no external Flash writes.
+Target Device: GW5A-25A(0x0001281B)
+Operation "SRAM Program" for device#1...
+Frequency Updated: "15MHz"
+Programming...: [#########################] 100%
+User Code: 0x00000001
+Status Code: 0x76022238
+Cost 4.75 second(s)
+```
+
+A later `SRAM PROGRAM EXIT: 0` line was **not included in the pasted excerpt**; 100% programming and user-observed live operation together are the acceptance evidence. Operator confirmed **«Появилось и изображение и звук»** and **«Заработала»**. The loaded image name and SHA prove this run selected **PR25-13**, not the original Golden bitstream (Golden SHA `531b786061cc3b428d829e9f445787d20c6f847645031e3a0a57f64d58ba4aff`).
+
+### Controlled experiment conclusions
+
+| Firmware | Board video | Board audio | Timing / observations |
+|---|---|---|---|
+| Original upstream Golden v2.5 | PASS | PASS | Reference binary, created with Gowin 1.9.12 series |
+| PR25-11 untouched v2.5 source rebuild in Gowin 1.9.9 | FAIL | FAIL | 3 Recovery −2.505 ns; global setup violated 3 |
+| PR25-12 x5 reset synchronization | NOT TESTED | NOT TESTED | Selected Recovery still negative: −1.309, −1.155, −0.994 ns |
+| **PR25-13 same reset synchronization + x5 SDC waveform 50%** | **PASS** | **PASS** | Global Setup/Hold violated 0/0, selected negative Recovery 0, warnings TA1123/TA1117 still exist |
+
+**Important causal limitation:** PR25-13 has **two independent differences** relative to PR25-11 (RTL reset release synchronizer and SDC `clk_pixel_x5` waveform). The passing combined experiment does not prove which delta was necessary or whether implementation/PnR variability contributed. A modified SDC waveform changes timing assumptions and PnR behavior; it does not change the actual physical clock duty cycle. Do not generalize this to formal complete timing closure; review TA1123 and unconstrained/undetermined clock relationships before considering a production release.
+
+**Operational decision:** Keep the working PR25-13 loaded and record its SHA256, preserve the upstream Golden .fs as recovery control, do not write Flash, and do not reprogram only for additional diagnostic output. Future work may isolate the differences in separate builds without replacing the working board state.
+
+### Historical clarification
+
+The first PR25-13 attempt failed with `Cable open failed` / exit 50. A subsequent JTAG scan succeeded, followed by the above **successful SRAM programming transcript** and live VIDEO+AUDIO observation. The previous black-grey-black monitor transition before the proven programming outcome was not used to declare HDMI pass.
