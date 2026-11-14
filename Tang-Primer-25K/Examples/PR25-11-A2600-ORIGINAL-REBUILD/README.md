@@ -1,6 +1,6 @@
 # PR25-11 — untouched original A2600Nano v2.5 source build (HDMI AUDIO A/B)
 
-**Status: PREPARED; Gowin build & rebuilt board NOT YET TESTED.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
+**Status: SOURCE PASS; original TCL build failed on Gowin 1.9.9Beta-4 unsupported `-loading_rate 70.000`; compatibility-retry script prepared. Rebuilt FPGA NOT YET TESTED.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
 
 ## Verified original reference
 
@@ -11,9 +11,9 @@
 - Golden size **4,700,888 bytes**, official GitHub release SHA256 `531b786061cc3b428d829e9f445787d20c6f847645031e3a0a57f64d58ba4aff`.
 - Author's `build_all.bat` uses **Gowin 1.9.12.02**, while operator has **Gowin 1.9.9Beta-4 Education**. This matters: original RTL does not imply an identical compiled image across tool versions.
 
-## Zero-modification workflow
+## Zero-RTL-modification workflow
 
-`Build_Original.ps1` clones the complete pinned tag, verifies full SHA and clean tracked source, creates an isolated `git archive` export and executes **upstream's own `build_tp25k.tcl` without changing one source file**. Logs and SHA256 manifest are kept locally. If the build fails, an old success manifest cannot authorize programming. It does **not** program FPGA.
+`Build_Original.ps1` clones the complete pinned tag, verifies full SHA and clean tracked source, creates an isolated `git archive` export and executes **upstream's own `build_tp25k.tcl` first without changes**. On the exact error `invalid loading_rate value`, it creates a **second** TCL copy `build_tp25k_compat199.tcl` with only the unsupported `set_option -loading_rate 70.000` line commented out, then retries. The original TCL, RTL, FPGA IP, PLL, pins and SDC are untouched. Logs and SHA256 for both TCL versions are recorded. Logs and SHA256 manifest are kept locally. If the build fails, an old success manifest cannot authorize programming. It does **not** program FPGA.
 
 `Program_SRAM.ps1` has two explicit choices: `-Variant Golden` downloads/verifies and loads the author .fs, `-Variant Rebuilt` loads only a successful manifest-verified local rebuild. Both use the previously verified Gowin `--device GW5A-25A --cable-index 1 --run 2 --fsFile` — **volatile SRAM only**, never external Flash.
 
@@ -51,3 +51,16 @@ git restore --source FETCH_HEAD --worktree -- "Tang-Primer-25K/Examples/PR25-11-
 **Audio implementation:** A2600's `src/misc/video.v` passes signed 16-bit stereo PCM to modified `src/hdmi/hdmi.sv` at declared 48kHz, including Audio Sample, ACR, and InfoFrame. Brus-16 source has HDMI `DVI_OUTPUT=0` and an SFX path at 44.1kHz, but the release binaries were silent on the operator's display. A working TMDS picture does **not** prove audio.
 
 The scripts are the only project-owned files. Upstream source, output `.fs`, build workspaces, SHA manifests and logs are local and ignored by Git.
+
+
+## Compatibility incident — operator log 2026-11-14 23:09
+
+Golden `Program_SRAM.ps1 -Variant Golden` exited **0**, proving only successful SRAM programming; the operator did not specify in this log whether audio was audible again. Original source clone matched the exact `v2.5` SHA `705bf787675579721d339806cb522905dec73ed3`. Gowin stopped on line 65 of the author's `build_tp25k.tcl`: `invalid loading_rate value` for `set_option -loading_rate 70.000`. **Synthesis did not start; no new .fs was generated.** Loading rate is FPGA configuration speed, not HDMI audio sample rate.
+
+The updated build runner retries only for this exact error, from a separate compatibility TCL and with all upstream HDL untouched. Re-run **only** the build after fetching this update:
+
+```powershell
+& .\Tang-Primer-25K\Examples\PR25-11-A2600-ORIGINAL-REBUILD\Build_Original.ps1
+```
+
+Do not program the rebuilt .fs unless the new build succeeds and STA setup/hold is checked. The original Golden file and the FPGA configuration currently loaded from it are not modified by the build.
