@@ -106,3 +106,14 @@ The Tang Primer 25K Dock has a **USB-A host port**, not an integrated USB hub. F
 ## BUILD FAIL / correction (2026-11-14)
 
 The operator ran the original Gowin CLI `Build_USBH01.ps1` with Gowin `V1.9.9Beta-4_Education` and obtained `can't find device: GW5A-LV25MG121NES`, `GOWIN EXIT: 1`, in `USBH01_BUILD_20261114_124309.log`. No synthesis, no bitstream and no hardware writes occurred. This was a **wrong device part selection in our build script**, not a USB IP failure. Official Sipeed UART demo is `GW5A-25A` with part `GW5A-LV25MG121NC1/I0` and project device id `gw5a25a-002`. Corrected the standalone CLI Tcl command to `set_device -name GW5A-25A GW5A-LV25MG121NC1/I0` (syntax in older Gowin Tcl manual) and aligned `.gprj` accordingly. Re-download **Build_USBH01.ps1** and retry; no rerun of Prepare is required for CLI. If another failure occurs, preserve exact log and update based on evidence. Build remains unverified.
+
+## 2026-11-14: synthesis PASS, placement FAIL (E2 dedicated)
+
+Observed on Windows/Gowin V1.9.9Beta-4 Education, log `USBH01_BUILD_20261114_125520.log`:
+
+- Device `GW5A-25A GW5A-LV25MG121NC1/I0` recognized.
+- RTL parser/synthesis all completed, `impl/gwsynthesis/usb_keyboard_uart.vg` and synthesis report generated.
+- PNR failed: `PR2028 constrained location useless`, `PR2017 clk_50m cannot be placed at E2: dedicated pin (CPU/SSPI)`.
+- No bitstream; no hardware test. `EX3791` size warnings and `m_alu_b` swept warning are separate from placement failure and have not yet been adjudicated.
+
+The build Tcl now explicitly emits `set_option -use_cpu_as_gpio 1` to make dedicated CPU/SSPI pin E2 available for the input oscillator, based on vendor Gowin option and independent Primer25K build patterns. **Correction not yet tested on operator's installation; verify from next PNR log.** No RTL changed; do not write FPGA Flash.
