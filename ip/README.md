@@ -21,3 +21,5 @@
 - [NESTang-25K NES system — candidate for IP extraction](candidates/nestang-25k.md): interesting integrated project (HDMI, SD, SDRAM, USB HID). Requires SDRAM, not tested on this lab.
 
 - [**A2600Nano v2.5 — HDMI + audio, Tang Primer 25K**](hdmi/a2600nano-primer25k/README.md): полный исходный .fs дал **BOARD PASS (картинка + звук)**, точные исходники 24 файлов, PLL/TMDS/ELVDS, ограничения и GPL-3.0 сохранены; **самостоятельный PR25-08 собран и сообщил BOARD WORKING**, звук/STA/S2 подлежат отдельной фиксации. PiKoSoL не изменён.
+
+- [PR25-09 HDMI AUDIO DIAG](../Tang-Primer-25K/Examples/PR25-09-HDMI-AUDIO-DIAG/README.md): independent follow-up after PR25-08 VIDEO PASS/AUDIO FAIL; tests intermittent HDMI stereo tone and an on-screen generator marker. **Source only, no build or hardware PASS yet.**
