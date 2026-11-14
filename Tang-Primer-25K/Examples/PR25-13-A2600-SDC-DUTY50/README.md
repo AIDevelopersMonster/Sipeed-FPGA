@@ -1,6 +1,6 @@
 # PR25-13 — SDC clock waveform 50% hypothesis (A2600Nano TP25K)
 
-**STATUS: SOURCE PASS + BUILD PASS (Gowin 1.9.9, EXIT 0); GLOBAL SETUP/HOLD VIOLATED ENDPOINTS = 0/0; SELECTED NEGATIVE RECOVERY PATHS = 0; PLL CLOCK WARNING TA1123 PERSISTS; BOARD NOT YET TESTED.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
+**STATUS: SOURCE PASS + BUILD PASS (Gowin 1.9.9, EXIT 0); GLOBAL SETUP/HOLD = 0/0; SELECTED NEGATIVE RECOVERY PATHS = 0; PROGRAM ATTEMPT BLOCKED BY JTAG CABLE OPEN FAILED (EXIT 50). NO VIDEO/AUDIO BOARD RESULT. TA1123 PERSISTS.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
 
 ## Grounded evidence from operator on 15 Nov 2026
 
@@ -87,3 +87,25 @@ Numbers of Hold Violated Endpoints = 0
 Together with `Negative Recovery paths selected: 0`, this supports **experimental SRAM-only board testing** (not production acceptance). It does not prove all cross-clock paths were constrained, removal timing closed, a physical 50% PLL clock, or resolution of `TA1123` (PLL/SDC frequency mismatch) and `TA1117` (unknown interclock relationships). **Never claim FULL STA PASS** from the two counters alone.
 
 **Next controlled board A/B:** program the existing PR25-13 `artifacts/a2600nano_tp25k_SDC50.fs` using `Program_SRAM.ps1 -Program` **only when ready to briefly overwrite current FPGA SRAM configuration**. Observe image and audible sound in same game/cable/monitor configuration as Golden. If no video/audio, restore PR25-11 `Program_SRAM.ps1 -Variant Golden` and record the board failure. Do not program nonvolatile Flash or modify MCU. Avoid further RTL/SDC tweaks before recording the A/B result.
+
+
+## SRAM cable open error — operator evidence, 15 Nov 2026 01:21
+
+Operator executed `Program_SRAM.ps1 -Program` with **validated** PR25-13 .fs SHA256 `22cabb286d0b2ffb0973ae5109c872239782d341cfe46a8792921ed5be37580a`; Gowin Programmer selected **FT2CH cable index 1** and target `GW5A-25A(0x0001281B)`, but printed:
+
+```
+Operation "SRAM Program" for device#1...
+Error: Cable open failed
+SRAM PROGRAM EXIT: 50
+```
+
+Evidence: `evidence/PR25_13_SRAM_20261115_012146631.txt` on operator PC. **This is a USB-JTAG cable/driver/open error, before programming succeeded. It is not BOARD FAIL or BOARD PASS.** The requested device name in the output is not an independently successful JTAG scan. No evidence of SRAM overwrite. Known working original Golden should remain unless the board was subsequently changed/reset.
+
+The PR25-13 script and the previously successfully used PR25-11 Golden script both specify identical `--device GW5A-25A --cable-index 1 --run 2 --fsFile ...` flags; only image path differs. Per [Gowin Programmer User Guide SUG502](https://cdn.gowinsemi.com.cn/SUG502E.pdf), cable-index 1 selects FT2CH and `programmer_cli.exe --scan` scans the device. Sipeed's [FAQ](https://wiki.sipeed.com/hardware/en/tang/common-doc/questions.html) identifies `Cable open failed` as debugger/cable detection error. Recovery: close competing Gowin Programmer GUI/IDE and other processes accessing FTDI; replug programming USB cable if needed. Before any FPGA write run a **read-only** scan:
+
+```powershell
+$cli = "C:\Gowin\Gowin_V1.9.9Beta-4_Education\Programmer\bin\programmer_cli.exe"
+& $cli --scan --cable-index 1
+```
+
+Only if a real scan detects GW5A-25A should operator retry the PR25-13 `Program_SRAM.ps1 -Program`. **Do not switch to an unverified cable index or Flash mode.**
