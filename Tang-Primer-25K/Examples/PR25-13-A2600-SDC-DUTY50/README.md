@@ -1,6 +1,6 @@
 # PR25-13 — SDC clock waveform 50% hypothesis (A2600Nano TP25K)
 
-**STATUS: SOURCE PASS + BUILD PASS / JTAG SRAM PROGRAM 100% / BOARD VIDEO PASS + AUDIO PASS (operator confirmed, 2026-11-15).** Gowin 1.9.9Beta-4; global Setup/Hold violated endpoints 0/0; selected negative Recovery paths 0; **TA1123/TA1117 clock warnings remain**. This is the first operator-verified VIDEO+AUDIO functional rebuild, while the root cause and timing model remain under investigation.
+**STATUS: SOURCE PASS + BUILD PASS / JTAG SRAM PROGRAM 100% / BOARD VIDEO PASS (ANIMATED SPLASH DETAILS) + AUDIO PASS (AUDIBLE 8-BIT-STYLE MUSIC), operator confirmed 2026-11-15.** Gowin 1.9.9Beta-4; global Setup/Hold violated endpoints 0/0; selected negative Recovery paths 0; **TA1123/TA1117 clock warnings remain**. This is the first operator-verified VIDEO+AUDIO functional rebuild, while the root cause and timing model remain under investigation.
 
 ## Grounded evidence from operator on 15 Nov 2026
 
@@ -161,7 +161,7 @@ Status Code: 0x76022238
 Cost 4.75 second(s)
 ```
 
-A later `SRAM PROGRAM EXIT: 0` line was **not included in the pasted excerpt**; 100% programming and user-observed live operation together are the acceptance evidence. Operator confirmed **«Появилось и изображение и звук»** and **«Заработала»**. The loaded image name and SHA prove this run selected **PR25-13**, not the original Golden bitstream (Golden SHA `531b786061cc3b428d829e9f445787d20c6f847645031e3a0a57f64d58ba4aff`).
+A later `SRAM PROGRAM EXIT: 0` line was **not included in the pasted excerpt**; 100% programming and user-observed live operation together are the acceptance evidence. Operator confirmed **«Появилось и изображение и звук»** and **«Заработала»**. **Clarification:** the screen contains a **splash/title scene with movement of individual visual elements/details** (user gave examples such as a twitching cat's tail or moving dress/fabric), **not confirmed characters moving through a playable game**. Audio is **real, audible melodic/chiptune-like music reminiscent of 8-bit consoles**, not merely a beep/test tone. The examples describe the kind of localized animation, not verified characters/objects present on the actual screen. A full gameplay demonstration has **not** been confirmed. The loaded image name and SHA prove this run selected **PR25-13**, not the original Golden bitstream (Golden SHA `531b786061cc3b428d829e9f445787d20c6f847645031e3a0a57f64d58ba4aff`).
 
 ### Controlled experiment conclusions
 
@@ -174,8 +174,15 @@ A later `SRAM PROGRAM EXIT: 0` line was **not included in the pasted excerpt**; 
 
 **Important causal limitation:** PR25-13 has **two independent differences** relative to PR25-11 (RTL reset release synchronizer and SDC `clk_pixel_x5` waveform). The passing combined experiment does not prove which delta was necessary or whether implementation/PnR variability contributed. A modified SDC waveform changes timing assumptions and PnR behavior; it does not change the actual physical clock duty cycle. Do not generalize this to formal complete timing closure; review TA1123 and unconstrained/undetermined clock relationships before considering a production release.
 
-**Operational decision:** Keep the working PR25-13 loaded and record its SHA256, preserve the upstream Golden .fs as recovery control, do not write Flash, and do not reprogram only for additional diagnostic output. Future work may isolate the differences in separate builds without replacing the working board state.
+**Operational decision:** Keep the working PR25-13 loaded and record its SHA256, preserve the upstream Golden .fs as recovery control, do not write Flash, and do not reprogram only for additional diagnostic output. See [WORKING_FIRMWARE.md](WORKING_FIRMWARE.md) for the pinned artifact identity, specific video/audio observations, and optional GitHub Release backup from the operator's local `.fs` file. Future work may isolate the differences in separate builds without replacing the working board state.
 
 ### Historical clarification
 
 The first PR25-13 attempt failed with `Cable open failed` / exit 50. A subsequent JTAG scan succeeded, followed by the above **successful SRAM programming transcript** and live VIDEO+AUDIO observation. The previous black-grey-black monitor transition before the proven programming outcome was not used to declare HDMI pass.
+
+
+## Уточнение наблюдений (15 ноября 2026)
+
+Оператор подтвердил: **заставка не демонстрирует перемещение персонажей по экрану.** На ней **двигаются отдельные элементы**, по характеру — как шевелящийся хвост кота или колышущаяся часть платья/ткани (это примеры визуального эффекта, а не установленные объекты кадра). **Звук — настоящая мелодическая музыка в стиле 8-битных приставок, а не просто сигнал или тестовый тон**. Видео с локальной анимацией и музыкальное HDMI-аудио — PASS; игровой процесс в целом не заявлен.
+
+Паспорт и резервное сохранение: [WORKING_FIRMWARE.md](WORKING_FIRMWARE.md), [working_firmware_manifest.json](working_firmware_manifest.json) и [Save_Working_Firmware.ps1](Save_Working_Firmware.ps1). **Бинарный .fs не загружен в GitHub этим коммитом**: его можно сохранить из проверенного локального файла с обязательной проверкой SHA256, без программирования FPGA.
