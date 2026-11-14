@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW5A-25A" pn="GW5A-LV25MG121NES">gw5a25a-000</Device>
+    <FileList>
+        <File path="rtl/pikosol_term_dvi.sv" type="file.verilog" enable="1"/>
+        <File path="rtl/uart_rx.v" type="file.verilog" enable="1"/>
+        <File path="vendor/gowin/pll_hdmi_720.v" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/audio_clock_regeneration_packet.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/audio_info_frame.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/audio_sample_packet.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/auxiliary_video_information_info_frame.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/hdmi.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/packet_assembler.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/packet_picker.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/serializer.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/source_product_description_info_frame.sv" type="file.verilog" enable="1"/>
+        <File path="vendor/hdmi/tmds_channel.sv" type="file.verilog" enable="1"/>
+        <File path="pins.cst" type="file.cst" enable="1"/>
+        <File path="timing.sdc" type="file.sdc" enable="1"/>
+    </FileList>
+</Project>
