@@ -1,0 +1,14 @@
+{
+  "schema": "upstream-ip-snapshot-v1",
+  "upstream_repository": "MiSTle-Dev/A2600Nano",
+  "upstream_tag": "v2.5",
+  "upstream_tag_commit": "705bf787675579721d339806cb522905dec73ed3",
+  "files_count": 24,
+  "license": "GPL-3.0 (original upstream LICENSE retained)",
+  "copy_mode": "byte-identical Git blobs; SHA matches source v2.5",
+  "firmware": "a2600nano_tp25k.fs",
+  "firmware_size": 4700888,
+  "firmware_sha256": "531b786061cc3b428d829e9f445787d20c6f847645031e3a0a57f64d58ba4aff",
+  "verified_full_firmware": "physical video+sound PASS per operator, 2026-11-14",
+  "standalone_ip": "UNTESTED"
+}

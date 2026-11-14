@@ -19,3 +19,5 @@
 
 - [Sipeed Tang Primer 25K UART — full Verilog source, ASCII demo](uart/sipeed-primer25k/README.md): verified **original prebuilt** hardware UART Hello output; translated source is **not yet rebuilt or tested**.
 - [NESTang-25K NES system — candidate for IP extraction](candidates/nestang-25k.md): interesting integrated project (HDMI, SD, SDRAM, USB HID). Requires SDRAM, not tested on this lab.
+
+- [**A2600Nano v2.5 — HDMI + audio, Tang Primer 25K**](hdmi/a2600nano-primer25k/README.md): полный исходный .fs дал **BOARD PASS (картинка + звук)**, точные исходники 24 файлов, PLL/TMDS/ELVDS, ограничения и GPL-3.0 сохранены; **выделенный IP отдельно не испытан**. PiKoSoL не изменён.
