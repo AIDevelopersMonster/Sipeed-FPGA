@@ -38,10 +38,10 @@ if ($exe.Count -eq 0) { throw "gw_sh.exe not found under $GowinRoot" }
 $gwsh = $exe[0].FullName
 
 # Use supported Tcl commands set_device, add_file, set_option and run all.
-# The old -name form and -use_cpu_as_gpio option were removed after checking Gowin Tcl reference.
+# -name is supported by installed-era Gowin Tcl; always use official Sipeed NC1/I0 part.
 # There is no open_project/create_project, previously unsupported in this environment.
 $lines = @(
-    'set_device GW5A-LV25MG121NES',
+    'set_device -name GW5A-25A GW5A-LV25MG121NC1/I0',
     'set_option -top_module top',
     'set_option -output_base_name usb_keyboard_uart',
     'set_option -verilog_std sysv2017'
