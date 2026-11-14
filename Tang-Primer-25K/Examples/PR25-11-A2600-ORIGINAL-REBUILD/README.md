@@ -1,6 +1,6 @@
 # PR25-11 — untouched original A2600Nano v2.5 source build (HDMI AUDIO A/B)
 
-**Status: SOURCE PASS + BUILD PASS / REBUILT BOARD FAIL (NO VIDEO, NO AUDIO) / GOLDEN RESTORED VIDEO + AUDIO PASS; STA NOT REVIEWED.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
+**Status: SOURCE PASS + BUILD PASS / REBUILT BOARD FAIL (NO VIDEO, NO AUDIO) / GOLDEN RESTORED VIDEO+AUDIO PASS; STA SETUP FAIL (3 VIOLATED ENDPOINTS), HOLD REPORTED 0.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
 
 ## Verified original reference
 
@@ -102,3 +102,17 @@ Review actual **setup/hold slack, violating paths, clocks** in the reported file
 Next controlled action: inspect generated timing and placement logs, and when practical try the **author's Gowin 1.9.12.02** on the exact same v2.5 source. Do **not** change HDL, audio levels, PMOD pins, or experimental source while toolchain equivalence remains unresolved. **Golden must stay the hardware reference.**
 
 Local report files seen in operator inventory: `a2600nano_tp25k_tr_content.html` and `a2600nano_tp25k.timing_paths`; their contents have **not** been received/analyzed, so STA violations cannot be asserted.
+
+
+## STA numbers provided by operator — 2026-11-14
+
+Gowin generated `a2600nano_tp25k_tr_content.html` (415,773 bytes) and `a2600nano_tp25k.timing_paths` (10,370 bytes) in `work/run_20261114_232526889/src/impl/pnr/`. Operator extracted the summary table:
+
+| Metric | Value | Meaning |
+|---|---:|---|
+| Numbers of Setup Violated Endpoints | **3** | **Setup timing fails**, even though final Gowin compilation exited 0 |
+| Numbers of Hold Violated Endpoints | **0** | No reported hold-violating endpoints for the analyzed constraints |
+
+This is **not a full STA PASS**. No numeric WNS/TNS or endpoints/path details have been provided yet. With original Golden still giving both HDMI image and sound, the rebuilt bitstream's no-image/no-sound behavior is consistent with (but not proven caused by) timing/implementation differences from Gowin 1.9.12.02. Do not claim a specific failing clock domain without the detailed paths. Keep original Golden loaded; **do not reprogram the known-failing Rebuilt image**.
+
+Next read-only evidence: extract the `Setup_Slack_Table` rows from the HTML report (starting at the `Setup_Slack_Table` anchor, ending before `Hold_Slack_Table`) to identify worst negative slack, startpoints/endpoints and clock groups. Also inspect PLL lock and Gowin compatibility. Preserve full reports in local evidence; do not commit potentially large generated PnR reports without need.
