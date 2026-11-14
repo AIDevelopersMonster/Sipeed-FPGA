@@ -96,3 +96,9 @@ Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/AIDevelopersMonster/Si
 ```
 
 After an actual successful build, select a meaningful component (e.g. UART divider/shift register, USB SIE finite-state machine, RV32I and BRAM) and use Gowin GUI to inspect and compare the RTL/synthesis/physical implementations and constraints.
+
+## Build script verified command syntax (2026-11-14)
+
+Updated `Build_USBH01.ps1` to the documented Gowin CLI form `set_device GW5A-LV25MG121NES` and removed the unverified `-use_cpu_as_gpio` option. `-verilog_std sysv2017`, `run all` and `gw_sh.exe script.tcl` align with Gowin documentation. **The local Gowin V1.9.9Beta-4 Education build remains NOT RUN / NOT VERIFIED**; operator must run the new script and provide terminal output.
+
+The Tang Primer 25K Dock has a **USB-A host port**, not an integrated USB hub. First validate a wired boot-protocol HID keyboard *directly* in USB-A, then use an external USB 1.1/2.0 hub as a second independent test if desired. Third-party host firmware includes hub support, but that support has not been validated on this particular hardware sample.
