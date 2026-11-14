@@ -2,10 +2,10 @@
 // Independent of RISC-V, USB Host, PLL, BRAM, firmware, and UART RX.
 // Physical port: E2 = onboard 50 MHz oscillator; C3 = FPGA TX -> BL616 UART RX.
 // Output: "PR25 UART TX TEST\r\n" every ~0.5 s, 8N1.
-// Source defaults to 115200; Run_UARTTX.ps1 can select another BAUD_RATE.
+// Source defaults to 9600 for robust serial debugging; 115200 passed earlier.
 module top #(
     parameter integer CLOCK_HZ = 50000000,
-    parameter integer BAUD_RATE = 115200,
+    parameter integer BAUD_RATE = 9600,
     parameter integer GAP_CYCLES = 25000000
 )(
     input  wire clk_50m,
