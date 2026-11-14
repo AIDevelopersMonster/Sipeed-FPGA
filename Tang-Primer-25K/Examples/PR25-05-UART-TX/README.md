@@ -60,3 +60,7 @@ Official Sipeed Tang Primer 25K UART example: https://github.com/sipeed/TangPrim
 ## Follow-up
 
 After this small lab produces known ASCII, return to PR25-04 USBH01 and isolate any CPU/BRAM/USB issue. Do not conflate correct UART beacon with validated USB Host or HID keyboard.
+
+## 2026-11-14 physical UART test
+
+Operator supplied captured evidence: `SRAM PROGRAM EXIT: 0`, COM24 at 115200 and 460800 yielded **zero bytes**; COM25 at 115200 yielded 3032 bytes, including **97 complete ASCII `PR25 UART TX TEST\\r\\n` records** in two uninterrupted groups of 87 and 10, with additional non-ASCII/garbled data before/between; COM25 at 460800 yielded 415 bytes with **one complete ASCII record**, plus garbled data. Thus **FPGA->C3->BL616->Windows COM25: periodic known text physically verified on 115200**. Do not claim USB Host or RX PASS. Because the serial capture was sequential after opening baud 460800, earlier garbled bytes may be buffered/cross-baud transitions; a stable clean 115200 capture after reconnect is an optional follow-up. USBH01 diagnostic should begin with COM25 already open before SRAM programming to catch one-time firmware boot messages.
