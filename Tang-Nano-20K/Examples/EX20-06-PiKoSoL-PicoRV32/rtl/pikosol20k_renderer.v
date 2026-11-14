@@ -1,6 +1,6 @@
 // PiKoSoL 20K: native 1280x720 text and graphics compositor.
 // Target: GW2AR-18C with a PicoRV32 legacy command-compatible source.
-// Output is BGR888, delayed two pixel cycles for alignment with HDMI control.
+// Output is BGR888, aligned to the top-level four-stage raster pipeline.
 // Development candidate: requires RTL simulation, Gowin PnR/STA and board test.
 // SPDX-License-Identifier: MIT
 module pikosol20k_renderer (
@@ -21,7 +21,8 @@ module pikosol20k_renderer (
     input wire [5:0] leds,
     output wire [23:0] bgr_out
 );
-    // 160 columns * 64 backing rows. Exactly 60 rows visible at 8x12.
+    // Single 160-column * 64-row backing BSRAM, with switchable 8x12 / 16x24 output.
+    // FONT 1: 160x60 visible; FONT 2 (default): 80x30 visible.
     localparam integer COLS = 160;
     localparam integer RING_ROWS = 64;
     localparam integer VRAM_BYTES = COLS*RING_ROWS;
@@ -30,6 +31,12 @@ module pikosol20k_renderer (
     initial $readmemh("lab04_font_8x12.hex", font_mem);
 
     reg terminal_mode;
+    // CPU TX control codes: FS (0x1c) = FONT 1; GS (0x1d) = FONT 2.
+    // Unlike 0x11/0x13 these are not UART XON/XOFF flow-control bytes.
+    // Keep all pixel and character edits in one synchronous video domain.
+    reg font_zoom2;
+    wire [7:0] last_visible_col = font_zoom2 ? 8'd79 : 8'd159;
+    wire [5:0] last_visible_row = font_zoom2 ? 6'd29 : 6'd59;
     reg [5:0] cursor_row, view_base;
     reg [7:0] cursor_col;
     reg clearing, full_clear;
@@ -37,7 +44,7 @@ module pikosol20k_renderer (
     reg [7:0] clear_col;
     reg [5:0] clear_row;
     wire [5:0] next_row = cursor_row + 6'd1;
-    wire [5:0] bottom_row = view_base + 6'd59;
+    wire [5:0] bottom_row = view_base + last_visible_row;
     wire [13:0] clear_row_base = ({8'd0,clear_row} << 7) +
                                 ({8'd0,clear_row} << 5);
     wire [13:0] cursor_row_base = ({8'd0,cursor_row} << 7) +
@@ -79,6 +86,7 @@ module pikosol20k_renderer (
     always @(posedge pix_clk or negedge resetn_pixel) begin
         if (!resetn_pixel) begin
             terminal_mode <= 1'b1;
+            font_zoom2 <= 1'b1; // Large 16x24 text on first board boot
             cursor_row <= 6'd0;
             cursor_col <= 8'd0;
             view_base <= 6'd0;
@@ -100,6 +108,13 @@ module pikosol20k_renderer (
             case (tty_byte)
                 8'h0e: terminal_mode <= 1'b1; // TERM
                 8'h0f: terminal_mode <= 1'b0; // GFX
+                8'h1c, 8'h1d: begin // FONT 1/2; clear for coherent reflow
+                    font_zoom2 <= (tty_byte == 8'h1d);
+                    cursor_row <= 6'd0; view_base <= 6'd0;
+                    cursor_col <= 8'd0;
+                    clearing <= 1'b1; full_clear <= 1'b1;
+                    clear_offset <= 14'd0;
+                end
                 8'h0c: begin // CLS / FF
                     terminal_mode <= terminal_mode;
                     cursor_row <= 6'd0; view_base <= 6'd0;
@@ -121,7 +136,7 @@ module pikosol20k_renderer (
                     cursor_col <= cursor_col - 8'd1;
                 end
                 default: if (tty_byte >= 8'h20 && tty_byte <= 8'h7e) begin
-                    if (cursor_col == COLS-1) begin
+                    if (cursor_col == last_visible_col) begin
                         cursor_col <= 8'd0;
                         cursor_row <= next_row;
                         if (cursor_row == bottom_row) view_base <= view_base + 6'd1;
@@ -244,11 +259,17 @@ module pikosol20k_renderer (
         end
     end
     reg hud_match_s1, hud_on_s1;
-    wire [5:0] text_row = py / 12;
-    wire [3:0] glyph_y = py % 12;
+    // Nearest-neighbour 2x glyph scaling: duplicate each original pixel
+    // horizontally and vertically. One 8x12 ROM serves both modes.
+    // The 160-byte backing stride is UNCHANGED in FONT 2.
+    wire [9:0] text_y_logical = font_zoom2 ? {1'b0, py[9:1]} : py;
+    wire [5:0] text_row = text_y_logical / 12;
+    wire [3:0] glyph_y = text_y_logical % 12;
+    wire [7:0] text_col = font_zoom2 ? {1'b0, px[10:4]} : px[10:3];
+    wire [2:0] glyph_x = font_zoom2 ? px[3:1] : px[2:0];
     wire [5:0] physical_row = view_base + text_row;
     wire [13:0] text_addr = ({8'd0,physical_row} << 7) +
-                            ({8'd0,physical_row} << 5) + {6'd0,px[10:3]};
+                            ({8'd0,physical_row} << 5) + {6'd0,text_col};
     wire text_region = terminal_mode || py >= 10'd624;
     reg [13:0] text_addr_s1;
     reg [3:0] glyph_y_s1, glyph_y_s2;
@@ -295,7 +316,7 @@ module pikosol20k_renderer (
             hud_on_s1 <= hud_on_comb;
             text_addr_s1 <= text_addr;
             glyph_y_s1 <= glyph_y;
-            bit_s1 <= px[2:0];
+            bit_s1 <= glyph_x;
             text_s1 <= de && text_region && !clearing;
             term_s1 <= terminal_mode;
 
