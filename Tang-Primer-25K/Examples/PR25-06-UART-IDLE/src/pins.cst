@@ -1,0 +1,3 @@
+// Same TX path as official Sipeed UART example and PR25-05.
+IO_LOC "uart_tx" C3;
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
