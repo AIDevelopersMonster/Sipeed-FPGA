@@ -53,4 +53,4 @@ $hash = (Get-FileHash -Path $fs -Algorithm SHA256).Hash
 Write-Host 'UARTTX BUILD PASS (BOARD NOT TESTED)'
 Write-Host "FILE: $fs"
 Write-Host "SHA256: $hash"
-Write-Host 'TX wire: C3, 50 MHz clock: E2, 115200 8N1'
+Write-Host 'TX wire: C3, 50 MHz clock: E2, 9600 8N1'
