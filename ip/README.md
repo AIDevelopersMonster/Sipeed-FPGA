@@ -13,3 +13,9 @@
 | HDMI/SVO | `01-PicoRV32/lab04/rtl/` + pinned PicoTiny | аппаратная проверка в PiKoSoL |
 
 После завершения LAB-05 физическое выделение в `ip/<interface>/rtl/` выполняется **отдельным небольшим изменением с регрессией**. Проверенные LAB-04/05 не передвигаем: они остаются воспроизводимыми историческими снимками. `common/` остаётся местом для программно видимого MMIO-контракта, не копией RTL.
+
+
+## Additional candidates (2026-11-14)
+
+- [Sipeed Tang Primer 25K UART — full Verilog source, ASCII demo](uart/sipeed-primer25k/README.md): verified **original prebuilt** hardware UART Hello output; translated source is **not yet rebuilt or tested**.
+- [NESTang-25K NES system — candidate for IP extraction](candidates/nestang-25k.md): interesting integrated project (HDMI, SD, SDRAM, USB HID). Requires SDRAM, not tested on this lab.
