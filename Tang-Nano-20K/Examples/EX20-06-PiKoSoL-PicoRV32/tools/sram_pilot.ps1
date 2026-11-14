@@ -74,7 +74,7 @@ if (-not $Program) {
     Write-Host 'EX20-06 JTAG PRECHECK COMPLETE. No FPGA programming performed.'
     Write-Host 'Inspect scan output: must contain exactly one compatible GW2AR-18C (JTAG ID 0x0000081B).'
     Write-Host 'To run the pilot later, explicitly invoke this script with -Program.'
-    exit 0
+    return
 }
 
 Write-Host ''
