@@ -1,6 +1,6 @@
 # PR25-11 — untouched original A2600Nano v2.5 source build (HDMI AUDIO A/B)
 
-**Status: SOURCE PASS + BUILD PASS / REBUILT BOARD FAIL (NO VIDEO, NO AUDIO) / GOLDEN RESTORED VIDEO+AUDIO PASS; STA REPORT INCONSISTENCY: 3 SETUP VIOLATED ENDPOINTS, BUT ALL LISTED CLOCK TNS = 0.000.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
+**Status: SOURCE PASS + BUILD PASS / REBUILT BOARD FAIL (NO VIDEO, NO AUDIO) / GOLDEN RESTORED VIDEO+AUDIO PASS; 3 GLOBAL SETUP VIOLATED ENDPOINTS, HOLD 0, PER-CLOCK TNS 0 (SCOPE DIFFERENCE POSSIBLE).** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
 
 ## Verified original reference
 
@@ -126,3 +126,12 @@ The operator extracted the **Total Negative Slack Summary** from `a2600nano_tp25
 Per [Gowin SUG940 timing reporting guide](https://cdn.gowinsemi.com.cn/SUG940E.pdf) §4.1, the violated-endpoint count is global for setup; TNS table covers negative slack grouped by specific clock and only worst path per endpoint, while path tables list at most 25 paths by default. Potential causes of the discrepancy (e.g. generated/unconstrained clocks, different analysis scopes, report quirks) are only **hypotheses**. In particular, positive PLL_INIT paths do NOT prove the PLL locks properly in hardware.
 
 **Action:** keep known-working Golden loaded; inspect `Clock Summary`, `Max Frequency Summary`, all clock paths and tool warning messages. More promising than arbitrarily increasing PCM loudness is comparing **Gowin 1.9.9Beta-4 vs the author's 1.9.12.02** and generated PLL/bitstream configuration, while preserving same upstream RTL. No additional programming necessary.
+
+
+## Timing reporting interpretation correction (2026-11-15)
+
+Operator provided the surrounding HTML lines in the global `STA Tool Run Summary`: `Numbers of Falling Endpoints = 29`, `Numbers of Setup Violated Endpoints = 3` (line 90–91), `Numbers of Hold Violated Endpoints = 0` (94–95). The `Total Negative Slack Summary` lists all named clocks with Setup/Hold TNS `0.000` and zero negative endpoints. Both are real separate report sections.
+
+This is **not necessarily a report bug**. Gowin's SUG940-1.7E §5.1.4 documents that the TNS summary reports only timing models **driven by the same clock**; see https://manualzz.com/doc/76704528/gowin-design-timing-constraints-user-guide . The three global violations **may** therefore be cross-clock paths excluded from the TNS summary, but this has not been proven without seeing the path-level detail. The original SDC also limits explicit `report_timing` to `-from_clock [get_clocks {clk*}] -to_clock [get_clocks {clk*}] -max_paths 25`, and the 25 displayed healthy paths all belong to `clk_50mhz` through PLL_INIT. Hence these displayed paths cannot be used to exonerate every cross-clock path.
+
+Precise next step without rerunning FPGA: inspect the complete generated HTML `a2600nano_tp25k_tr_content.html` plus `a2600nano_tp25k.timing_paths`, including `Clock Summary`, `Timing Messages`, and any report of the three violating endpoints; if omitted, request a dedicated unfiltered `report_timing -setup -max_paths 100` with a separate report-only SDC copy when the toolchain is available. **Do not** edit original HDL, imply timing is the proven cause of no video, or reprogram the failing image. The highest-value A/B remains a build of untouched source with the author's Gowin **1.9.12.02**.
