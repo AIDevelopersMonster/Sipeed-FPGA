@@ -135,3 +135,18 @@ Operator provided the surrounding HTML lines in the global `STA Tool Run Summary
 This is **not necessarily a report bug**. Gowin's SUG940-1.7E §5.1.4 documents that the TNS summary reports only timing models **driven by the same clock**; see https://manualzz.com/doc/76704528/gowin-design-timing-constraints-user-guide . The three global violations **may** therefore be cross-clock paths excluded from the TNS summary, but this has not been proven without seeing the path-level detail. The original SDC also limits explicit `report_timing` to `-from_clock [get_clocks {clk*}] -to_clock [get_clocks {clk*}] -max_paths 25`, and the 25 displayed healthy paths all belong to `clk_50mhz` through PLL_INIT. Hence these displayed paths cannot be used to exonerate every cross-clock path.
 
 Precise next step without rerunning FPGA: inspect the complete generated HTML `a2600nano_tp25k_tr_content.html` plus `a2600nano_tp25k.timing_paths`, including `Clock Summary`, `Timing Messages`, and any report of the three violating endpoints; if omitted, request a dedicated unfiltered `report_timing -setup -max_paths 100` with a separate report-only SDC copy when the toolchain is available. **Do not** edit original HDL, imply timing is the proven cause of no video, or reprogram the failing image. The highest-value A/B remains a build of untouched source with the author's Gowin **1.9.12.02**.
+
+
+## PR25-11: automated read-only STA report collection (2026-11-15)
+
+The original Gowin timing report files are only on the operator's Windows PC, not available to inspect from GitHub. The [Analyze_STA.ps1](Analyze_STA.ps1) script parses the **existing** HTML report without rebuilding or programming the FPGA, extracts global setup/hold violation counts, per-clock TNS, Fmax and selected setup/negative/cross-clock paths, and saves a JSON and plain-text summary. It creates a ZIP containing both exact original report files (`_tr_content.html` and `.timing_paths`) and the extracted results for independent forensic review.
+
+```powershell
+Set-Location C:\GitHub\Sipeed-FPGA
+git fetch origin main
+git restore --source FETCH_HEAD --worktree -- `
+  "Tang-Primer-25K/Examples/PR25-11-A2600-ORIGINAL-REBUILD"
+& .\Tang-Primer-25K\Examples\PR25-11-A2600-ORIGINAL-REBUILD\Analyze_STA.ps1
+```
+
+The output ZIP is saved under the local `evidence/PR25_11_STA_AUDIT_*.zip` and should be **uploaded to ChatGPT** for precise interpretation of the full 415KB HTML and `timing_paths`. The already-reported 3 global setup violations and zero per-clock TNS may reflect report-scoping differences: this script **does not** create an unfiltered STA analysis nor identify paths absent from the source report. Do not claim a path is safe solely because it was omitted from a `-max_paths 25` table. Keep the working Golden configuration loaded.
