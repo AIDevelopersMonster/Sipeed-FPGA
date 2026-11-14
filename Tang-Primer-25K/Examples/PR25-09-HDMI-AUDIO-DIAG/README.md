@@ -41,6 +41,31 @@ Inspect Gowin exit status, timing report (setup/hold), fresh generated `impl/pnr
 
 Expected observation: 8 color bars / center line and green/red blinking marker ~once per second, with a matching intermittent audible stereo beep. If there is still no audio, record whether the monitor shows an HDMI audio input format; continue analysis of ACR/InfoFrame/data-island and exact 48 kHz clock before changing the encoder.
 
+## One-command operator test
+
+After restoring this folder and the pinned IP library from GitHub, run this
+one PowerShell command. `-Program` explicitly loads **only FPGA SRAM**:
+
+```powershell
+& .\Tang-Primer-25K\Examples\PR25-09-HDMI-AUDIO-DIAG\Run_PR25_09.ps1 -Program
+```
+
+This calls the existing build script, validates the fresh generated FS,
+captures `evidence/PR25_09_RUN_*.txt` with SHA256, and calls the existing
+SRAM-only programmer. It does **not** automatically prove STA setup/hold:
+inspect Gowin timing reports before treating the design as timing-qualified.
+Omit `-Program` for a build-only dry run.
+
+Observe **(1)** color bars, **(2)** upper-left indicator green during tone and
+red during silence, and **(3)** audible beep. Lower monitor volume before
+starting. The indicator alone does not prove HDMI audio transport.
+
+Restore the known working image-only baseline at any time:
+
+```powershell
+& .\Tang-Primer-25K\Examples\PR25-08-HDMI-AUDIO-GOLDEN\Program_SRAM.ps1
+```
+
 ## Acceptance
 
 | Check | Status |
