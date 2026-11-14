@@ -1,6 +1,6 @@
 # PR25-11 — untouched original A2600Nano v2.5 source build (HDMI AUDIO A/B)
 
-**Status: SOURCE PASS + BUILD PASS (Gowin EXIT 0, 2026-11-14 23:27:38); STA NOT REVIEWED; REBUILT AUDIO BOARD NOT TESTED.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
+**Status: SOURCE PASS + BUILD PASS / REBUILT BOARD FAIL (NO VIDEO, NO AUDIO) / GOLDEN RESTORED VIDEO + AUDIO PASS; STA NOT REVIEWED.** The original author-published A2600Nano v2.5 FPGA bitstream was confirmed by the operator as **HDMI VIDEO+AUDIO BOARD PASS**. PR25-08..10 and the tested Brus-16 SFX images delivered video, not audible audio.
 
 ## Verified original reference
 
@@ -73,7 +73,7 @@ Do not program the rebuilt .fs unless the new build succeeds and STA setup/hold 
 - SHA256: `8d4c22cc08e66d4397cf2cf90f0400b36679c1ed84386d250ace63b0dca460fa`.
 - Build log: `evidence/PR25_11_COMPAT199_20261114_232526889.log`.
 - Manifest: `artifacts/rebuild_manifest.json`.
-- **STA setup/hold not reviewed**, no board observation of the new bitstream yet; NOT Audio Board PASS.
+- **STA setup/hold not reviewed. Hardware observation now available:** operator reported **no video and no audio** with REBUILT. After reprogramming official Golden, operator confirmed **video and audio returned**. Thus REBUILT = BOARD FAIL; original Golden = VIDEO+AUDIO BOARD PASS.
 - Official source release GOLDEN SHA256 remains `531b786061cc3b428d829e9f445787d20c6f847645031e3a0a57f64d58ba4aff`; a different SHA for a separately compiled build under Gowin 1.9.9 is not itself evidence of error.
 
 ### Minimal read-only timing report inventory (PowerShell)
@@ -87,4 +87,18 @@ Get-ChildItem -LiteralPath $pnr -Recurse -File |
   Select-Object Name, Length, FullName
 ```
 
-Review actual **setup/hold slack, violating paths, clocks** in the reported file(s) (typically `*_tr_content.html`) or Gowin Timing Analyzer; the list alone is NOT a timing pass. Do not run `Program_SRAM.ps1 -Variant Rebuilt` until reports have been reviewed. FPGA SRAM-only Golden restore remains available.
+Review actual **setup/hold slack, violating paths, clocks** in the reported file(s) (typically `*_tr_content.html`) or Gowin Timing Analyzer; the list alone is NOT a timing pass. **Do not reload this known-failing REBUILT image merely because BUILD PASS was reported.** FPGA SRAM-only Golden restore is verified to return video and audio.
+
+## Hardware A/B result — operator confirmation, 14 Nov 2026
+
+| Image / condition | Video | Audio | Interpretation |
+| --- | --- | --- | --- |
+| Original author-published `a2600nano_tp25k.fs` v2.5 | PASS | PASS | Golden restored and independently reverified by the operator |
+| Rebuilt from pinned v2.5 source under Gowin 1.9.9 Beta-4, with `loading_rate` TCL workaround | **FAIL** (no picture) | **FAIL** (no sound) | `BUILD PASS` does **not** imply hardware operation |
+| Reprogrammed original Golden after failed Rebuilt | PASS | PASS | Physical HDMI connection and receiver work in the same experimental setup |
+
+**Proven:** exact upstream source revision could be exported and compiled into an FS with Gowin 1.9.9; that new artifact did not produce video or audio on the user's board, while the original release FS did. **Not proven:** why the rebuilt image fails. Potential factors include different toolchain version, implementation / configuration behavior, PLL initialization and constraints/timing; need STA and synthesis/PNR diagnostics. The unsupported TCL `-loading_rate 70.000` is a configuration-loading setting and does **not** imply a 70MHz HDMI sample clock. Its omission allowed compilation but does not establish it as the cause of hardware failure.
+
+Next controlled action: inspect generated timing and placement logs, and when practical try the **author's Gowin 1.9.12.02** on the exact same v2.5 source. Do **not** change HDL, audio levels, PMOD pins, or experimental source while toolchain equivalence remains unresolved. **Golden must stay the hardware reference.**
+
+Local report files seen in operator inventory: `a2600nano_tp25k_tr_content.html` and `a2600nano_tp25k.timing_paths`; their contents have **not** been received/analyzed, so STA violations cannot be asserted.
