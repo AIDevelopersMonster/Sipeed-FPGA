@@ -1,6 +1,6 @@
 # PR25-13 — SDC clock waveform 50% hypothesis (A2600Nano TP25K)
 
-**STATUS: SOURCE PREPARED; BUILD NOT RUN, BOARD NOT TESTED.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
+**STATUS: SOURCE PASS + BUILD PASS (Gowin 1.9.9, EXIT 0); SELECTED NEGATIVE RECOVERY PATHS = 0; COMPLETE STA NOT YET REVIEWED; BOARD NOT TESTED.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
 
 ## Grounded evidence from operator on 15 Nov 2026
 
@@ -46,3 +46,30 @@ The optional `Program_SRAM.ps1 -Program` is provided for a *later* explicitly au
 - If the build otherwise fails or violations shift into other paths, STOP and review the detailed report.
 
 Nothing here changes PR25-08..12, the official A2600 Golden, external Flash, BL616, SD card or PiKoSoL.
+
+
+## Operator BUILD PASS — 15 Nov 2026 01:09:49
+
+**Observed:** exact source `705bf787675579721d339806cb522905dec73ed3`; Gowin target `GW5A-25A / GW5A-LV25MG121NC1/I0`; final **EXIT 0**; generated `artifacts/a2600nano_tp25k_SDC50.fs`; **SHA256 `22cabb286d0b2ffb0973ae5109c872239782d341cfe46a8792921ed5be37580a`**. `Negative Recovery paths selected: 0`, compared with three negative Recovery paths in PR25-12. FPGA was **not programmed** (Golden still working).
+
+- Confirmed edited SDC: `clk_pixel_x5 -period 6.984 -waveform {0 1}` changed to `{0 3.492}` in isolated copy. Full actual PLL waveform is not yet measured. SHA256 original `25987a1fd3438169c05d715a673165b10d9553d070b6281f40b1191e3d84b619`; patched `6c276448928f8b857158f2d77ce22dae271391406963ba8b2a110d4755e35060`.
+- PR25-13 source `serializer.sv` modified SHA differs from PR25-12 because the code-injected **experiment comment** says `PR25-13` rather than `PR25-12`. The inserted reset synchronizer RTL logic is identical. This minor text difference may still change placement/build provenance; only timing/board evidence can validate equivalence.
+- Gowin **`TA1123` persists:** `clk_pixel_x5` frequency does not match `mainclock/u_pll/PLLA_inst/CLKOUT0`.
+- Additional **`TA1117` clock-relationship warnings** persist for `rLockOut`, `clk`, `clk_audio`, `clk_cpu`, `mcu_spi_inst/n4_24`.
+- Synthesis **`NL0002`** swept module hierarchy for `audio_info_frame`, `audio_sample_packet`, `auxiliary_video_information_info_frame` and `source_product_description_info_frame`. Do **not** assume the HDMI packets disappeared merely from a hierarchy optimization warning: inspect synthesized netlist/outputs, particularly if HDMI video works but audio is missing.
+- Preliminary **PLL frequency computation from upstream static parameters** in `gowin_pll_ntsc_mod.vhd`: `FCLKIN=50MHz`, `IDIV_SEL=2`, `FBDIV_SEL=1`, `MDIV_SEL=53`, `ODIV0_SEL=9`, `ODIV0_FRAC_SEL=2` (1/8 steps), internal feedback. Formula from Gowin UG306: `F_static ≈ 50/2*1*53/(9+2/8) = 143.243243 MHz`; independently `1 / 6.984ns = 143.184422 MHz`. Difference ≈ **0.058822 MHz (0.041%)**. **Important:** a separate `PLL_INIT` module dynamically writes PLL registers, so this static estimate does not establish the actual **post-initialization** clock or prove the sole reason for TA1123. See [Gowin UG306](https://cdn.gowinsemi.com.cn/UG306E.pdf).
+
+**Unresolved:** global `Numbers of Setup Violated Endpoints`, global Hold, any Removal violations, full clock model and hardware operation. These metrics are not present in the pasted final build lines. The '0 negative Recovery' print covers only selected paths from the Gowin HTML table, not every clock/cross-clock path. Therefore STATUS is NOT STA PASS.
+
+### One read-only summary command (PowerShell 7)
+
+```powershell
+$pr = ".\Tang-Primer-25K\Examples\PR25-13-A2600-SDC-DUTY50"
+$m = Get-Content "$pr\artifacts\sdc50_manifest.json" -Raw | ConvertFrom-Json
+$h = Get-Content (Join-Path $m.workspace "impl\pnr\a2600nano_tp25k_tr_content.html") -Raw
+[regex]::Matches($h, '(?is)<td[^>]*>\s*(Numbers of (?:Setup|Hold) Violated Endpoints)\s*</td>\s*<td[^>]*>\s*(\d+)\s*</td>') | ForEach-Object {
+    "{0} = {1}" -f $_.Groups[1].Value, $_.Groups[2].Value
+}
+```
+
+If this prints zero global Setup and Hold, it still does **not** imply a valid physical waveform or close CDC/Recovery paths; review `TA1123/TA1117` and cross-clock paths before experimental SRAM programming. The officially downloaded Golden is the verified hardware baseline.
