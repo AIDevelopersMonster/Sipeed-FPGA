@@ -1,0 +1,7 @@
+// Sipeed Tang Primer 25K Dock, exact vendor UART pin assignment.
+// E2: 50 MHz onboard oscillator; C3: FPGA UART TX to onboard BL616 debugger.
+// Deliberately no RX pin, USB pins, READY pin, or other special-purpose pins.
+IO_LOC "clk_50m" E2;
+IO_PORT "clk_50m" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+IO_LOC "uart_tx" C3;
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
