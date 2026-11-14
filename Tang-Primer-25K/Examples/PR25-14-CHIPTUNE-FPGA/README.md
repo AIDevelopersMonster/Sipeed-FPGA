@@ -103,3 +103,19 @@ GLOBAL HOLD VIOLATIONS: 0
 ```
 
 Paste that compact report before PR25-14 hardware programming. User-verified PR25-13 remains the control. The initial synthesis warnings and fixes are preserved above in chronological order.
+
+
+## 2026-11-15 — Inspector defect corrected after repeated BUILD PASS
+
+The operator reran `Build_Chiptune.ps1` on the exact same repository source and obtained another **BUILD PASS (Gowin EXIT 0; global Setup/Hold violations 0/0)**. The new local `.fs` SHA-256 was `cd9299d6ef75c73f8d37885d211fca2c82c38a2bc4b9d32d9b5be18bb8dc092d`, whereas the preceding successful build yielded `106f396912caf6c2c04fb9dede1c3bdd38dc46bb6a0556cd9c37b30ebdf82a98`. A difference in hashes is **not evidence that either .fs is defective**; its cause was not isolated (tool flow, build-directory effects, nondeterminism, etc.).
+
+The `Inspect_Build.ps1` previously **hardcoded the first successful SHA256**, so it refused to inspect the later successful build:
+
+```text
+Unexpected PR25-14 .fs SHA256: cd9299d6ef75c73f8d37885d211fca2c82c38a2bc4b9d32d9b5be18bb8dc092d
+```
+
+**Fix:** inspect now validates SHA-256 **and byte count** against `artifacts/PR25_14_manifest.json` written by the same local build, with a strict 64-digit hexadecimal hash format. `Program_SRAM.ps1` already used the correct per-build manifest check and requires no change. This is a **read-only inspector fix**: it does not rebuild and does not program the FPGA. Do not consider PR25-14 hardware verified until a successful SRAM-only test of this exact build and the VIDEO/AUDIO observation.
+
+Re-run the same `git fetch` + `git restore` commands from above, then **only** `Inspect_Build.ps1`. Do **not** run `Build_Chiptune.ps1` again just to satisfy the inspector.
+
