@@ -1,6 +1,6 @@
 # PR25-14: CHIPMUSIC — Animated pixel art and original music ON Tang Primer 25K
 
-**Status: BUILD #2 FAILED (Gowin inference IF0007/IF0008: attempted 98,304 LUT4 for image ROM); 8-BANK BSRAM INFERENCE PATCH COMMITTED; REBUILD PENDING; HARDWARE NOT TESTED.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
+**Status: SOURCE PASS + BUILD PASS (Gowin 1.9.9Beta-4, EXIT 0); GLOBAL SETUP/HOLD = 0/0; BOARD NOT TESTED. Post-route resource usage, Recovery/Removal and clock warning review remain OPEN.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
 
 ## FPGA-generated image and melody
 
@@ -80,3 +80,26 @@ GOWIN EXIT: 1
 Per Gowin's [SUG949 HDL Coding Guide](https://cdn.gowinsemi.com.cn/SUG949E.pdf) (pROM/pROMX9) and [UG285 BSRAM Guide](https://cdn.gowinsemi.com.cn/UG285E.pdf), native block ROM configurations support **2048×8** and `readmemh` initializations with a synchronous read. **This is an attempted vendor-guided BSRAM inference fix, NOT a verified Gowin compile.** If `IF0007` / `IF0008` persists, a follow-up can use direct Gowin pROM primitive instantiation with explicit initialization, rather than weakening the image resolution.
 
 **Safety:** do not program FPGA until BUILD PASS and STA checks. PR25-13 remains the verified HDMI VIDEO+AUDIO backup; this change only modifies the new PR25-14 source files and its build script.
+
+
+## 2026-11-15 — Build #3 PASS after banked ROM patch
+
+Operator reran the exact source from GitHub commit `a988162` at `20261115_023848511`. **GowinSynthesis passed** after detecting and extracting each of the eight `image_bank0..7` memories. **Placement, routing, timing-analysis phase and bitstream generation all completed** in Gowin 1.9.9Beta-4 Education. This is the first complete PR25-14 build.
+
+```text
+GOWIN EXIT: 0
+BUILD PASS: artifacts/chipmusic_tp25k_PR25_14.fs
+SHA256: 106f396912caf6c2c04fb9dede1c3bdd38dc46bb6a0556cd9c37b30ebdf82a98
+GLOBAL SETUP VIOLATIONS: 0
+GLOBAL HOLD VIOLATIONS: 0
+```
+
+**Caveats and remaining audit:** The source log shows `Extracting RAM for image_bank0..7` and successful bitstream, which is strong evidence the architecture change avoided the previous LUT4 resource overflow. It does **not** by itself tell us the exact **BSRAM block count**: inspect synthesized/netlist/PnR resource report before claiming eight physical BSRAM blocks. `TA1123` warns that `clk_pixel_x5` timing constraint frequency differs from the PLL clock; `TA1117` warns that relationships cannot be calculated between `clk_50mhz`, `clk_pixel_x5`, `clk` and `clk_audio`. These warnings also occurred on the previously working PR25-13, but are not timing sign-off. The log still contains `EX3791` on truncating scene coordinate arithmetic and `NL0002` about optimizing HDMI packet module hierarchy; neither, in isolation, proves loss of picture or sound.
+
+**Read-only inspection before programming** (no second build and no hardware write):
+
+```powershell
+& .\Tang-Primer-25K\Examples\PR25-14-CHIPTUNE-FPGA\Inspect_Build.ps1
+```
+
+Paste that compact report before PR25-14 hardware programming. User-verified PR25-13 remains the control. The initial synthesis warnings and fixes are preserved above in chronological order.
