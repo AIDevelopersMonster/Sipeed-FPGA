@@ -106,6 +106,8 @@ def stage(repo: Path, out: Path) -> None:
         ('s8, 256', 's8, 512'),
         ('addi t4, s7, -47', 'addi t4, s7, -95'),
         ('Tang Nano 9K / HDMI 640x480', 'Tang Nano 20K / native HDMI 1280x720'),
+        ('Tang Nano 9K; 640x480 HDMI; UART 115200 8N1',
+         'Tang Nano 20K; 1280x720 HDMI; UART 115200 8N1'),
         ('PiKoSoL INTERACTIVE SHELL v0.2.0', 'PiKoSoL 20K / PicoRV32 v0.3 candidate'),
         ('ROM 16KiB @00000000; RAM 1KiB @00004000',
          'ROM 32KiB @00000000; RAM 8KiB @00010000'),
