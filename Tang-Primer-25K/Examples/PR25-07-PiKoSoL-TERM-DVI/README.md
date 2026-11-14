@@ -47,3 +47,7 @@
 User's initial synthesis log: `EX3863`, `EX3444` on SystemVerilog `logic`/`int`/`always_ff`, plus `EX3998` on `audio_silence`. The project was treated as **Verilog 2001**, which is the default in GowinSynthesis. This is not yet an HDMI or BRAM hardware result. Before changing vendor RTL, set **Project -> Configuration -> Synthesize -> General -> Verilog Language = System Verilog 2017**. Alternately, run `Synthesize_SV2017.ps1`; this invokes `gw_sh.exe` with `set_option -verilog_std sysv2017` as documented in official Gowin SUG1220. Script only synthesizes and does not touch FPGA.
 
 SystemVerilog mode is necessary; it has **not** been proved sufficient: review any remaining `EX3998` and implementation errors in subsequent log. No BUILD PASS claim until reports actually pass.
+
+## 2026-11-14: EX3934 initialization loop limit
+
+The next synthesis log reached `Extracting RAM` for both memories and stopped at `EX3934: Loop count limit of 2000 exceeded` (original RTL line 51). Fixed by replacing the 2400-iteration RTL `for` with `$readmemh("rtl/text_init.hex", text_ram)`; the new 2400-line, 8-bit text image contains spaces and initial banner `PiKoSoL 25K TERM-DVI`. The font initialization still uses the PiKoSoL `font_8x16.hex`. Both hex files are listed as `file.other` in the Gowin project. **Needs a new synthesis run; this is not yet a BUILD PASS.**

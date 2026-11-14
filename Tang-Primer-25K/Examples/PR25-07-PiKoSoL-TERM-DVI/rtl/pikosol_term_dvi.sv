@@ -46,30 +46,11 @@ localparam COLS=80;
 localparam ROWS=30;
 reg [7:0] text_ram [0:2399];
 reg [7:0] glyph_rom [0:2047];
-integer i;
+// Initialize BRAMs from images. Avoid a 2400-iteration initial for-loop:
+// GowinSynthesis EX3934 limits a single unrolled loop to 2000 iterations.
 initial begin
-    for(i=0;i<2400;i=i+1) text_ram[i]=8'h20;
+    $readmemh("rtl/text_init.hex", text_ram);
     $readmemh("rtl/font_8x16.hex", glyph_rom);
-    text_ram[0]=8'h50; // P
-    text_ram[1]=8'h69; // i
-    text_ram[2]=8'h4b; // K
-    text_ram[3]=8'h6f; // o
-    text_ram[4]=8'h53; // S
-    text_ram[5]=8'h6f; // o
-    text_ram[6]=8'h4c; // L
-    text_ram[7]=8'h20;
-    text_ram[8]=8'h32; // 2
-    text_ram[9]=8'h35; // 5
-    text_ram[10]=8'h4b; // K
-    text_ram[11]=8'h20;
-    text_ram[12]=8'h54; // T
-    text_ram[13]=8'h45; // E
-    text_ram[14]=8'h52; // R
-    text_ram[15]=8'h4d; // M
-    text_ram[16]=8'h2d; // -
-    text_ram[17]=8'h44; // D
-    text_ram[18]=8'h56; // V
-    text_ram[19]=8'h49; // I
 end
 wire [7:0] rx_byte;
 wire rx_valid;

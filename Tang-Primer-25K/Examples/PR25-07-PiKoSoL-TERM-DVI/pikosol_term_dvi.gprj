@@ -18,6 +18,8 @@
         <File path="vendor/hdmi/serializer.sv" type="file.verilog" enable="1"/>
         <File path="vendor/hdmi/source_product_description_info_frame.sv" type="file.verilog" enable="1"/>
         <File path="vendor/hdmi/tmds_channel.sv" type="file.verilog" enable="1"/>
+        <File path="rtl/text_init.hex" type="file.other" enable="1"/>
+        <File path="rtl/font_8x16.hex" type="file.other" enable="1"/>
         <File path="pins.cst" type="file.cst" enable="1"/>
         <File path="timing.sdc" type="file.sdc" enable="1"/>
     </FileList>
