@@ -1,0 +1,7 @@
+_cache/
+work/
+artifacts/
+evidence/
+*.fs
+*.bin
+*.zip
