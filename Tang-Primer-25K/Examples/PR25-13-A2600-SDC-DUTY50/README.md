@@ -1,6 +1,6 @@
 # PR25-13 — SDC clock waveform 50% hypothesis (A2600Nano TP25K)
 
-**STATUS: SOURCE PASS + BUILD PASS (Gowin 1.9.9, EXIT 0); SELECTED NEGATIVE RECOVERY PATHS = 0; COMPLETE STA NOT YET REVIEWED; BOARD NOT TESTED.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
+**STATUS: SOURCE PASS + BUILD PASS (Gowin 1.9.9, EXIT 0); GLOBAL SETUP/HOLD VIOLATED ENDPOINTS = 0/0; SELECTED NEGATIVE RECOVERY PATHS = 0; PLL CLOCK WARNING TA1123 PERSISTS; BOARD NOT YET TESTED.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
 
 ## Grounded evidence from operator on 15 Nov 2026
 
@@ -73,3 +73,17 @@ $h = Get-Content (Join-Path $m.workspace "impl\pnr\a2600nano_tp25k_tr_content.ht
 ```
 
 If this prints zero global Setup and Hold, it still does **not** imply a valid physical waveform or close CDC/Recovery paths; review `TA1123/TA1117` and cross-clock paths before experimental SRAM programming. The officially downloaded Golden is the verified hardware baseline.
+
+
+## Operator STA global counters — 15 Nov 2026 (PR25-13)
+
+Operator read the exact PR25-13 generated `a2600nano_tp25k_tr_content.html` and extracted:
+
+```
+Numbers of Setup Violated Endpoints = 0
+Numbers of Hold Violated Endpoints = 0
+```
+
+Together with `Negative Recovery paths selected: 0`, this supports **experimental SRAM-only board testing** (not production acceptance). It does not prove all cross-clock paths were constrained, removal timing closed, a physical 50% PLL clock, or resolution of `TA1123` (PLL/SDC frequency mismatch) and `TA1117` (unknown interclock relationships). **Never claim FULL STA PASS** from the two counters alone.
+
+**Next controlled board A/B:** program the existing PR25-13 `artifacts/a2600nano_tp25k_SDC50.fs` using `Program_SRAM.ps1 -Program` **only when ready to briefly overwrite current FPGA SRAM configuration**. Observe image and audible sound in same game/cable/monitor configuration as Golden. If no video/audio, restore PR25-11 `Program_SRAM.ps1 -Variant Golden` and record the board failure. Do not program nonvolatile Flash or modify MCU. Avoid further RTL/SDC tweaks before recording the A/B result.
