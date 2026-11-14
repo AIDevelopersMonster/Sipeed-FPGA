@@ -5,7 +5,7 @@
 ## Status (2026-11-14)
 
 - Source integrated with vendor-derived PLL, DVI encoder and PiKoSoL font.
-- **SYNTHESIS PASS 2026-11-14; PnR and BITSTREAM NOT YET PASS; NOT PROGRAMMED or BOARD-VERIFIED.** The source is an engineering candidate, not a tested firmware.
+- **SYNTHESIS + PnR + BITSTREAM GENERATION PASS 2026-11-14 19:39:25; NOT YET PROGRAMMED or BOARD-VERIFIED.** The source is an engineering candidate, not a tested firmware.
 - On-board HDMI output is *not* used; connect Sipeed DVI PMOD to the pins mapped in `pins.cst`. Physical connector alignment still must be checked. Previous HDMI test had no image.
 - Configuration Flash is not required. Use only `SRAM Program` for the first run.
 
@@ -59,3 +59,7 @@ Subsequent synthesis log confirms text/ROM extraction, HDMI encoder, PLL and UAR
 ## 2026-11-14: PnR PR2017 on special pins (fixed in source)
 
 Latest Gowin log: GowinSynthesis successfully generated `pikosol_term_dvi.vg` and its report (SYNTHESIS PASS). PnR then failed with `PR2017` / `PR2028`: `clk_50m` E2 is a CPU/SSPI dual-purpose pin, `led_ready` E8 is dedicated READY, and `led_done` D7 is dedicated DONE. Removed both unnecessary LED output ports and corresponding constraints: E8/D7 stay reserved for the FPGA configuration status. Clock E2 stays because it is the actual board 50 MHz oscillator; select **Use CPU as regular IO** in `Project > Configuration > Place & Route > Dual-Purpose Pin`. The companion `Build_TERM_DVI.tcl` enables the setting with `set_option -use_cpu_as_gpio 1`, keeps SSPI GPIO enabled, and requests BRAM initialization in the bitstream. `Build_TERM_DVI.ps1` calls that script. No RTL changes to HDMI or PLL. New PnR attempt and timing analysis still required; no FPGA/hardware pass claimed.
+
+## 2026-11-14 19:39:25: full Gowin build PASS (from operator log)
+
+The operator reported synthesis completing to 100% with netlist `impl/gwsynthesis/pikosol_term_dvi.vg`, placement and routing completing to 90%, timing analysis stage completed, and **Bitstream generation completed**. Files generated include PnR pin, utilization and timing HTML/text reports. No fatal synthesis or PnR errors. Remaining synthesis warnings: EX3182 (VIDEO_RATE default), EX1998 (data_island_data[11] undriven for DVI mode), EX3791 (expression size truncation). **Timing closure margins and the generated .fs SHA256 are not yet recorded; completion of STA does not establish positive slack.** Neither FPGA programming nor DVI video output have been observed yet. Next acceptance gate: program `impl/pnr/pikosol_term_dvi.fs` to FPGA volatile SRAM using Gowin Programmer operation index 2, confirm PMOD DVI output, then UART RX. Do not claim BOARD PASS until image is visible and accepted.
