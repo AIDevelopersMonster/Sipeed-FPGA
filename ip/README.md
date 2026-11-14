@@ -25,3 +25,5 @@
 - [PR25-09 HDMI AUDIO DIAG](../Tang-Primer-25K/Examples/PR25-09-HDMI-AUDIO-DIAG/README.md): independent follow-up after PR25-08 VIDEO PASS/AUDIO FAIL; tests intermittent HDMI stereo tone and an on-screen generator marker. **Source only, no build or hardware PASS yet.**
 
 - [thisiseth Tang Primer 25K — second HDMI+audio implementation](hdmi/thisiseth-tp25k-audio/README.md): original author reports real 720p60 + 16-bit 48kHz stereo, complete FPGA-side HDMI source, 720p PLL and audio FIFO, pinned MIT + upstream notices. **Reference source only, standalone test NOT built**. Original full application needs ESP32-S3 for PCM supply; no external SDRAM required.
+
+- [Brus-16 Tang Primer 25K SFX firmware candidate](hdmi/BRUS16_TP25K_AUDIO_CANDIDATE_RU.md): separate July 2026 ready tp25k.zip with author-reported HDMI sound (Gerion), no SDRAM / ESP32-S3, 44.1kHz SFX, full sources and pin constraints. **Not our hardware BOARD PASS; original source not copied.**
