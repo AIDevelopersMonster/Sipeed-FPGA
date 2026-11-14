@@ -15,7 +15,7 @@ The original A2600Nano v2.5 full system produced both picture and sound on the u
 ## What changed from PR25-08
 
 - Audio waveform generated in the **audio sample clock domain** and packed into HDMI using upstream's preferred `audio_sample_word({audio_l, audio_r})` form.
-- ~1000 Hz stereo square wave at ±0x3000 (moderate level), alternating about **0.75 s ON / 0.25 s OFF**.
+- ~1000 Hz stereo square wave at ±0x3000, alternating about **0.75 s ON / 0.25 s OFF**. This test signal is **6 dB higher in voltage amplitude than PR25-08** and can be quite loud; start with the HDMI monitor volume low. See [original A2600 audio audit](../../../ip/hdmi/a2600nano-primer25k/AUDIO_AUDIT_RU.md).
 - A small on-screen marker at top-left changes **green during ON, red during silence**, independently indicating that the audio test generator is running. This does **not** show whether HDMI audio packets reach the monitor.
 - The PMOD, clock and video timing are unchanged. The marker is the only intended picture alteration.
 - The nominal HDMI ACR/audio rate metadata remains **48 kHz** as upstream; this run does not validate an exact sample-clock frequency. Do not infer sound success from build alone.
