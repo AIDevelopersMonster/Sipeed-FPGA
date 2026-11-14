@@ -1,6 +1,6 @@
 # PR25-13 — SDC clock waveform 50% hypothesis (A2600Nano TP25K)
 
-**STATUS: SOURCE PASS + BUILD PASS (Gowin 1.9.9, EXIT 0); GLOBAL SETUP/HOLD = 0/0; SELECTED NEGATIVE RECOVERY PATHS = 0; PROGRAM ATTEMPT BLOCKED BY JTAG CABLE OPEN FAILED (EXIT 50). NO VIDEO/AUDIO BOARD RESULT. TA1123 PERSISTS.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
+**STATUS: SOURCE PASS + BUILD PASS (Gowin 1.9.9, EXIT 0); GLOBAL SETUP/HOLD = 0/0; SELECTED NEGATIVE RECOVERY PATHS = 0; BOARD OPERATOR REPORTS PR25-13 'ЗАРАБОТАЛА' AFTER JTAG RECOVERY; EXACT VIDEO/AUDIO ACCEPTANCE NOT YET SEPARATELY DOCUMENTED. TA1123 PERSISTS.** This is a controlled experiment on top of PR25-12, **not** a confirmed FPGA/HDMI fix.
 
 ## Grounded evidence from operator on 15 Nov 2026
 
@@ -133,3 +133,12 @@ Cost 0.58 second(s)
 ```
 
 The programmer **can now open the FT2CH cable and identify the FPGA**. This is JTAG SCAN PASS, **not SRAM PROGRAM PASS**; the previously attempted PR25-13 load is still unproven. The operator also described the earlier monitor's black-grey-black transition as possibly its **backlight switching on and off**, not HDMI video. Therefore do not count that transition as TMDS evidence. Next run PR25-13 `Program_SRAM.ps1 -Program` once while cable is free, confirm **SRAM PROGRAM EXIT 0**, and only then observe VIDEO/AUDIO. If no working picture, reprogram verified PR25-11 `-Variant Golden` to restore original release, still SRAM only.
+
+
+## PR25-13 operator reports working after JTAG recovered — 2026-11-15
+
+After the failed first attempt (`Cable open failed`, exit 50), a read-only JTAG scan **PASS** confirmed the device `GW5A-25A / 0x0001281B`. Operator was instructed to retry `Program_SRAM.ps1 -Program`; their subsequent exact report was **«Заработала»** (“It works”). This is the first positive **operator-observed** board result for a locally rebuilt A2600Nano experimental bitstream. **Do not conflate this with a captured programmer EXIT 0** (not separately pasted) or claim AUDIO PASS until operator confirms audible sound. VIDEO operation is strongly suggested but was not separately broken out; obtain two acceptance flags: VIDEO? AUDIO?
+
+**Causal limits:** PR25-13 differs from failing original PR25-11 in both three-stage OSER10 reset release synchronization **and** `clk_pixel_x5` SDC waveform model (1.000 ns -> 3.492 ns falling edge). A positive board result for their combination does **not** isolate which change, or whether routing seed/implementation effects, was necessary. `TA1123` PLL frequency mismatch warning and `TA1117` unresolved interclock relationships remain, so do not declare production STA closure. Official v2.5 Golden is still verified baseline and must be preserved; SRAM only, never Flash.
+
+**Immediate next checkpoint:** ask operator explicitly whether both HDMI picture **and** audio are present. If both: record separate VIDEO PASS, AUDIO PASS, optionally confirm sustained operation and expected frame/audio mode; pin exact SHA256 `22cabb286d0b2ffb0973ae5109c872239782d341cfe46a8792921ed5be37580a` in experiment manifest. If only video, continue analyzing packetized HDMI audio without altering working video path.
