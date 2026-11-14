@@ -125,3 +125,14 @@ New reproducible controls: [Capture_UART_Stable.ps1](./Capture_UART_Stable.ps1) 
 **Board procedure:** close the COM terminal; open COM25 at 9600 baud/8N1 before SRAM programming if possible, because this is a **finite** 16-packet transmission; run `Build_UARTTX.ps1` then `Program_SRAM_UARTTX.ps1` (SRAM only). The first packet begins approximately 0.5 seconds after configuration, and all 16 take roughly 8.3 seconds. `Probe_UARTTX.ps1 -Ports COM25 -Bauds 9600 -Seconds 12` can capture only if active by the time packets transmit. For deterministic one-run automation, start a receive program before programming in a separate terminal, or run a new FPGA SRAM program while COM25 is already open; if the receiver is opened after programming, earlier packets may already have been emitted and the full 16 are not guaranteed to appear.
 
 **PASS criteria:** at most 16 fresh exact packets per configuration, no overlap, correct stop bits/line idle and expected ~0.52s inter-packet period; any extra bytes after the FPGA finishes indicate downstream buffering or corruption and must be independently isolated. Source reviewed; FPGA/Gowin synthesis and board PASS for this new bounded revision remain OPEN.
+
+## 2026-11-14 repeated SRAM programming: bounded TX hardware PASS (304+1)
+
+The operator repeated FPGA SRAM programming / startup, then captured 20 seconds of `COM25 @ 9600 baud, 8N1` with the bounded `PACKET_BYTES=19, MAX_PACKETS=16` RTL. Complete results:
+
+- `RESULT: 305 bytes`.
+- Raw HEX begins `00 50 52 32 35 20 55 41 52 54 20 54 58 20 54 45 53 54 0D 0A...`.
+- Bytes 1..304 are **exactly 16 consecutive copies** of 19-byte `PR25 UART TX TEST\r\n`, with zero missing, extra, or overlapping packets and no continuing stream.
+- One extra **leading 0x00** is present in the receive stream (byte 0). This may be a UART framing event during FPGA SRAM reconfiguration, I/O tri-state/idle transition, BL616 UART RX handling, or buffered artifact. This observation alone does not prove an internal RTL reset or CDC issue.
+
+**Classification: UART TX bounded-packet hardware PASS at COM25 9600 8N1, with one startup anomaly (leading 0x00), not an entirely clean link.** The transmitter has one 50MHz domain; no internal CDC in PR25-05. External BL616 receiver is asynchronous as standard UART. Next, if needed, isolate the startup zero by opening COM25 **before** SRAM reprogram and timestamping bytes, and consider pull-up/buffer initialization on C3/BL616 RX during configuration. Preserve the working 9600 firmware. Do not alter Flash. USB Host, processor, and UART RX remain unverified.
