@@ -64,3 +64,16 @@ After this small lab produces known ASCII, return to PR25-04 USBH01 and isolate 
 ## 2026-11-14 physical UART test
 
 Operator supplied captured evidence: `SRAM PROGRAM EXIT: 0`, COM24 at 115200 and 460800 yielded **zero bytes**; COM25 at 115200 yielded 3032 bytes, including **97 complete ASCII `PR25 UART TX TEST\\r\\n` records** in two uninterrupted groups of 87 and 10, with additional non-ASCII/garbled data before/between; COM25 at 460800 yielded 415 bytes with **one complete ASCII record**, plus garbled data. Thus **FPGA->C3->BL616->Windows COM25: periodic known text physically verified on 115200**. Do not claim USB Host or RX PASS. Because the serial capture was sequential after opening baud 460800, earlier garbled bytes may be buffered/cross-baud transitions; a stable clean 115200 capture after reconnect is an optional follow-up. USBH01 diagnostic should begin with COM25 already open before SRAM programming to catch one-time firmware boot messages.
+
+## Physical result: 2026-11-14 UARTTX PASS with mixed/garbled blocks
+
+User ran SRAM programming and the passive serial diagnostic. Evidence pasted in chat:
+
+- `SRAM PROGRAM EXIT: 0`.
+- Host-visible serial ports `COM1, COM24, COM25`.
+- `COM24` returned no bytes at 115200 or 460800.
+- `COM25` at **115200** returned **3032 bytes** including **97 exact repetitions** of `PR25 UART TX TEST\r\n`; also long irregular regions of `00 78 80 F8`-patterned garbage. This establishes a working C3->debugger->COM25 path at least for substantial intervals, not a fully clean UART channel.
+- `COM25` at 460800 returned **415 bytes**, only one intact expected line and predominantly garbage; 460800 is **not** the preferred setting on this specimen with current firmware.
+- Interpretation: the proper test UART receive setting is currently COM25 / 115200, but invalid bytes and unexpected burst structure remain to investigate. The 97 repetitions in a 5-second read and long runs of contiguous 19-byte frames warrant caution: the apparent timing does not match an uninterrupted beacon with a 0.5-second inter-message pause, suggesting buffer/backlog, alternate data path or UART instability. Do NOT declare clean UART PASS or stable BL616 divisor from this experiment.
+
+Next: with no serial probe open, program PR25-04 USBH01 while a separate COM25/115200 capture is already open; record raw bytes from boot and attach a wired USB-A keyboard. `Capture_USBH01.ps1` is in PR25-04 to orchestrate this. If no meaningful RISC-V boot banner, investigate memory initialization `mem.hex`, reset/PLL, and USBH01 TX path rather than changing serial baud randomly.
