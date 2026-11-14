@@ -76,9 +76,22 @@ if($shaRaw -ne 'f54154294533176a85f0bae30fecfa030c7860950864de7e5f1758ff48e4f48c
 [string[]]$paletteLines=for($i=0;$i -lt 192;$i+=3){
     ('{0:x2}{1:x2}{2:x2}' -f $raw[$i],$raw[$i+1],$raw[$i+2])
 }
+# 8 native 16-Kbit pROM-compatible banks, each 2048 x 8 bits.
+# 14400 source indices + 1984 zero padding = exactly 16384 bytes.
+# Keep the master index stream for independent byte-for-byte audit.
 [string[]]$pixelLines=for($i=192;$i -lt $raw.Length;$i++){$raw[$i].ToString('x2')}
 [IO.File]::WriteAllLines((Join-Path $project 'scene_palette.mem'),$paletteLines)
 [IO.File]::WriteAllLines((Join-Path $project 'scene_pixels.mem'),$pixelLines)
+for($bank=0;$bank -lt 8;$bank++){
+    [string[]]$bankLines=for($offset=0;$offset -lt 2048;$offset++){
+        $src=192+$bank*2048+$offset
+        if($src -lt $raw.Length){$raw[$src].ToString('x2')}
+        else{'00'}
+    }
+    if($bankLines.Count -ne 2048){throw "Invalid pROM bank $bank length"}
+    [IO.File]::WriteAllLines((Join-Path $project ("scene_bank"+$bank+".mem")),$bankLines)
+}
+Write-Host 'ROM BANKS: 8 x 2048 x 8-bit pROM candidates (128 Kbit allocated)'
 
 # New top has only HDMI, PLL and LEDs. Keep exactly proven connector pins.
 $cst=@'

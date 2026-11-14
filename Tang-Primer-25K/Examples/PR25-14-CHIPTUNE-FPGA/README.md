@@ -1,6 +1,6 @@
 # PR25-14: CHIPMUSIC — Animated pixel art and original music ON Tang Primer 25K
 
-**Status: FIRST BUILD FAILED (Gowin parser EX3863/EX2656); SYNTAX PATCH COMMITTED; REBUILD PENDING; HARDWARE NOT TESTED.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
+**Status: BUILD #2 FAILED (Gowin inference IF0007/IF0008: attempted 98,304 LUT4 for image ROM); 8-BANK BSRAM INFERENCE PATCH COMMITTED; REBUILD PENDING; HARDWARE NOT TESTED.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
 
 ## FPGA-generated image and melody
 
@@ -15,8 +15,8 @@
 - Tang Primer 25K GW5A-25A, DVI PMOD physically wired **exactly as for working PR25-13**.
 - Windows PowerShell 7 and local Gowin 1.9.9Beta-4 Education.
 - Existing PR25-13 build and its exact workspace (`artifacts/sdc50_manifest.json`). The build checks source commit and PR25-13 serializer SHA-256; it refuses to silently fall back to an unverified source tree.
-- Pixel scene ROM is stored as compressed text `assets/scene_zlib.b64`, unpacked to `scene_palette.mem` and `scene_pixels.mem` by PowerShell before Gowin synthesizes the modules. See asset manifest. **The actual bitmap is on-chip, not streamed from the PC.**
-- **No SDRAM module is required:** the 14,400 bytes of color indices use 115.2 kbits of GW5A-25's 1008 kbits block SRAM, plus 192 bytes of palette.
+- Pixel scene ROM is stored as compressed text `assets/scene_zlib.b64`, unpacked to `scene_palette.mem`, `scene_pixels.mem` (audit source), and **eight padded 2048-byte files** `scene_bank0.mem` … `scene_bank7.mem` by PowerShell before Gowin synthesizes the modules. See asset manifest. **The actual bitmap is on-chip, not streamed from the PC.**
+- **No SDRAM module is required:** the 14,400 bytes of color indices occupy 115.2 kbits of payload. The banked mapping allocates eight 16-Kbit BSRAM ROM blocks = 128 Kibit (16,384 byte addresses, 1,984 zero padded) of GW5A-25's 1008 Kbit BSRAM capacity, plus 192 bytes of palette. Allocation and mapping remain to be verified in Gowin reports.
 
 ## Operator steps — BUILD ONLY
 
@@ -61,3 +61,22 @@ The operator ran the original `Build_Chiptune.ps1` at `20261115_022112558` (Gowi
 **Fix:** rename only the illegal local net declaration `wire inside` to `wire visible_region`, and its one reference `inside_q <= visible_region`. All pixel/ROM/audio behavior remains unchanged. Also remove declaration-time initialization of `audio_l`, `audio_r`, and `beat_toggle` outputs in `chipmusic_audio.sv` to prevent Gowin `EX2478` warnings; the existing synchronous reset branch already initializes those registers when `!pll_lock` is asserted. The author has NOT run Gowin after this patch; the next build may expose additional errors.
 
 Run the **exact same three commands** in the 'Operator steps — BUILD ONLY' section (`git fetch`, `git restore`, `Build_Chiptune.ps1`). Do **not** run `Program_SRAM.ps1` until there is an actual BUILD PASS and timing report review. PR25-13 (SHA256 `22cabb286d0b2ffb0973ae5109c872239782d341cfe46a8792921ed5be37580a`) remains the working, preserved VIDEO+AUDIO reference.
+
+
+## 2026-11-15 — Build #2 IF0007 / IF0008: 98,304 LUT4 attempted for image ROM
+
+The operator's second build progressed past the syntax errors, but the Gowin **inference** stage reported:
+
+```text
+WARN (IF0007): Attribute value of 'syn_ramstyle/syn_srlstyle' is not applicable (chipmusic_scene.sv:11)
+ERROR (IF0008): The number(98304) of LUT4 used to infer "image_rom" exceeds the resource limit(23040) of device GW5A-LV25MG121NC1/I0
+GOWIN EXIT: 1
+```
+
+**Interpretation:** `image_rom[0:14399]` was being mapped into logic, NOT embedded BSRAM. Merely tagging one large, non-power-of-two memory with `syn_romstyle = "block_rom"` was not enough in this Gowin 1.9.9 build. The FPGA has adequate BSRAM for this image; **98,304 LUT4 are a failed *implementation choice*, not the bitmap's intrinsic resource requirement**.
+
+**Source-only correction:** split the 14,400 bytes into **eight separate 2,048×8-bit ROM arrays**, each with Gowin `/* synthesis syn_romstyle = "block_rom" */` and its own `$readmemh("scene_bankN.mem", image_bankN)`. Synchronize the bank-selection bits along with the bank data, keeping the original single-clock pixel read latency. Builder regenerates all 8 bank files from the same original SHA-checked compressed image; it pads the final bank with 1,984 zero bytes, without changing any visible pixel. Audio, PLL, HDMI, OSER10 reset sync and fixed frequency assumptions are **unchanged**.
+
+Per Gowin's [SUG949 HDL Coding Guide](https://cdn.gowinsemi.com.cn/SUG949E.pdf) (pROM/pROMX9) and [UG285 BSRAM Guide](https://cdn.gowinsemi.com.cn/UG285E.pdf), native block ROM configurations support **2048×8** and `readmemh` initializations with a synchronous read. **This is an attempted vendor-guided BSRAM inference fix, NOT a verified Gowin compile.** If `IF0007` / `IF0008` persists, a follow-up can use direct Gowin pROM primitive instantiation with explicit initialization, rather than weakening the image resolution.
+
+**Safety:** do not program FPGA until BUILD PASS and STA checks. PR25-13 remains the verified HDMI VIDEO+AUDIO backup; this change only modifies the new PR25-14 source files and its build script.
