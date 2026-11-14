@@ -117,3 +117,18 @@ Observed on Windows/Gowin V1.9.9Beta-4 Education, log `USBH01_BUILD_20261114_125
 - No bitstream; no hardware test. `EX3791` size warnings and `m_alu_b` swept warning are separate from placement failure and have not yet been adjudicated.
 
 The build Tcl now explicitly emits `set_option -use_cpu_as_gpio 1` to make dedicated CPU/SSPI pin E2 available for the input oscillator, based on vendor Gowin option and independent Primer25K build patterns. **Correction not yet tested on operator's installation; verify from next PNR log.** No RTL changed; do not write FPGA Flash.
+
+## 2026-11-14: USBH01 CLI bitstream BUILD PASS
+
+Operator's subsequent Gowin CLI build produced **EXIT 0** after resolving reserved E2 CPU/SSPI pin by `set_option -use_cpu_as_gpio 1`:
+
+```text
+GOWIN EXIT: 0
+USBH01 BITSTREAM FOUND
+FILE: C:\GitHub\TangPrimer25K_USBHost_UART\impl\pnr\usb_keyboard_uart.fs
+BYTES: 6389757
+SHA256: 6DDBBBEF60EF65789687F9A9B5AF710F23899F0F5996DC1AA1B8DDDAD2A52036
+STATUS: CLI BUILD FILE PASS; TIMING AND BOARD NOT YET VERIFIED
+```
+
+**Evidence classification:** build file PASS; independent STA/timing review NOT yet completed; **SRAM programming NOT YET performed; UART/USB hardware NOT YET tested**. No Flash writes. The generated bitstream is *not* stored in the repo. Next: verify local bitstream SHA-256, program *SRAM only* via `programmer_cli.exe --device GW5A-25A --run 2 --fsFile <path> --cable-index 1`, identify the board's actual debugger COM port, inspect UART at 115200 8N1, and connect a directly wired boot keyboard to Dock USB-A (external hub test follows after direct attach). The UART debug banner should start with `start` but this is an expectation based on upstream source, not yet observed on this board.
