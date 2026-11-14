@@ -13,7 +13,7 @@
 
 ## Status and limitation
 
-**Prepared, not board tested.** GitHub did not expose the binary archive contents through the available remote tool, so the exact internal entry name is **not known in advance**. `Run_Brus16_Gerion.ps1` downloads the original archive on the operator's Windows machine, verifies both size and SHA-256, lists all ZIP entries, and refuses to program unless exactly one `*gerion*.fs` candidate exists. We do not assume the image is compatible or working merely because the ZIP download succeeded.
+**Operator board-tested: VIDEO PASS / AUDIO NOT HEARD.** Original Gerion and all the other operator-tested .fs images in the same Brus-16 SFX archive produced HDMI video. The operator reported **no audible audio in any of them**. This does not prove that each game generated nonzero audio; Gerion is the documented meaningful audio-negative case because its source calls `play_song(song)` at the title screen. The verified-download script remains for repeatability; do **not** continue the same batch of tests solely to find another image.
 
 ## Operator commands — PowerShell 7
 
@@ -40,7 +40,7 @@ Uses the **identical known-working Gowin Programmer command** from PR25-08:
 The script saves local `firmware/gerion.fs`, `evidence/BRUS16_*_MANIFEST.json` and transcript logs. These are excluded by `.gitignore` and should not be committed.
 
 
-## Multi-firmware selector — VIDEO works, AUDIO absent in Gerion
+## Multi-firmware selector — ALL TESTED IMAGES VIDEO, NO AUDIBLE AUDIO
 
 **Operator observation (2026-11-14):** the original Brus-16 SFX `Gerion` bitstream displays VIDEO on our Primer 25K, but **no audible audio** was heard. This is **VIDEO BOARD PASS / AUDIO FAIL**, not a full HDMI/audio success. The original A2600Nano v2.5 remains our only confirmed HDMI VIDEO + AUDIO BOARD PASS. The Gerion game's original [`gerion.py`](https://github.com/true-grue/Brus-16/blob/main/games/gerion/gerion.py) calls `play_song(song)` while `TITLE_MODE` is set, so the game title is expected to create PCM, even without gamepad input; that does not prove that a particular binary was generated from that exact source revision.
 
@@ -70,14 +70,24 @@ Reference: [Brus-16 `sfx` source tree](https://github.com/Papr1ka/brus16/tree/sf
 
 | Check | Result |
 | --- | --- |
-| ZIP size SHA-256 matches official release | OPEN |
-| Archive contains unique Gerion .fs | OPEN |
-| Gowin Programmer exit 0 (SRAM) | OPEN |
+| ZIP size SHA-256 matches official release | Archive accepted by programmed-image script; standalone verification log not provided in chat |
+| Archive contains Gerion .fs | Used in board trial; actual ZIP member name not quoted |
+| Gowin Programmer exit 0 (SRAM) | VIDEO observed; actual CLI exit log not provided |
 | HDMI monitor displays Gerion | **BOARD VIDEO PASS — operator-confirmed** |
-| **Game audio is audible** | **AUDIO FAIL — no sound heard** |
+| HDMI monitor displays other .fs images in SFX archive | **VIDEO PASS — operator reports all tested files working** |
+| **Audible audio in Brus-16 images** | **FAIL — operator heard none** |
+| A2600Nano v2.5 VIDEO + AUDIO | **BOARD PASS — separate known-good control** |
 
 A game menu or splash screen does **not** mean sound works: gameplay may require controller/button input. The script cannot add a controller that is not present. Report the exact operator observations without inventing audio PASS.
 
 If this Gerion image cannot generate sound autonomously in the current setup, try independent VIC20Nano/NanoApple2 TP25K firmware only with their respective MCU/SD requirements understood; do not call those immediately plug-and-play.
 
 See [research record](../../../ip/hdmi/BRUS16_TP25K_AUDIO_CANDIDATE_RU.md) for source comparison.
+
+## Closeout after full SFX firmware batch (14 Nov 2026)
+
+The operator confirmed: **every tested original Brus-16 SFX firmware displays video, none has audible audio**. Stop repeatedly switching images; they share the same HDMI output implementation. Do not infer that games without music generate audio. Gerion's `TITLE_MODE` path explicitly requests music in the upstream game source, but we have no per-FS PCM waveform trace.
+
+Comparative source check: Brus-16 `src/hdmi/hdmi.sv` is the hdl-util family, `VIDEO_ID_CODE=1` (640x480) with nominal `VIDEO_RATE=25.2 MHz` and `AUDIO_RATE=44100`; its SFX PLL .ipc nominal fast clock is 125 MHz, divided by five. The original **working** A2600Nano `src/hdmi/hdmi.sv` is a **modified derivative** accepting `stmode`, `cea`, `total_lines` and `screen`; it receives `audio_sample_word({audio_vol_l,audio_vol_r})` via `src/misc/video.v`, with `AUDIO_RATE=48000`. Thus `Brus16` and A2600 are not independent unrelated HDMI codec families. The existence of the Gerion music code and the author's sound release claim does not prove compatibility with our display/sink at the exact tested timing.
+
+**Engineering decision:** no third iteration of a synthetic tone or game firmware sweep. Preserve golden A2600Nano v2.5 .fs. Next investigate / reproduce its **entire known-good video.v + HDMI + PLL + mode source + reset / serializer integration**, starting with a byte-identical source build, then alter the **audio sample source alone** while keeping the rest constant. A build is not an audio pass until audible board confirmation. Alternate hypothesis: monitor treats some timing/metadata configurations as video-only; this is unproven and requires sink format/status information or controlled test.
