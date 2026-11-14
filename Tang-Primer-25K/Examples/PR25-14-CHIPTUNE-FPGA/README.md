@@ -119,3 +119,12 @@ Unexpected PR25-14 .fs SHA256: cd9299d6ef75c73f8d37885d211fca2c82c38a2bc4b9d32d9
 
 Re-run the same `git fetch` + `git restore` commands from above, then **only** `Inspect_Build.ps1`. Do **not** run `Build_Chiptune.ps1` again just to satisfy the inspector.
 
+
+
+## 2026-11-15 — broken inspector script reconstructed (parse error)
+
+After updating GitHub to inspect the current build manifest, the operator ran `Inspect_Build.ps1`, but PowerShell failed to **parse the script at line 22**, because the previous update accidentally duplicated the script and left this line incomplete: `if($expected -notmatch '^[0-9a-fA-F]{64}`. This was a publishing/editing error in the **inspector source**, **not** a failure in the `.fs`, Gowin, FPGA or user's workflow. No hardware was programmed.
+
+The affected file has now been reconstructed from its intact original read-only analysis core and complete per-build SHA256 + byte-count comparison. The malformed duplicated tail has been discarded. Verify the new script by parsing it before execution if desired: `$tok=$null; $err=$null; [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path .\Tang-Primer-25K\Examples\PR25-14-CHIPTUNE-FPGA\Inspect_Build.ps1).Path,[ref]$tok,[ref]$err) | Out-Null; $err` (no errors expected). This check uses built-in PowerShell AST, does not run the build or program any hardware.
+
+Latest operator `Build_Chiptune.ps1` PASS: bitstream SHA256 `cd9299d6ef75c73f8d37885d211fca2c82c38a2bc4b9d32d9b5be18bb8dc092d`; Setup/Hold 0/0. This is the current build to be audited, not the previous `106f...` build.
