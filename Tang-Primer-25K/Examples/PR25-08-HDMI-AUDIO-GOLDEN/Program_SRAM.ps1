@@ -9,7 +9,7 @@ if (!(Test-Path -LiteralPath $Programmer)) { throw "Missing Programmer: $Program
 if (!(Test-Path -LiteralPath $fs)) { throw "Build required first; missing: $fs" }
 if ((Get-Item $fs).Length -lt 100000) { throw 'Implausibly small bitstream' }
 Get-FileHash -LiteralPath $fs -Algorithm SHA256
-Write-Host "GW5A-25A, cable $CableIndex: SRAM PROGRAM (--run 2)"
+Write-Host "GW5A-25A, cable ${CableIndex}: SRAM PROGRAM (--run 2)"
 & $Programmer --device GW5A-25A --cable-index $CableIndex --run 2 --fsFile $fs
 $exit = $LASTEXITCODE
 Write-Host "SRAM PROGRAM EXIT: $exit"
