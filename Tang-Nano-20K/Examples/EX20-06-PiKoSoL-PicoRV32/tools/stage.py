@@ -131,6 +131,43 @@ def stage(repo: Path, out: Path) -> None:
         else:
             firmware = replace_once(firmware, before, after)
 
+    # FONT 1 / FONT 2 switches the renderer via UART TX control bytes.
+    # The bridge carries these to HDMI; ASCII FS 0x1c and GS 0x1d are
+    # reserved here for display scale, not serial flow control.
+    firmware = replace_once(
+        firmware,
+        '    .match "TERM", cmd_term\\n',
+        '    .match "TERM", cmd_term\\n    .verb "FONT", cmd_font\\n'
+    )
+    font_cmd = (
+        'cmd_font:\\n'
+        '    lw t4, 20(s8)\\n'          # FONT 1 => char at offset 5
+        '    lw t5, 24(s8)\\n'
+        '    bne t5, zero, invalid_arg\\n'
+        '    addi t5, zero, 49\\n'
+        '    beq t4, t5, font_one\\n'
+        '    addi t5, zero, 50\\n'
+        '    beq t4, t5, font_two\\n'
+        '    jal zero, invalid_arg\\n'
+        'font_one:\\n'
+        '    .emit "\\u001c"\\n'
+        '    .emit "FONT 1: 160x60 (8x12)\\\\r\\\\n"\\n'
+        '    jal zero, shell_done\\n'
+        'font_two:\\n'
+        '    .emit "\\u001d"\\n'
+        '    .emit "FONT 2: 80x30 (16x24)\\\\r\\\\n"\\n'
+        '    jal zero, shell_done\\n'
+    )
+    firmware = replace_once(firmware, 'cmd_cls:\\n', font_cmd + 'cmd_cls:\\n')
+    firmware = replace_once(
+        firmware, 'HELP INFO MEM LED N|? GFX TERM CLS KEYS',
+        'HELP INFO MEM LED N|? GFX TERM CLS KEYS FONT 1|2'
+    )
+    firmware = replace_once(
+        firmware, 'Type HELP then Enter. CTRL-P recalls last line.',
+        'FONT 2 default (80x30). HELP lists commands.'
+    )
+
     # Expand object selector to C..H (A/B remain byte-exact bus compatible).
     obj_cmd = '    addi t5, zero, 66\n    beq t4, t5, select_b\n'
     assert firmware.count(obj_cmd) == 1
