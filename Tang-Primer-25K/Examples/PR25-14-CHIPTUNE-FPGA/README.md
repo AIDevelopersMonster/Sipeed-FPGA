@@ -1,6 +1,6 @@
 # PR25-14: CHIPMUSIC — Animated pixel art and original music ON Tang Primer 25K
 
-**Status: SOURCE PREPARED, BUILD NOT RUN, HARDWARE NOT TESTED.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
+**Status: FIRST BUILD FAILED (Gowin parser EX3863/EX2656); SYNTAX PATCH COMMITTED; REBUILD PENDING; HARDWARE NOT TESTED.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
 
 ## FPGA-generated image and melody
 
@@ -52,3 +52,12 @@ Do **not** write persistent FPGA Flash. JTAG must remain available. Firmware doe
 5. Monitor/TV outputs an audible and changing three-voice *melody*, not a static tone. Record both VIDEO and AUDIO separately.
 
 **Do not declare BOARD PASS before tests 3–5.** Previous PR25-13 remains the only user-verified video+audio build as of this source commit.
+
+
+## 2026-11-15 — first Gowin build error and compiler-compatibility patch
+
+The operator ran the original `Build_Chiptune.ps1` at `20261115_022112558` (Gowin 1.9.9Beta-4 Education). Parsing `chipmusic_scene.sv` failed at lines **32** and **44** with `EX3863 Syntax error near 'inside'` and `EX2656 SystemVerilog keyword 'inside' used in incorrect context`. The module was ignored (`EX3928`); Gowin returned **EXIT 1**. This is a **source syntax defect**, not a PnR, STA, ROM, HDMI or audio hardware finding. There was NO successful `.fs` and NO FPGA programming.
+
+**Fix:** rename only the illegal local net declaration `wire inside` to `wire visible_region`, and its one reference `inside_q <= visible_region`. All pixel/ROM/audio behavior remains unchanged. Also remove declaration-time initialization of `audio_l`, `audio_r`, and `beat_toggle` outputs in `chipmusic_audio.sv` to prevent Gowin `EX2478` warnings; the existing synchronous reset branch already initializes those registers when `!pll_lock` is asserted. The author has NOT run Gowin after this patch; the next build may expose additional errors.
+
+Run the **exact same three commands** in the 'Operator steps — BUILD ONLY' section (`git fetch`, `git restore`, `Build_Chiptune.ps1`). Do **not** run `Program_SRAM.ps1` until there is an actual BUILD PASS and timing report review. PR25-13 (SHA256 `22cabb286d0b2ffb0973ae5109c872239782d341cfe46a8792921ed5be37580a`) remains the working, preserved VIDEO+AUDIO reference.

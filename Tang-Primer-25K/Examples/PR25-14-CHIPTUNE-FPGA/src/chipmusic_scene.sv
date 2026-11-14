@@ -29,7 +29,7 @@ module chipmusic_scene (
       frame_count <= frame_count + 9'd1;
   end
 
-  wire inside = (next_x >= 11'd40) && (next_x < 11'd680) &&
+  wire visible_region = (next_x >= 11'd40) && (next_x < 11'd680) &&
                 (next_y >= 10'd60) && (next_y < 10'd420);
   wire [7:0] sx = (next_x - 11'd40) >> 2;
   wire [6:0] sy = (next_y - 10'd60) >> 2;
@@ -41,7 +41,7 @@ module chipmusic_scene (
   logic inside_q;
   always_ff @(posedge clk) begin
     rom_index <= image_rom[addr];
-    inside_q <= inside;
+    inside_q <= visible_region;
     sx_q <= sx;
     sy_q <= sy;
   end

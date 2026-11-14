@@ -4,9 +4,9 @@
 module chipmusic_audio (
   input logic clk_audio,
   input logic reset,
-  output logic [15:0] audio_l = 16'd0,
-  output logic [15:0] audio_r = 16'd0,
-  output logic beat_toggle = 1'b0
+  output logic [15:0] audio_l,
+  output logic [15:0] audio_r,
+  output logic beat_toggle
 );
   logic [13:0] tick = '0;
   logic [4:0] step = '0;
