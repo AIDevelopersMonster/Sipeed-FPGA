@@ -1,3 +1,12 @@
+// PiKoSoL PR25-07 integration adaptation for Gowin GW5A-25A.
+// The source donor selects Gowin OSER10 using `define GW_IDE in top.sv.
+// Our top does not share this compile-unit macro with this file.
+// Select the hardware Gowin serializer explicitly; do not use the
+// generic dual-edge (posedge/negedge) fallback on GowinSynthesis.
+`ifndef GW_IDE
+`define GW_IDE
+`endif
+
 module serializer
 #(
     parameter int NUM_CHANNELS = 3,

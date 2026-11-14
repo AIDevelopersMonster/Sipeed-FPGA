@@ -51,3 +51,7 @@ SystemVerilog mode is necessary; it has **not** been proved sufficient: review a
 ## 2026-11-14: EX3934 initialization loop limit
 
 The next synthesis log reached `Extracting RAM` for both memories and stopped at `EX3934: Loop count limit of 2000 exceeded` (original RTL line 51). Fixed by replacing the 2400-iteration RTL `for` with `$readmemh("rtl/text_init.hex", text_ram)`; the new 2400-line, 8-bit text image contains spaces and initial banner `PiKoSoL 25K TERM-DVI`. The font initialization still uses the PiKoSoL `font_8x16.hex`. Both hex files are listed as `file.other` in the Gowin project. **Needs a new synthesis run; this is not yet a BUILD PASS.**
+
+## 2026-11-14: Gowin TMDS serializer selection (`EX2000` / `EX1999`)
+
+Subsequent synthesis log confirms text/ROM extraction, HDMI encoder, PLL and UART RX compilation. It then failed in `vendor/hdmi/serializer.sv` at lines 281/283 because the *generic* serializer branch drove the same `tmds[2]` from both clock edges. The donor's `src/top.sv` declares `GW_IDE`, selecting the **Gowin `OSER10` branch** of `serializer.sv`, but the PiKoSoL project didn't set that macro. The local vendored `serializer.sv` now explicitly defines `GW_IDE` at its top so the correct Gowin primitive branch is selected without reliance on cross-source-file macro propagation. This is a **documented integration patch to the vendored copy**, not an upstream source fix. Upstream preserved below the added header. Result is **not yet re-synthesized or board-verified**.
