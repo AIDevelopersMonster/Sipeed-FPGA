@@ -109,3 +109,8 @@ $cli = "C:\Gowin\Gowin_V1.9.9Beta-4_Education\Programmer\bin\programmer_cli.exe"
 ```
 
 Only if a real scan detects GW5A-25A should operator retry the PR25-13 `Program_SRAM.ps1 -Program`. **Do not switch to an unverified cable index or Flash mode.**
+
+
+## Operator monitor observation (15 Nov 2026)
+
+After the attempted PR25-13 SRAM test the operator reported **no working HDMI picture or audio**, but observed the monitor briefly change **black → grey → black**. This is an observable display transition, **not a video/audio board PASS**. The only console transcript supplied for the PR25-13 SRAM operation has `Cable open failed` / `SRAM PROGRAM EXIT: 50`, which **does not establish that the PR25-13 bitstream was loaded**; no later successful `EXIT 0` was supplied. Thus the grey flash is not yet evidence of PR25-13 TMDS output, PLL lock, or HDMI link negotiation. Preserve Golden as known-good control. **Before interpreting a board fail, first verify successful cable opening and SRAM program EXIT 0.** Do not alter RTL/SDC or flash as a consequence of this ambiguous observation.
