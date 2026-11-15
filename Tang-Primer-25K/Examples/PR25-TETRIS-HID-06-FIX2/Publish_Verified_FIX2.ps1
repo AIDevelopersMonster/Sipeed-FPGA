@@ -1,13 +1,14 @@
 #Requires -Version 7.0
 <#
-Publish exactly the operator-confirmed PR25 TETRIS HID 06 FIX2 ZIP contents
-and the existing operator-confirmed FPGA .fs via gh CLI, without rebuilding.
+Publish ALREADY UNPACKED, operator-confirmed PR25 TETRIS HID 06 FIX2 sources
+and the existing confirmed .fs via the user's git and gh CLIs, without rebuilding.
+SourceDir defaults to the folder used in the earlier operator PowerShell commands.
 No FPGA programming. Only explicit GitHub writes when -Publish is given.
 #>
 [CmdletBinding()]
 param(
-  [string]$Zip = (Join-Path $HOME 'Downloads\PR25_TETRIS_HID_06_FIX2.zip'),
-  [Parameter(Mandatory=$true)][string]$Fs,
+  [string]$SourceDir = (Join-Path $env:TEMP 'PR25_TETRIS_HID_06_Package'),
+  [string]$Fs,
   [string]$RepositoryRoot = 'C:\GitHub\Sipeed-FPGA',
   [string]$Tag = 'pr25-tetris-hid-06-fix2-board-pass',
   [switch]$Publish
@@ -16,7 +17,17 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 $relative='Tang-Primer-25K/Examples/PR25-TETRIS-HID-06-FIX2'
 $target=Join-Path $RepositoryRoot $relative
-if (!(Test-Path -LiteralPath $Zip -PathType Leaf)) { throw "FIX2 ZIP not found: $Zip" }
+if (!(Test-Path -LiteralPath $SourceDir -PathType Container)) { throw "Previously used unpack folder not found: $SourceDir. Provide -SourceDir if FIX2 was unpacked elsewhere." }
+if ([string]::IsNullOrWhiteSpace($Fs)) {
+  $buildDir = Join-Path $env:TEMP 'PR25_TETRIS_HID_06'
+  if (!(Test-Path -LiteralPath $buildDir -PathType Container)) { throw "Build folder not found: $buildDir. Provide -Fs for the exact tested image." }
+  $images = @(Get-ChildItem -LiteralPath $buildDir -Filter '*.fs' -File -Recurse)
+  if ($images.Count -ne 1) {
+    $images | Select-Object FullName,Length,LastWriteTime | Format-Table -AutoSize
+    throw "Found $($images.Count) .fs files in $buildDir; refusing an arbitrary choice. Provide -Fs."
+  }
+  $Fs = $images[0].FullName
+}
 if (!(Test-Path -LiteralPath $Fs -PathType Leaf)) { throw "Working .fs not found: $Fs" }
 if ([IO.Path]::GetExtension($Fs).ToLowerInvariant() -ne '.fs') { throw 'The chosen bitstream must have .fs extension.' }
 $git=(Get-Command git -ErrorAction Stop).Source
@@ -32,10 +43,8 @@ $dirty=@(& $git -C $RepositoryRoot status --porcelain)
 if ($LASTEXITCODE -ne 0 -or $dirty.Count -gt 0) { throw 'Git working tree has local changes; commit/back up separately first.' }
 $fsInfo=Get-Item -LiteralPath $Fs
 if ($fsInfo.Length -lt 100000) { throw "Suspiciously small FPGA bitstream: $($fsInfo.Length) bytes" }
-$zipHash=(Get-FileHash -LiteralPath $Zip -Algorithm SHA256).Hash
 $fsHash=(Get-FileHash -LiteralPath $Fs -Algorithm SHA256).Hash
-Write-Host "SOURCE ZIP: $Zip"
-Write-Host "SOURCE ZIP SHA256: $zipHash"
+Write-Host "ALREADY UNPACKED SOURCE: $SourceDir"
 Write-Host "WORKING FS: $Fs"
 Write-Host "FS SHA256: $fsHash"
 Write-Host 'Confirm that the chosen .fs is EXACTLY the one tested with VIDEO, USB HID and gameplay PASS.'
@@ -45,10 +54,7 @@ if (!$Publish) {
 }
 $confirmation=Read-Host "Type PUBLISH to attest this .fs was actually BOARD PASS and publish"
 if ($confirmation -cne 'PUBLISH') { throw 'Publication cancelled; no changes made.' }
-$stage=Join-Path ([IO.Path]::GetTempPath()) ("PR25_FIX2_PUBLISH_"+[guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $stage -Force | Out-Null
-try {
-  Expand-Archive -LiteralPath $Zip -DestinationPath $stage -Force
+$stage = $SourceDir
   $allFiles=@(Get-ChildItem -LiteralPath $stage -Recurse -File)
   foreach ($name in @('Build_Tetris_HID06.ps1','lab_top_tetris_hid06.sv','tetris_engine.sv')) {
     if (@($allFiles | Where-Object { $_.Name -eq $name }).Count -ne 1) {
@@ -90,8 +96,7 @@ try {
     experiment='PR25-TETRIS-HID-06-FIX2'
     acceptance='BOARD VIDEO + USB HID + TETRIS GAMEPLAY PASS (operator)'
     tested_board='Tang Primer 25K + Dock / GW5A-25A'
-    source_archive=[IO.Path]::GetFileName($Zip)
-    source_archive_sha256=$zipHash
+    source_directory=$SourceDir
     bitstream_filename=[IO.Path]::GetFileName($Fs)
     bitstream_sha256=$fsHash
     bitstream_size_bytes=$fsInfo.Length
@@ -114,6 +119,4 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Release creation/asset upload failed; Git sources were pushed. Do not assume .fs is published.' }
   Write-Host "PUBLISHED: https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/$Tag"
   Write-Host "SHA256: $fsHash"
-} finally {
-  if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
 }
