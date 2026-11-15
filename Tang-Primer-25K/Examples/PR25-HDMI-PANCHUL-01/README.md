@@ -14,6 +14,24 @@
 
 **Оригинальная лаборатория** также включает TM1638 и I2S-вывод; они будут присутствовать в сборке исходного wrapper, но **не являются предметом теста**. Наличие работоспособной графики на экране не доказывает правильность PMOD для иной периферии. В этой версии мы намеренно не переписываем исходный Verilog ради удаления этих частей.
 
+## Реальный первый запуск: BUILD FAIL / EX3937 (15.11.2026)
+
+Пользователь выполнил оригинальный сценарий: **PREPARE PASS**, исходники Панчула `817bd4d...` и 35 исходных файлов прочитаны. Синтез остановился на `ERROR (EX3937): Instantiating unknown module 'DVI_TX_Top'`, `board_specific_top.sv:311`; **FS не создан**.
+
+Диагноз: исходный `dvi_tx.v` — **защищённый Gowin IP**, его нельзя подключать как простой Verilog. В сценарии ревизии 2 удалено прямое `add_file` этого зашифрованного RTL, добавлены `read_ipc` и `generate_target` для конфигурации `dvi_tx.ipc`, скопированной в отдельную рабочую папку. Оригинальный RTL не изменён. **Исправленный сценарий ещё не проверен на Windows / Gowin; BUILD PASS не заявлен.** Лог первой попытки локально у оператора: `evidence/PR25_PANCHUL_BUILD_20261115_143936.log`.
+
+Для копии проекта, которая **уже извлечена в** `C:\GitHub\PR25-HDMI-PANCHUL-01`, не запускать `git pull` в старом рабочем дереве: там конфликты и другая ветка. Обновить один скрипт с GitHub:
+
+```powershell
+$script = 'C:\GitHub\PR25-HDMI-PANCHUL-01\Tang-Primer-25K\Examples\PR25-HDMI-PANCHUL-01\Build_Original.ps1'
+$backup = "$script.before_ipc_fix"
+if (!(Test-Path -LiteralPath $backup)) {
+    Copy-Item -LiteralPath $script -Destination $backup
+}
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/AIDevelopersMonster/Sipeed-FPGA/main/Tang-Primer-25K/Examples/PR25-HDMI-PANCHUL-01/Build_Original.ps1' -OutFile $script
+& $script
+```
+
 ## Запуск на операторском Windows PC (PowerShell 7)
 
 Из каталога `C:\GitHub\Sipeed-FPGA` после `git pull --ff-only`:
