@@ -15,11 +15,11 @@
 | --- | --- |
 | JTAG: плата GW5A-25A обнаружена | **PASS** |
 | CLI: загрузка FPGA-конфигурации в volatile SRAM | **PROGRAM PASS** (не означает работу её функций) |
-| PMOD: двухразрядный семисегментный индикатор | **BOARD PASS** — наблюдалась смена показаний |
-| HDMI / DVI | Существуют сторонние примеры; **независимый интерфейс не выделен и не интегрирован в нашу целевую систему**; собственный вывод изображения не подтверждён |
+| [PMOD BTN + DT + LED](PMOD/BTN-DT-LED/README.md) | **BOARD PASS** — все три модуля испытаны в общем примере Sipeed |
+| [HDMI / DVI](PMOD/DVI/WORKING_PROJECTS_RU.md) | **BOARD VIDEO PASS + AUDIO PASS**: оригинальная A2600Nano v2.5 Golden и **наша PR25-13**; отдельно VIDEO PASS: Brus-16 и PR25-08..10. Независимый IP для PiKoSoL не выделен |
 | USB Host клавиатура → UART | **NOT TESTED / BOARD PASS отсутствует** |
 | UART / UARTTX / терминал | **Независимый интерфейс из рабочих примеров не извлечён; целевой терминал BOARD PASS не получил** |
-| Аудио | **Независимый интерфейс из примеров не извлечён и не интегрирован** |
+| Аудио | **BOARD AUDIO PASS подтверждён** на Golden A2600Nano и PR25-13; самостоятельный звуковой IP для PiKoSoL не интегрирован |
 | RISC-V / PiKoSoL 25K | **NOT IMPLEMENTED / BOARD PASS отсутствует** |
 | Заводская рабочая конфигурация FPGA | **Восстановление не подтверждено** |
 | Внешняя SDRAM | **Модуль отсутствует; ожидание поставки** |
@@ -52,4 +52,4 @@
 4. Default to volatile SRAM programming; do not modify configuration Flash without a documented recovery procedure.
 5. Do not assume an external SDRAM module is installed merely because the Dock is present.
 
-**State:** PAUSED (2026-11-15), **resume upon SDRAM module arrival**. PMOD 7-segment demo has recorded functional BOARD PASS. Other standalone working examples were reported by the operator but their exact acceptance evidence must be matched to their individual images; target interface integration remains unconfirmed.
+**State:** PAUSED (2026-11-15), **resume upon SDRAM module arrival**. [PMOD BTN+DT+LED](PMOD/BTN-DT-LED/README.md) BOARD PASS; [PMOD HDMI+audio](PMOD/DVI/WORKING_PROJECTS_RU.md) BOARD PASS for Golden A2600Nano v2.5 and rebuilt PR25-13, additional VIDEO PASS examples recorded. Reusable HDMI/audio/UART integration into PiKoSoL is unfinished; board outputs themselves have working examples.
