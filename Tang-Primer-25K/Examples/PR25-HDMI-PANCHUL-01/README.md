@@ -1,6 +1,17 @@
 # PR25-HDMI-PANCHUL-01 — Tang Primer 25K / PMOD DVI / цветные полосы
 
-**Статус 15.11.2026: PREPARE (скрипт создан); GOWIN BUILD NOT RUN; BOARD NOT TESTED.** Никакой новый .fs ещё не создан, ни одна плата не программировалась. Скрипт не обращается к Flash или JTAG.
+**Статус 15.11.2026: GOWIN CLI BUILD PASS / STA NOT REVIEWED / BOARD NOT TESTED.** Пользователь выполнил исправленный `Build_Original.ps1` с исходниками Панчула и получил реальный `.fs`. Загрузки на плату на момент сообщения ещё не было; сценарий сам не обращается к FPGA / Flash.
+
+**Подтверждение сборки (операторский вывод, 15.11.2026, 14:58:52):**
+- `CLI BUILD PASS: C:\GitHub\PR25-HDMI-PANCHUL-01\Tang-Primer-25K\Examples\PR25-HDMI-PANCHUL-01\work\impl\pnr\pr25_panchul_hdmi.fs`
+- SHA256: `7aab221d20f8851ff8e0689437975df193461c1a0847e532a9f11644eee904ef`
+- Gowin log: `evidence/PR25_PANCHUL_BUILD_20261115_145841.log` (только локально у оператора)
+- `TIMING: NOT REVIEWED; BOARD: NOT TESTED; NO FPGA WRITES PERFORMED`
+- Пиннинг upstream commit `817bd4dac8ab45d5c22bdd78b441bedb80672cd0`; рабочая версия нашего сценария `31ff43b` с правильным вложенным `dvi_tx/dvi_tx.v` / `DVI_TX_Top`.
+
+**Критерий следующего шага:** опытная загрузка в **SRAM** (Gowin Programmer `--run 2`, без Flash), наблюдение устойчивых цветных полос 640×480 и независимый разбор STA. Пока нет аппаратного VIDEO BOARD PASS.
+
+
 
 ## Что собираем
 
