@@ -1,4 +1,7 @@
-# PR25-PMOD-02 — DVI video test (Tang Primer 25K + Dock)
+# PR25-PMOD-02 — DVI / HDMI VIDEO + AUDIO (Tang Primer 25K + Dock)
+
+> **Итог на 15.11.2026: DVI/HDMI VIDEO+AUDIO BOARD PASS подтверждён в оригинальном [A2600Nano v2.5](https://github.com/MiSTle-Dev/A2600Nano/releases/tag/v2.5) и в нашей [PR25-13](../../Examples/PR25-13-A2600-SDC-DUTY50/WORKING_FIRMWARE.md).** Также подтверждён видеовывод в Brus-16 SFX и PR25-08..10 без слышимого звука. Этот файл содержит также историю отдельных неудачных испытаний Sipeed SVO/Arcade MCR2: их неудача **не означает неработоспособность DVI**. Полный [реестр работающих проектов и прямых ссылок](WORKING_PROJECTS_RU.md).
+
 
 ## J4 / J5 / J6 to PMOD0 / PMOD1 / PMOD2 mapping
 
@@ -20,7 +23,7 @@ Cross-check references:
 - [Sipeed top-side board photo](https://en.wiki.sipeed.com/hardware/en/tang/tang-primer-25k/primer-25k.html), and [pinout study](https://marsee101.blog.fc2.com/blog-entry-6176.html) for physical position.
 
 
-**Status:** READY TO TEST / NOT YET BOARD PASS.
+**Status for Sipeed SVO experiment only:** SRAM PROGRAM PASS / NO PICTURE. **Overall DVI interface status: VIDEO+AUDIO BOARD PASS in A2600Nano Golden and PR25-13** (see [verified projects](WORKING_PROJECTS_RU.md)).
 
 ## Source
 
