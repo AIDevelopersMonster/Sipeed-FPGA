@@ -3,7 +3,25 @@
 **Board:** Sipeed Tang Primer 25K + Dock  
 **Focus:** RISC-V processor architectures, SoC integration, memory, buses, and reproducible FPGA measurements.
 
-> Project skeleton only. No synthesis, timing, or BOARD PASS claims have been made for Primer 25K.
+> **Статус на 2026-11-15: PAUSED — ждём модуль SDRAM.** Разработка Tang Primer 25K + Dock остановлена по решению оператора после двух суток экспериментов. Новые сборки и прошивки не объявляются рабочими без BOARD PASS.
+
+## Подтверждённый результат и ограничения на момент остановки
+
+| Направление | Статус |
+| --- | --- |
+| JTAG: плата GW5A-25A обнаружена | **PASS** |
+| CLI: загрузка FPGA-конфигурации в volatile SRAM | **PROGRAM PASS** (не означает работу её функций) |
+| PMOD: двухразрядный семисегментный индикатор | **BOARD PASS** — наблюдалась смена показаний |
+| HDMI / DVI, включая сторонние примеры | **Нет подтверждённого изображения** |
+| USB Host клавиатура → UART | **NOT TESTED / BOARD PASS отсутствует** |
+| UARTTX / UART-терминал | **BOARD PASS отсутствует** |
+| RISC-V / PiKoSoL 25K | **NOT IMPLEMENTED / BOARD PASS отсутствует** |
+| Заводская рабочая конфигурация FPGA | **Восстановление не подтверждено** |
+| Внешняя SDRAM | **Модуль отсутствует; ожидание поставки** |
+
+**Правило сохранения:** рабочими считать только конкретные проверенные на плате варианты с доказательствами. PREPARE PASS, BUILD PASS и успешная отправка .fs через CLI не равны BOARD PASS. Непроверенные и нерабочие сборки не представлять как готовые релизы.
+
+**Условие возобновления:** получение и проверка SDRAM. После этого начать с воспроизводимой базовой аппаратной конфигурации и отдельной проверки UART; лишь затем USB Host, видеовывод и PiKoSoL. SDRAM сама по себе не устраняет возможные ошибки UART/USB, поэтому результаты проверять независимо. Обновление инструментария и новая прошивка — возможная гипотеза при возобновлении, а не подтверждённое исправление.
 
 ## Start here
 
@@ -27,4 +45,4 @@
 4. Default to volatile SRAM programming; do not modify configuration Flash without a documented recovery procedure.
 5. Do not assume an external SDRAM module is installed merely because the Dock is present.
 
-**State:** STRUCTURE ONLY / NOT TESTED.
+**State:** PAUSED (2026-11-15), pending SDRAM. Only the seven-segment PMOD demo has a recorded functional BOARD PASS; other interfaces remain unconfirmed.
