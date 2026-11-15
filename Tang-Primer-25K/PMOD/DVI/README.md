@@ -1,31 +1,12 @@
-# PR25-PMOD-02 — DVI / HDMI VIDEO + AUDIO (Tang Primer 25K + Dock)
+# Tang Primer 25K + Dock — PMOD DVI/HDMI
 
-**[PR25-HDMI-PANCHUL-01 — подготовленная CLI-сборка цветных полос 640x480](../../Examples/PR25-HDMI-PANCHUL-01/README.md)** · **[Проверенные учебные источники: Юрий Панчул (DVI без HDMI-аудио) и thisiseth/hdl-util (HDMI со звуком)](PANCHUL_HDMI_IP_RU.md)** — разбор архитектуры и ссылок на точные исходники; новых BOARD PASS не заявлено.
+**Проверено 15.11.2026:** цветной **статический KonSol 640×480 / 80×30** на физическом мониторе (BOARD VIDEO PASS). Подключение DVI PMOD — **в разъём под USB-A**, как в успешном опыте оператора. При сохранении рабочей CST используются FPGA-пары clock H5/J5, data H8/H7, G7/G8, F5/G5. Не выбирать другой разъём по противоречивым номерам из старых комментариев.
 
-> **Итог на 15.11.2026: DVI/HDMI VIDEO+AUDIO BOARD PASS подтверждён в оригинальном [A2600Nano v2.5](https://github.com/MiSTle-Dev/A2600Nano/releases/tag/v2.5) и в нашей [PR25-13](../../Examples/PR25-13-A2600-SDC-DUTY50/WORKING_FIRMWARE.md).** Также подтверждён видеовывод в Brus-16 SFX и PR25-08..10 без слышимого звука. Этот файл содержит также историю отдельных неудачных испытаний Sipeed SVO/Arcade MCR2: их неудача **не означает неработоспособность DVI**. Полный [реестр работающих проектов и прямых ссылок](WORKING_PROJECTS_RU.md).
+**[Наш пример KonSol](../../Examples/PR25-KonSol-DVI/README.md)** · **[Gowin DVI_TX — IP, лицензия, интерфейс, сборка](../../../ip/hdmi/gowin-dvi-tx/README.md)** · **[Реестр других аппаратно проверенных прошивок](WORKING_PROJECTS_RU.md)**.
 
+**Дополнительно:** A2600Nano v2.5 и PR25-13 дали видео и звук, тогда как защищённое GOWIN DVI_TX в нашем KonSol отвечает **только за DVI-видео**. Для этого опыта SDRAM и USB-клавиатура не нужны. Flash не программировали.
 
-## J4 / J5 / J6 to PMOD0 / PMOD1 / PMOD2 mapping
-
-**Canonical mapping for Tang Primer 25K Dock, front side up, USB-A to the left and USB-C to the right:**
-
-| Location | Board PMOD legend | Schematic connector | Sipeed HDMI/SVO RTL | TMDS clock FPGA balls |
-|---|---|---|---|---|
-| Left | **PMOD0** | **J4** | \`tmds_*_0\` | C11 / C10 |
-| Centre | **PMOD1** | **J5** | \`tmds_*_1\` | L5 / K5 |
-| Right | **PMOD2** | **J6** | \`tmds_*_2\` | H5 / J5 |
-
-**Important**: J4/J5/J6 are connector designators, **not** PMOD numbers, and FPGA ball \`J5\` is **not** the connector \`J5\`. There is no PMOD3 on this Dock. PMOD0 = J4 is the user's current DVI installation; it does **not** need to be moved merely to match the source's \`_0\` channel.
-
-Cross-check references:
-
-- [Sipeed Dock schematic](https://dl.sipeed.com/fileList/TANG/Primer_25K/02_Schematic/Tang_Primer_25K_Dock_60033_Schematic.pdf) (connector J4/J5/J6 electrical pin map).
-- [Sipeed Dock underside photo](https://wiki.sipeed.com/hardware/en/tang/tang-primer-25k/assets/25k_dock_bot.jpg): left header G11/D11/B11/C11 = J4, centre A11/E11/K11/L5 = J5, right F5/G7/H8/H5 = J6.
-- [Sipeed official HDMI \`hdmi.cst\`](https://github.com/sipeed/TangPrimer-25K-example/blob/main/hdmi/svo/src/hdmi.cst): \`_0\`, \`_1\`, \`_2\` map to J4, J5, J6 respectively.
-- [Sipeed top-side board photo](https://en.wiki.sipeed.com/hardware/en/tang/tang-primer-25k/primer-25k.html), and [pinout study](https://marsee101.blog.fc2.com/blog-entry-6176.html) for physical position.
-
-
-**Status for Sipeed SVO experiment only:** SRAM PROGRAM PASS / NO PICTURE. **Overall DVI interface status: VIDEO+AUDIO BOARD PASS in A2600Nano Golden and PR25-13** (see [verified projects](WORKING_PROJECTS_RU.md)).
+Ниже — архивные сведения о **других** прошивках Sipeed SVO, NESTang и MCR2. Их схемы подключения не являются инструкцией по подключению работающего KonSol.
 
 ## Source
 

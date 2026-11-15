@@ -3,7 +3,7 @@
 **Board:** Sipeed Tang Primer 25K + Dock  
 **Focus:** RISC-V processor architectures, SoC integration, memory, buses, and reproducible FPGA measurements.
 
-> **Статус на 2026-11-15: PAUSED / ДО ПОСТУПЛЕНИЯ SDRAM.** По решению оператора работы над Tang Primer 25K + Dock приостановлены. **Поступление модуля SDRAM означает возобновление проекта.** До этого новые сборки и перенос IP не выполняются.
+> **Обновление 15.11.2026:** работа с DVI возобновлена без SDRAM. Наш статический экран KonSol 80×30 получил VIDEO BOARD PASS на Tang Primer 25K. UART-терминал и файловая система ещё не реализованы; сведения о паузе ниже относятся к предыдущему состоянию проекта.
 
 ## Главный вывод по итогам двух суток
 
@@ -30,6 +30,8 @@
 
 **Область сохранения:** сохранять подтверждённые рабочие образцы, их точные версии, исходники и краткие доказательства; не смешивать с нерабочими сборками, не заявлять BOARD PASS для целевой интеграции.
 
+**[KonSol 25K — собственная псевдографика](Examples/PR25-KonSol-DVI/README.md)** · **[Как использовать IP Gowin DVI_TX](../ip/hdmi/gowin-dvi-tx/README.md)**.
+
 ## Start here
 
 **[Практический порядок: PMOD → DVI → TF → USB → контроллеры → CPU → ОС → игры](QUICK_START_PLAN.md)**
@@ -52,4 +54,4 @@
 4. Default to volatile SRAM programming; do not modify configuration Flash without a documented recovery procedure.
 5. Do not assume an external SDRAM module is installed merely because the Dock is present.
 
-**State:** PAUSED (2026-11-15), **resume upon SDRAM module arrival**. [PMOD BTN+DT+LED](PMOD/BTN-DT-LED/README.md) BOARD PASS; [PMOD HDMI+audio](PMOD/DVI/WORKING_PROJECTS_RU.md) BOARD PASS for Golden A2600Nano v2.5 and rebuilt PR25-13, additional VIDEO PASS examples recorded. Reusable HDMI/audio/UART integration into PiKoSoL is unfinished; board outputs themselves have working examples.
+**State:** VIDEO BOARD PASS для статического KonSol 25K (15.11.2026), разработки продолжаются без SDRAM. [PMOD BTN+DT+LED](PMOD/BTN-DT-LED/README.md) BOARD PASS; [PMOD HDMI+audio](PMOD/DVI/WORKING_PROJECTS_RU.md) BOARD PASS for Golden A2600Nano v2.5 and rebuilt PR25-13, additional VIDEO PASS examples recorded. Reusable HDMI/audio/UART integration into PiKoSoL is unfinished; board outputs themselves have working examples.

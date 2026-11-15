@@ -8,6 +8,7 @@
 
 | Проект | Исходник / оригинальный релиз | Изображение | Звук | Подтверждение |
 | --- | --- | --- | --- | --- |
+| **PR25-KonSol-DVI**, наш статический 80×30 RGB-экран | [Паспорт и сборка](../../Examples/PR25-KonSol-DVI/README.md) | **BOARD VIDEO PASS** — фотографии оператора, 15.11.2026 | **Нет HDMI-аудио (DVI)** | Закрытый Gowin DVI_TX + собственный RGB-генератор; .fs пока находится на ПК |
 | **A2600Nano v2.5 Golden**, сторонняя готовая прошивка | [MiSTle-Dev/A2600Nano](https://github.com/MiSTle-Dev/A2600Nano), [релиз v2.5](https://github.com/MiSTle-Dev/A2600Nano/releases/tag/v2.5), [оригинальный FS](https://github.com/MiSTle-Dev/A2600Nano/releases/download/v2.5/a2600nano_tp25k.fs) | **BOARD VIDEO PASS** | **BOARD AUDIO PASS** | [PR25-11: успешное контрольное восстановление Golden](../../Examples/PR25-11-A2600-ORIGINAL-REBUILD/README.md) |
 | **PR25-13**, собственная работающая пересборка A2600Nano | [Исходники/сборка PR25-13](../../Examples/PR25-13-A2600-SDC-DUTY50/README.md) | **BOARD VIDEO PASS** — анимированная заставка | **BOARD AUDIO PASS** — слышимая мелодическая музыка | [Паспорт рабочей прошивки](../../Examples/PR25-13-A2600-SDC-DUTY50/WORKING_FIRMWARE.md), [манифест](../../Examples/PR25-13-A2600-SDC-DUTY50/working_firmware_manifest.json) |
 | **Brus-16 SFX**, включая Gerion, сторонние выпуски | [Papr1ka/brus16](https://github.com/Papr1ka/brus16), [релиз sfx](https://github.com/Papr1ka/brus16/releases/tag/sfx), [архив TP25K](https://github.com/Papr1ka/brus16/releases/download/sfx/tp25k.zip) | **BOARD VIDEO PASS** у всех оператором испытанных FS | **AUDIO NOT HEARD**, несмотря на объявленную поддержку звука | [Операторский отчёт Brus-16](../../ThirdParty/Brus16-SFX/README.md) |
@@ -40,4 +41,4 @@ PR25-13 содержит два изменения относительно ра
 
 **Не завершено:** обособление повторно используемого HDMI/audio IP, интеграция с собственным терминалом, UART, USB Host и PiKoSoL. Неудача изоляции компонентов не отменяет работающих образцов.
 
-**Статус:** проект приостановлен до получения SDRAM; после получения модуля работа возобновляется. Здесь сохранены существующие подтверждённые результаты, новых прошивок или новых BOARD PASS не заявлено.
+**Статус обновлён 15.11.2026:** эксперимент KonSol-DVI заработал без SDRAM и имеет **VIDEO BOARD PASS**; видеотерминал с UART и файловая система остаются следующими задачами.
