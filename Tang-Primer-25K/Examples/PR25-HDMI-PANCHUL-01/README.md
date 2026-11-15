@@ -32,6 +32,16 @@ Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/AIDevelopersMonster/Si
 & $script
 ```
 
+## Повторная сборка — исправление выбора IP (15.11.2026)
+
+- Попытка 1: `EX3937: unknown module DVI_TX_Top`. Причина в нашем сценарии: был выбран корневой `dvi_tx.v`, где `dvi_tx.ipc` задаёт `module=dvi_tx` (не совпадает с wrapper).
+- Попытка 2: `invalid command name "read_ipc"`. Причина в нашем сценарии: команда не поддерживается установленной Gowin 1.9.9 Beta-4.
+- **Попытка 3, скрипт GitHub commit `31ff43b`:** использует только оригинальный вложенный `boards/tang_primer_25k_pmod_hdmi/dvi_tx/dvi_tx.v`, с `dvi_tx/dvi_tx.ipc`, где `module=DVI_TX_Top`, `USING_EXTERNAL_CLOCK=true`, `ELVDS=true`. Убраны неподдерживаемые Tcl-команды, не менялся RTL. **BUILD ещё не запущен и не подтверждён.**
+
+Внимание: `dvi_tx/dvi_tx.vo` — post-PnR simulation netlist, не используется как исходный RTL для синтеза.
+
+Для изолированного проекта `C:\GitHub\PR25-HDMI-PANCHUL-01` обновить **только** `Build_Original.ps1` через `Invoke-WebRequest` из `main`, затем выполнить `& $script`. История предыдущих неудачных сборок остаётся локально в `evidence/`. Не записывать FPGA до появления `.fs`, просмотра STA и отдельного операторского подтверждения.
+
 ## Запуск на операторском Windows PC (PowerShell 7)
 
 Из каталога `C:\GitHub\Sipeed-FPGA` после `git pull --ff-only`:
