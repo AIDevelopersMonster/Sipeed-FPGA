@@ -3,7 +3,7 @@
 **Board:** Sipeed Tang Primer 25K + Dock  
 **Focus:** RISC-V processor architectures, SoC integration, memory, buses, and reproducible FPGA measurements.
 
-> **Статус на 2026-11-15: FROZEN / ПРИОСТАНОВЛЕН БЕЗ ДАТЫ ВОЗОБНОВЛЕНИЯ.** По решению оператора работы над Tang Primer 25K + Dock остановлены. Поставка SDRAM сама по себе НЕ запускает проект снова. Новые сборки, перенос IP и прошивки не выполняются до отдельного решения оператора.
+> **Статус на 2026-11-15: PAUSED / ДО ПОСТУПЛЕНИЯ SDRAM.** По решению оператора работы над Tang Primer 25K + Dock приостановлены. **Поступление модуля SDRAM означает возобновление проекта.** До этого новые сборки и перенос IP не выполняются.
 
 ## Главный вывод по итогам двух суток
 
@@ -26,7 +26,7 @@
 
 **Правило сохранения:** рабочими считать только конкретные проверенные на плате варианты с доказательствами. PREPARE PASS, BUILD PASS и успешная отправка .fs через CLI не равны BOARD PASS. Непроверенные и нерабочие сборки не представлять как готовые релизы.
 
-**Условие возобновления:** только отдельное решение оператора, без автоматического возобновления после получения SDRAM. Если работа когда-нибудь возобновится, отправная точка — исследование структуры уже работающих образцов и интерфейсных зависимостей (top, pinout, clocks, reset, память, IP), а не очередная непроверенная сборка. Обновление инструментария и SDRAM не являются доказанным решением.
+**Условие возобновления:** получение модуля SDRAM. После его поступления **возобновить работу над проектом**. Начать с исследования структуры уже работающих образцов и интерфейсных зависимостей (top, pinout, clocks, reset, память, IP), одновременно проверить интеграцию SDRAM. Само наличие SDRAM не доказывает устранения прежних ошибок интеграции HDMI, UART и аудио; причины нужно установить экспериментально.
 
 **Область сохранения:** сохранять подтверждённые рабочие образцы, их точные версии, исходники и краткие доказательства; не смешивать с нерабочими сборками, не заявлять BOARD PASS для целевой интеграции.
 
@@ -52,4 +52,4 @@
 4. Default to volatile SRAM programming; do not modify configuration Flash without a documented recovery procedure.
 5. Do not assume an external SDRAM module is installed merely because the Dock is present.
 
-**State:** FROZEN (2026-11-15), by operator decision; **no automatic restart on SDRAM arrival**. PMOD 7-segment demo has recorded functional BOARD PASS. Other standalone working examples were reported by the operator but their exact acceptance evidence must be matched to their individual images; target interface integration remains unconfirmed.
+**State:** PAUSED (2026-11-15), **resume upon SDRAM module arrival**. PMOD 7-segment demo has recorded functional BOARD PASS. Other standalone working examples were reported by the operator but their exact acceptance evidence must be matched to their individual images; target interface integration remains unconfirmed.
