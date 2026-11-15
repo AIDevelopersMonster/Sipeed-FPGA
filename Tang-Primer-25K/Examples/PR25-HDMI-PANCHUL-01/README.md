@@ -1,0 +1,44 @@
+# PR25-HDMI-PANCHUL-01 — Tang Primer 25K / PMOD DVI / цветные полосы
+
+**Статус 15.11.2026: PREPARE (скрипт создан); GOWIN BUILD NOT RUN; BOARD NOT TESTED.** Никакой новый .fs ещё не создан, ни одна плата не программировалась. Скрипт не обращается к Flash или JTAG.
+
+## Что собираем
+
+Оригинальные SystemVerilog-файлы учебного курса **Юрия Панчула**, [basics-graphics-music](https://github.com/yuri-panchul/basics-graphics-music), строго зафиксированный upstream commit **817bd4dac8ab45d5c22bdd78b441bedb80672cd0**. Лицензия самого учебного кода MIT; Gowin DVI_TX поставляется как защищённый IP производителя.
+
+- [HDMI/DVI-конфигурация плат](https://github.com/yuri-panchul/basics-graphics-music/tree/817bd4dac8ab45d5c22bdd78b441bedb80672cd0/boards/tang_primer_25k_pmod_hdmi): `board_specific_top.sv`, `board_specific.cst`, `board_specific.sdc`, PLL и Gowin DVI_TX.
+- [Общий wrapper для Primer 25K](https://github.com/yuri-panchul/basics-graphics-music/blob/817bd4dac8ab45d5c22bdd78b441bedb80672cd0/boards/tang_primer_25k_pmod_vga/board_specific_top.sv) подключается оригинальной директивой `include`; в нём находится `DVI_TX_Top` с входами RGB/HSYNC/VSYNC/DE.
+- [Генератор видеосинхронизации](https://github.com/yuri-panchul/basics-graphics-music/blob/817bd4dac8ab45d5c22bdd78b441bedb80672cd0/peripherals/vga.sv) и [исходный генератор цветных полос](https://github.com/yuri-panchul/basics-graphics-music/blob/817bd4dac8ab45d5c22bdd78b441bedb80672cd0/labs/2_graphics/2_3_color_stripes/lab_top.sv).
+- 640×480, RGB888, пиксельный такт около 25 МГц, сериализатор около 125 МГц. На разъёме будет **DVI-видеосигнал по HDMI-кабелю, без аудиопотока**.
+- Физические TMDS пары из исходного CST: clock **H5/J5**, D0 **H8/H7**, D1 **G7/G8**, D2 **F5/G5**. Совпадают по FPGA пинам с нашим подтверждённым A2600 Golden, но DVI модуль устанавливать строго в положение этого проверенного эталона, а не по неоднозначным надписям PMOD в комментариях.
+
+**Оригинальная лаборатория** также включает TM1638 и I2S-вывод; они будут присутствовать в сборке исходного wrapper, но **не являются предметом теста**. Наличие работоспособной графики на экране не доказывает правильность PMOD для иной периферии. В этой версии мы намеренно не переписываем исходный Verilog ради удаления этих частей.
+
+## Запуск на операторском Windows PC (PowerShell 7)
+
+Из каталога `C:\GitHub\Sipeed-FPGA` после `git pull --ff-only`:
+
+```powershell
+$pr = 'C:\GitHub\Sipeed-FPGA\Tang-Primer-25K\Examples\PR25-HDMI-PANCHUL-01'
+& (Join-Path $pr 'Build_Original.ps1')
+```
+
+**Действия сценария:** `git clone` в локальный `_vendor`, `git sparse-checkout` ровно нужных папок, проверка upstream HEAD (без изменения исходников), формирование `work/build_panchul_hdmi.tcl`, запуск **Gowin gw_sh.exe** в `work` (опция `-PrepareOnly` позволит подготовить проект без сборки), сохранение `evidence/*.log`, `work/manifest.json`, проверка нового `work/impl/pnr/pr25_panchul_hdmi.fs` и его SHA256.
+
+Сборка запускается штатной установленной **Gowin 1.9.9Beta-4 Education** и исходными компонентами по зафиксированному коммиту. Проект **ещё не был фактически собран и не протестирован**. Если в текущем Gowin защищённый DVI IP не поддерживается, совместимость проверяется по реальному логу; произвольных изменений RTL/SDC/PLL не делать.
+
+После успешной сборки **обязательно проверить полный STA** и сообщения Gowin. Вывод `CLI BUILD PASS` означает существование новой `.fs`, **не** отсутствие временных нарушений и **не BOARD PASS**.
+
+## Никакой автоматической прошивки
+
+Новый `.fs` пока **не программируем автоматически**; ранее рабочая PR25-13 сохраняется как контрольный образ. Для дальнейшей отдельной проверки, **после обзора STA**, можно использовать существующий путь Gowin Programmer **только SRAM (`--run 2`)**, без Flash. Критерий аппаратного **VIDEO BOARD PASS** — появление стабильных цветных полос на экране.
+
+## Граница утверждений
+
+- **SOURCE REVIEW:** оригинал Панчула имеет для Primer 25K рабочую учебную схему RGB→DVI и набор зависимостей.
+- **PREPARE:** создан отдельный воспроизводимый сценарий для Gowin; ещё не прогнан на Windows оператором.
+- **BUILD / STA / BOARD:** **не проверены**. Не приписывать этому новому проекту действующий статус рабочего релиза.
+- Аудио, USB Host, UART и SDRAM не являются целями эксперимента.
+- Существующие **VIDEO+AUDIO BOARD PASS** A2600 Golden и PR25-13 документированы отдельно в [PMOD DVI: проверенные проекты](../../PMOD/DVI/WORKING_PROJECTS_RU.md).
+
+**Ограничения:** защищённый Gowin IP, версия среды, точная разводка разъёма, не проверенная ещё новая сборка. Дальнейшие действия зависят от реального Gowin build log и STA, без предположения об успехе.
