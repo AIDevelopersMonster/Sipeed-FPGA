@@ -1,6 +1,6 @@
 # PR25-14: CHIPMUSIC — Animated pixel art and original music ON Tang Primer 25K
 
-**Status: BUILD PASS + CURRENT-BUILD INSPECTOR PASS (SHA256, SIZE, 9/56 BSRAM, 9 pROM, SETUP/HOLD 0/0, SELECTED NEGATIVE PATHS 0); BOARD NOT TESTED. PLL / CLOCK-RELATIONSHIP WARNINGS TA1123/TA1117 REMAIN.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
+**Status: BUILD PASS + CURRENT-BUILD INSPECTOR PASS (SHA256, SIZE, 9/56 BSRAM, 9 pROM, SETUP/HOLD 0/0, SELECTED NEGATIVE PATHS 0); FIRST SRAM TEST BLOCKED BY JTAG CABLE OPEN FAILED, EXIT 50; BOARD VIDEO/AUDIO NOT TESTED. PLL / CLOCK-RELATIONSHIP WARNINGS TA1123/TA1117 REMAIN.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
 
 ## FPGA-generated image and melody
 
@@ -151,3 +151,18 @@ This demonstrates that ROM banks now synthesize into **on-chip BSRAM** (9 pROM b
 **Timing limitations:** 0 global Setup/Hold and 0 *selected* negative paths are NOT an unconditional full STA sign-off. Gowin `TA1123` reports `clk_pixel_x5` constraint vs PLL output disagreement and `TA1117` reports unknown clock relationships; this is known also for the previously video+audio-working PR25-13 but remains open. Recovery/Removal may be excluded by the report selection, so no claim of complete timing closure.
 
 **Go/no-go:** suitable for a **reversible FPGA SRAM-only demonstration**, leaving upstream Golden and user-verified PR25-13 backup untouched on disk. Use the existing `Program_SRAM.ps1 -Program` only when ready to temporarily replace the running FPGA configuration (no Flash). Verify `SRAM PROGRAM EXIT: 0`, then report **VIDEO: image? animation?** and **AUDIO: audible melody?** separately. To restore verified PR25-13: `..\\PR25-13-A2600-SDC-DUTY50\\Program_SRAM.ps1 -Program`. Do not claim PR25-14 BOARD PASS before the actual display and audio test.
+
+
+## 2026-11-15 03:02 — PR25-14 SRAM attempt blocked by FT2CH cable open failure
+
+The operator tried the intended **SRAM-only** experiment `Program_SRAM.ps1 -Program`. The script verified the local build `chipmusic_tp25k_PR25_14.fs` (SHA-256 `cd9299d6ef75c73f8d37885d211fca2c82c38a2bc4b9d32d9b5be18bb8dc092d`) and invoked Gowin Programmer on `GW5A-25A(0x0001281B)` via `FT2CH` index 1, but the first FPGA operation returned:
+
+```text
+Operation "SRAM Program" for device#1...
+Error: Cable open failed
+SRAM PROGRAM EXIT: 50
+```
+
+Evidence on operator workstation: `evidence/PR25_14_SRAM_20261115_030217065.txt`. The failure occurred **before the progress meter**: no valid PR25-14 board test is claimed, and there is no evidence this attempt overwrote the previously loaded FPGA SRAM. This is a cable-access failure, **not evidence of defective .fs or HDMI video/audio**. The same FT2CH startup error occurred in PR25-13; a successful read-only JTAG scan and subsequent retry were followed by a working VIDEO+AUDIO experiment.
+
+Recommended recovery: close other Gowin Programmer GUI/IDE or USB-JTAG consumers; run the same programmer `--scan --cable-index 1`, verify an actual discovery of the **GW5A-25A ID 0x0001281B**, then retry this same `Program_SRAM.ps1 -Program`. If scan fails, replug the programming USB cable and scan again. **Do not** randomly change cable index or write Flash. Capture `SRAM PROGRAM EXIT 0` before assessing HDMI scene animation and musical audio. If the test does not display/sound correctly, restore preserved PR25-13 using its SRAM programming script.
