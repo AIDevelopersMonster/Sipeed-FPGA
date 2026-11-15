@@ -71,17 +71,18 @@ try {
     $sourceBase=@(Get-ChildItem -LiteralPath $stage -Directory)[0].FullName
   }
   $sourceFiles=@(Get-ChildItem -LiteralPath $sourceBase -Recurse -File)
+  $sourceTarget=Join-Path $target 'source'
   $prefix=[IO.Path]::GetFullPath($sourceBase).TrimEnd('\')+'\'
   foreach($file in $sourceFiles) {
     $rel=$file.FullName.Substring($prefix.Length)
-    $dest=Join-Path $target $rel
+    $dest=Join-Path $sourceTarget $rel
     if (Test-Path -LiteralPath $dest) {
       throw "Destination already contains $rel; no automatic overwrite. Review repository first."
     }
   }
   foreach($file in $sourceFiles) {
     $rel=$file.FullName.Substring($prefix.Length)
-    $dest=Join-Path $target $rel
+    $dest=Join-Path $sourceTarget $rel
     New-Item -ItemType Directory -Force -Path (Split-Path $dest -Parent) | Out-Null
     Copy-Item -LiteralPath $file.FullName -Destination $dest
   }
