@@ -119,4 +119,4 @@ $stage = $SourceDir
   if ($LASTEXITCODE -ne 0) { throw 'Release creation/asset upload failed; Git sources were pushed. Do not assume .fs is published.' }
   Write-Host "PUBLISHED: https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/$Tag"
   Write-Host "SHA256: $fsHash"
-}
+
