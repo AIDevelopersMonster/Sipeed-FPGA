@@ -1,6 +1,6 @@
 # PR25-PMOD-02 — DVI / HDMI VIDEO + AUDIO (Tang Primer 25K + Dock)
 
-**[Проверенные учебные источники: Юрий Панчул (DVI без HDMI-аудио) и thisiseth/hdl-util (HDMI со звуком)](PANCHUL_HDMI_IP_RU.md)** — разбор архитектуры и ссылок на точные исходники; новых BOARD PASS не заявлено.
+**[PR25-HDMI-PANCHUL-01 — подготовленная CLI-сборка цветных полос 640x480](../../Examples/PR25-HDMI-PANCHUL-01/README.md)** · **[Проверенные учебные источники: Юрий Панчул (DVI без HDMI-аудио) и thisiseth/hdl-util (HDMI со звуком)](PANCHUL_HDMI_IP_RU.md)** — разбор архитектуры и ссылок на точные исходники; новых BOARD PASS не заявлено.
 
 > **Итог на 15.11.2026: DVI/HDMI VIDEO+AUDIO BOARD PASS подтверждён в оригинальном [A2600Nano v2.5](https://github.com/MiSTle-Dev/A2600Nano/releases/tag/v2.5) и в нашей [PR25-13](../../Examples/PR25-13-A2600-SDC-DUTY50/WORKING_FIRMWARE.md).** Также подтверждён видеовывод в Brus-16 SFX и PR25-08..10 без слышимого звука. Этот файл содержит также историю отдельных неудачных испытаний Sipeed SVO/Arcade MCR2: их неудача **не означает неработоспособность DVI**. Полный [реестр работающих проектов и прямых ссылок](WORKING_PROJECTS_RU.md).
 
