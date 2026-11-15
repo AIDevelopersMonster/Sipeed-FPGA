@@ -1,6 +1,6 @@
 # PR25-14: CHIPMUSIC — Animated pixel art and original music ON Tang Primer 25K
 
-**Status: SOURCE PASS + BUILD PASS (Gowin 1.9.9Beta-4, EXIT 0); GLOBAL SETUP/HOLD = 0/0; BOARD NOT TESTED. Post-route resource usage, Recovery/Removal and clock warning review remain OPEN.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
+**Status: BUILD PASS + CURRENT-BUILD INSPECTOR PASS (SHA256, SIZE, 9/56 BSRAM, 9 pROM, SETUP/HOLD 0/0, SELECTED NEGATIVE PATHS 0); BOARD NOT TESTED. PLL / CLOCK-RELATIONSHIP WARNINGS TA1123/TA1117 REMAIN.** This is FPGA hardware logic (not a video thumbnail, MP4, HDMI input or PC playback). The board outputs its own scene and sound over its working DVI PMOD / HDMI monitor. No SDRAM, SD card, external keyboard or USB Hub required.
 
 ## FPGA-generated image and melody
 
@@ -128,3 +128,26 @@ After updating GitHub to inspect the current build manifest, the operator ran `I
 The affected file has now been reconstructed from its intact original read-only analysis core and complete per-build SHA256 + byte-count comparison. The malformed duplicated tail has been discarded. Verify the new script by parsing it before execution if desired: `$tok=$null; $err=$null; [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path .\Tang-Primer-25K\Examples\PR25-14-CHIPTUNE-FPGA\Inspect_Build.ps1).Path,[ref]$tok,[ref]$err) | Out-Null; $err` (no errors expected). This check uses built-in PowerShell AST, does not run the build or program any hardware.
 
 Latest operator `Build_Chiptune.ps1` PASS: bitstream SHA256 `cd9299d6ef75c73f8d37885d211fca2c82c38a2bc4b9d32d9b5be18bb8dc092d`; Setup/Hold 0/0. This is the current build to be audited, not the previous `106f...` build.
+
+
+## 2026-11-15 — Inspector PASS, verified FPGA resources; SRAM test permitted
+
+Operator successfully ran the corrected `Inspect_Build.ps1`. PowerShell AST parser found **no syntax errors**. The inspector verified the exact current binary SHA256 **`cd9299d6ef75c73f8d37885d211fca2c82c38a2bc4b9d32d9b5be18bb8dc092d`**, size **2,133,780 bytes**, against the current local build manifest (not a previous build's hash).
+
+Observed report:
+
+```text
+GLOBAL SETUP VIOLATIONS: 0
+GLOBAL HOLD VIOLATIONS: 0
+NEGATIVE PATHS IN SELECTED STA TABLES: 0
+BSRAM | 9
+BSRAM | 9 / 56 | 17%
+--pROM | 9
+NO FPGA PROGRAM/BUILD/FLASH OPERATION PERFORMED.
+```
+
+This demonstrates that ROM banks now synthesize into **on-chip BSRAM** (9 pROM blocks allocated for the image/palette), resolving the earlier 98,304-LUT overflow. The original ROM layout intention was eight 2048×8 image banks plus palette; the resource report establishes **9 pROM**, but block-to-source mapping should be taken from the synthesis netlist if exact attribution becomes necessary.
+
+**Timing limitations:** 0 global Setup/Hold and 0 *selected* negative paths are NOT an unconditional full STA sign-off. Gowin `TA1123` reports `clk_pixel_x5` constraint vs PLL output disagreement and `TA1117` reports unknown clock relationships; this is known also for the previously video+audio-working PR25-13 but remains open. Recovery/Removal may be excluded by the report selection, so no claim of complete timing closure.
+
+**Go/no-go:** suitable for a **reversible FPGA SRAM-only demonstration**, leaving upstream Golden and user-verified PR25-13 backup untouched on disk. Use the existing `Program_SRAM.ps1 -Program` only when ready to temporarily replace the running FPGA configuration (no Flash). Verify `SRAM PROGRAM EXIT: 0`, then report **VIDEO: image? animation?** and **AUDIO: audible melody?** separately. To restore verified PR25-13: `..\\PR25-13-A2600-SDC-DUTY50\\Program_SRAM.ps1 -Program`. Do not claim PR25-14 BOARD PASS before the actual display and audio test.
