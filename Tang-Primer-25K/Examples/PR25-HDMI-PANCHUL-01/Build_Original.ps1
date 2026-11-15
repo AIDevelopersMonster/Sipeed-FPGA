@@ -64,7 +64,6 @@ if ($LASTEXITCODE -ne 0 -or $dirty.Count -gt 0) {
 # inside board_specific_top.sv resolves the unchanged VGA/DVI shared wrapper.
 $fixed = @(
     "$boardRel/board_specific_top.sv",
-    "$boardRel/dvi_tx.v",
     "$boardRel/gowin_pll/gowin_pll.v",
     "$labRel/lab_top.sv"
 )
@@ -100,6 +99,17 @@ $tcl.Add('set_option -top_module board_specific_top')
 $tcl.Add('set_option -verilog_std sysv2017')
 $tcl.Add('set_option -use_cpu_as_gpio 1')
 $tcl.Add('set_option -use_i2c_as_gpio 1')
+# DVI_TX is a vendor IP, not a plain RTL module. Gowin must import its IPC
+# and generate the protected DVI_TX_Top with all internal dependencies.
+# Use a workspace COPY of the original IPC, never regenerate into the upstream.
+$ipWork = Join-Path $work 'vendor_ip'
+New-Item -ItemType Directory -Force -Path $ipWork | Out-Null
+$upstreamIpc = Join-Path $board 'dvi_tx.ipc'
+if (!(Test-Path -LiteralPath $upstreamIpc)) { throw 'Upstream dvi_tx.ipc missing' }
+$localIpc = Join-Path $ipWork 'dvi_tx.ipc'
+Copy-Item -LiteralPath $upstreamIpc -Destination $localIpc -Force
+$tcl.Add('read_ipc ' + (TclPath $localIpc))
+$tcl.Add('generate_target [get_ips dvi_tx]')
 foreach ($directory in @($boardRel,$labRel,'peripherals','labs/common')) {
     $tcl.Add('set_option -include_path ' + (TclPath (Join-Path $upstream $directory)))
 }
@@ -120,6 +130,8 @@ $manifest = [ordered]@{
     lab = $labRel
     output = $pixelClock
     original_rtl_modified = $false
+    ip_generation = 'Gowin read_ipc + generate_target (workspace copy of upstream dvi_tx.ipc)'
+    ip_config_sha256 = (Get-FileHash -LiteralPath $localIpc -Algorithm SHA256).Hash
     extra_pmod_devices_required_by_lab = 'TM1638 and I2S are referenced by the original lab wrapper; absent hardware has not been qualified'
     tcl_file = $tclPath
     source_count = $files.Count
