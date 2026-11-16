@@ -21,6 +21,18 @@ module pikosol_rv32i_soc (
     reg mem_ready=0;
     reg [31:0] mem_rdata=0;
     wire trap;
+
+    // FPGA configuration leaves the external board reset inactive. PicoRV32
+    // must receive an explicit asserted reset for several CPU clocks.
+    // This shift register initializes to zero at configuration and releases
+    // reset only after 8 consecutive clocks. External rst re-arms it.
+    reg [7:0] cpu_reset_pipe = 8'h00;
+    always @(posedge clk or posedge rst) begin
+        if (rst) cpu_reset_pipe <= 8'h00;
+        else cpu_reset_pipe <= {cpu_reset_pipe[6:0], 1'b1};
+    end
+    wire cpu_resetn = cpu_reset_pipe[7] && !rst;
+
     picorv32 #(
         .ENABLE_COUNTERS(0),
         .ENABLE_COUNTERS64(0),
@@ -29,7 +41,7 @@ module pikosol_rv32i_soc (
         .BARREL_SHIFTER(0),
         .PROGADDR_RESET(32'h00000000)
     ) cpu (
-        .clk(clk), .resetn(~rst),
+        .clk(clk), .resetn(cpu_resetn),
         .trap(trap),
         .mem_valid(mem_valid), .mem_instr(mem_instr),
         .mem_ready(mem_ready), .mem_addr(mem_addr),
@@ -60,7 +72,7 @@ module pikosol_rv32i_soc (
     reg [7:0] rom_count=0;
     reg [7:0] write_count=0;
     always @(posedge clk) begin
-        if (rst) begin
+        if (!cpu_resetn) begin
             seen_fetch<=0;
             seen_write<=0;
             seen_keyboard<=0;
@@ -95,7 +107,7 @@ module pikosol_rv32i_soc (
                                          mem_wdata[31:24];
 
     always @(posedge clk) begin
-        if (rst) begin
+        if (!cpu_resetn) begin
             mem_ready <= 1'b0;
             mem_rdata <= 32'd0;
         end else begin
@@ -198,6 +210,11 @@ module pikosol_rv32i_soc (
         end
         pixel_rgb=24'h102738;
         if (dot && active_d && y>=10'd336) pixel_rgb=24'h89EFBD;
+
+        // Thin blue boot-reset flag: becomes CYAN once reset has released.
+        // Blue forever means the CPU is held in reset or its clock is missing.
+        if (y>=10'd312 && y<10'd316 && x>=10'd64 && x<10'd576)
+            pixel_rgb=cpu_resetn ? 24'h00DDEE : 24'h004488;
 
         // Non-text CPU diagnostic strip at y=316..331, read left to right:
         // 1 ROM0 is exact expected first instruction 0x100000b7
