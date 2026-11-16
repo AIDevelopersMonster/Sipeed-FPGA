@@ -52,6 +52,36 @@ module pikosol_rv32i_soc (
                         (mem_addr[10:2] < 9'd384);
     wire keyboard_select = (mem_addr == 32'h10001000);
 
+    // CPU01 board diagnosis: latching actual bus events, not static UI.
+    reg seen_fetch=1'b0;
+    reg seen_write=1'b0;
+    reg seen_keyboard=1'b0;
+    reg seen_trap=1'b0;
+    reg [7:0] rom_count=0;
+    reg [7:0] write_count=0;
+    always @(posedge clk) begin
+        if (rst) begin
+            seen_fetch<=0;
+            seen_write<=0;
+            seen_keyboard<=0;
+            seen_trap<=0;
+            rom_count<=0;
+            write_count<=0;
+        end else begin
+            if (mem_valid && !mem_ready && rom_select && mem_wstrb==0) begin
+                seen_fetch<=1;
+                if (rom_count != 8'hff) rom_count<=rom_count+1'b1;
+            end
+            if (mem_valid && !mem_ready && video_select && (|mem_wstrb)) begin
+                seen_write<=1;
+                if (write_count != 8'hff) write_count<=write_count+1'b1;
+            end
+            if (mem_valid && !mem_ready && keyboard_select)
+                seen_keyboard<=1;
+            if (trap) seen_trap<=1;
+        end
+    end
+
     // 64x6 character buffer uses one CPU write port and a synchronous
     // pixel read port. No reset of the entire array (CPU clears at boot).
     (* syn_ramstyle = "block_ram" *)
@@ -82,7 +112,7 @@ module pikosol_rv32i_soc (
     end
 
     assign pixel_valid = (x>=10'd64 && x<10'd576 &&
-                          y>=10'd336 && y<10'd432);
+                          y>=10'd316 && y<10'd432);
 
     wire [9:0] local_x=x-10'd64, local_y=y-10'd336;
     wire [5:0] cell_col=local_x[8:3];
@@ -167,6 +197,27 @@ module pikosol_rv32i_soc (
             dot=glyph_bits[gi];
         end
         pixel_rgb=24'h102738;
-        if (dot && active_d) pixel_rgb=24'h89EFBD;
+        if (dot && active_d && y>=10'd336) pixel_rgb=24'h89EFBD;
+
+        // Non-text CPU diagnostic strip at y=316..331, read left to right:
+        // 1 ROM0 is exact expected first instruction 0x100000b7
+        // 2 CPU fetch at least one ROM instruction
+        // 3 CPU performed a video MMIO write
+        // 4 CPU reads the HID keyboard register
+        // 5 CPU trap observed (RED = trap)
+        // These are hardware event latches, not CPU-generated characters.
+        if (y>=10'd316 && y<10'd332) begin
+            pixel_rgb=24'h0C0C0C;
+            if (x>=10'd64 && x<10'd152)
+                pixel_rgb=(boot_rom[0]==32'h100000b7) ? 24'h22D377 : 24'hB82737;
+            else if (x>=10'd168 && x<10'd256)
+                pixel_rgb=seen_fetch ? 24'h22D377 : 24'hB82737;
+            else if (x>=10'd272 && x<10'd360)
+                pixel_rgb=seen_write ? 24'h22D377 : 24'hB82737;
+            else if (x>=10'd376 && x<10'd464)
+                pixel_rgb=seen_keyboard ? 24'h22D377 : 24'hB82737;
+            else if (x>=10'd480 && x<10'd568)
+                pixel_rgb=seen_trap ? 24'hE92828 : 24'h22D377;
+        end
     end
 endmodule
