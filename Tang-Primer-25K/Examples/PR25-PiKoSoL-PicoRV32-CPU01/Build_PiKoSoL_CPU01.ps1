@@ -121,11 +121,7 @@ $cpuSoC = Join-Path $PSScriptRoot 'pikosol_rv32i_soc.sv'
 if (!(Test-Path -LiteralPath $cpuSoC -PathType Leaf)) { throw "CPU SoC RTL missing: $cpuSoC" }
 $inputs.Add($cpuSoC)
 
-# Immutable upstream PicoRV32 RTL, pinned by Git blob SHA.
-$cpuCommit = 'ef203c2b0a3fb793280f5114941416c425c5b461'
-$cpuRTL = PinnedFetch "https://raw.githubusercontent.com/YosysHQ/picorv32/$cpuCommit/picorv32.v" 'picorv32.v' 'cc45fa998f1857b06a856ea59b931f6c37e06b34'
-$inputs.Add($cpuRTL)
-Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cpu_boot.mem') -Destination (Join-Path $work 'cpu_boot.mem') -Force
+
 
 # m1nl (Apache-2.0), rewrite of nand2mario, supports Full Speed and Low Speed.
 # All blobs are pinned to an immutable commit. The clock PLL is a separately
@@ -177,6 +173,12 @@ Copy-Item -LiteralPath $srcHex -Destination (Join-Path $work 'usb_hid_host_rom.m
 $inputs.Add($srcHid)
 $inputs.Add($srcRom)
 $inputs.Add($srcPll60)
+
+# Immutable upstream PicoRV32 RTL, pinned by Git blob SHA.
+$cpuCommit = 'ef203c2b0a3fb793280f5114941416c425c5b461'
+$cpuRTL = PinnedFetch "https://raw.githubusercontent.com/YosysHQ/picorv32/$cpuCommit/picorv32.v" 'picorv32.v' 'cc45fa998f1857b06a856ea59b931f6c37e06b34'
+$inputs.Add($cpuRTL)
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cpu_boot.mem') -Destination (Join-Path $work 'cpu_boot.mem') -Force
 
 foreach ($rel in @('peripherals','labs/common')) {
     $folder = Join-Path $vendor $rel
