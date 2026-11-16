@@ -124,7 +124,7 @@ module pikosol_rv32i_soc (
     end
 
     assign pixel_valid = (x>=10'd64 && x<10'd576 &&
-                          y>=10'd316 && y<10'd432);
+                          y>=10'd312 && y<10'd432);
 
     wire [9:0] local_x=x-10'd64, local_y=y-10'd336;
     wire [5:0] cell_col=local_x[8:3];
