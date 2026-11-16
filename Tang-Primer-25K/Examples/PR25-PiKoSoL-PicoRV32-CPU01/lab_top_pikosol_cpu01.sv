@@ -322,13 +322,8 @@ module lab_top
         .hid_code(host_mode ? last_key1 : 8'h00),
         .x(x), .y(y), .pixel_valid(cpu_visible), .pixel_rgb(cpu_rgb)
     );
-    wire [23:0] console_rgb;
-    pikosol_console_core console (
-        .clk(clk), .rst(rst), .enable(host_mode && game_view),
-        .report_pulse(game_report_pulse && host_mode),
-        .key0(last_key1), .modifiers(last_mod),
-        .x(x), .y(y), .rgb(console_rgb)
-    );
+    // CPU-only display: no legacy Console02 command-renderer in this PNR.
+    // USB HOST, DVI, F1 diagnostic and passive paths remain untouched.
 
     function automatic logic seg_on(
         input logic [3:0] n,
@@ -457,7 +452,7 @@ module lab_top
             if (e3 || e2 || e1 || e0) rgb = 24'hF6D36F;
             if (px >= screen_width || py >= screen_height) rgb = 24'h000000;
         end else if (game_view) begin
-            rgb = cpu_visible ? cpu_rgb : console_rgb;
+            rgb = cpu_visible ? cpu_rgb : 24'h081625;
         end else begin
             rgb = 24'h081625;
             if (py < 10'd46) rgb = 24'h153C66;
