@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-# PR25 PIKOSOL-CONSOLE-03 -- proven HID05 USB low/full-speed + own FPGA game.
+# PiKoSoL Console03 -- proven Tetris FIX2 USB/DVI foundation, NEW untested BRAM terminal.
 # Actively drives USB-A D+/D- according to USB protocol, NOT a passive GPIO probe.
 # No GitHub writes, no Flash, no UART dependency. Only local trial SRAM.
 [CmdletBinding()]
@@ -115,8 +115,8 @@ foreach ($rel in @(
 )) { $inputs.Add((Join-Path $vendor $rel)) }
 $inputs.Add($trialLab)
 $consoleCore = Join-Path $PSScriptRoot 'pikosol_console_core.sv'
-if (!(Test-Path -LiteralPath $tetrisEngine -PathType Leaf)) { throw "Console core missing: $tetrisEngine" }
-$inputs.Add($tetrisEngine)
+if (!(Test-Path -LiteralPath $consoleCore -PathType Leaf)) { throw "Console core missing: $consoleCore" }
+$inputs.Add($consoleCore)
 
 # m1nl (Apache-2.0), rewrite of nand2mario, supports Full Speed and Low Speed.
 # All blobs are pinned to an immutable commit. The clock PLL is a separately
@@ -209,7 +209,7 @@ Write-Host "LOG: $log"
 $exit = -1
 Push-Location $work
 try {
-    & $GowinShell 'build_tetris_hid06.tcl' 2>&1 | Tee-Object -FilePath $log
+    & $GowinShell 'build_pikosol_console03.tcl' 2>&1 | Tee-Object -FilePath $log
     $exit = $LASTEXITCODE
 } finally { Pop-Location }
 if ($exit -ne 0) {
