@@ -20,10 +20,10 @@
 | JTAG: плата GW5A-25A обнаружена | **PASS** |
 | CLI: загрузка FPGA-конфигурации в volatile SRAM | **PROGRAM PASS** (не означает работу её функций) |
 | [PMOD BTN + DT + LED](PMOD/BTN-DT-LED/README.md) | **BOARD PASS** — все три модуля испытаны в общем примере Sipeed |
-| [HDMI / DVI](PMOD/DVI/WORKING_PROJECTS_RU.md) | **BOARD VIDEO PASS + AUDIO PASS**: оригинальная A2600Nano v2.5 Golden и **наша PR25-13**; отдельно VIDEO PASS: Brus-16 и PR25-08..10. Независимый IP для PiKoSoL не выделен |
+| [HDMI / DVI](PMOD/DVI/WORKING_PROJECTS_RU.md) | **BOARD VIDEO+AUDIO PASS**: оригинальная A2600Nano v2.5 Golden; PR25-13 отозвана после неуспешного повторного испытания. Отдельно VIDEO PASS: Brus-16 и PR25-08..10. Независимый IP для PiKoSoL не выделен |
 | USB Host клавиатура → UART | **NOT TESTED / BOARD PASS отсутствует** |
 | UART / UARTTX / терминал | **Независимый интерфейс из рабочих примеров не извлечён; целевой терминал BOARD PASS не получил** |
-| Аудио | **BOARD AUDIO PASS подтверждён** на Golden A2600Nano и PR25-13; самостоятельный звуковой IP для PiKoSoL не интегрирован |
+| Аудио | **BOARD AUDIO PASS подтверждён** на оригинальной Golden A2600Nano v2.5; PR25-13 отозвана из-за невоспроизводимости; самостоятельный звуковой IP для PiKoSoL не интегрирован |
 | RISC-V / PiKoSoL 25K | **NOT IMPLEMENTED / BOARD PASS отсутствует** |
 | Заводская рабочая конфигурация FPGA | **Восстановление не подтверждено** |
 | Внешняя SDRAM | **Модуль отсутствует; ожидание поставки** |
@@ -58,4 +58,4 @@
 4. Default to volatile SRAM programming; do not modify configuration Flash without a documented recovery procedure.
 5. Do not assume an external SDRAM module is installed merely because the Dock is present.
 
-**State:** VIDEO BOARD PASS для статического KonSol 25K (15.11.2026), разработки продолжаются без SDRAM. [PMOD BTN+DT+LED](PMOD/BTN-DT-LED/README.md) BOARD PASS; [PMOD HDMI+audio](PMOD/DVI/WORKING_PROJECTS_RU.md) BOARD PASS for Golden A2600Nano v2.5 and rebuilt PR25-13, additional VIDEO PASS examples recorded. Reusable HDMI/audio/UART integration into PiKoSoL is unfinished; board outputs themselves have working examples.
+**State:** VIDEO BOARD PASS для статического KonSol 25K (15.11.2026), разработки продолжаются без SDRAM. [PMOD BTN+DT+LED](PMOD/BTN-DT-LED/README.md) BOARD PASS; [PMOD HDMI+audio](PMOD/DVI/WORKING_PROJECTS_RU.md) BOARD PASS for original Golden A2600Nano v2.5 only; PR25-13 status withdrawn, additional VIDEO PASS examples recorded. Reusable HDMI/audio/UART integration into PiKoSoL is unfinished; board outputs themselves have working examples.
