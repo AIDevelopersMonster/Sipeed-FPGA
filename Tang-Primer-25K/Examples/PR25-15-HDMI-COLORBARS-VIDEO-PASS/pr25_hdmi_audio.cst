@@ -1,0 +1,19 @@
+// Tang Primer 25K + Dock, GW5A-LV25MG121NC1/I0.
+// HDMI PMOD: SAME physical socket as working author A2600Nano Golden.
+// 4 real FPGA differential pairs. Numbers match Golden A2600Nano CST.
+// No BL616, SPI, UART, SDRAM, USB or SD pins in this project.
+
+IO_LOC  "clk_50m" E2;
+IO_PORT "clk_50m" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+
+IO_LOC  "tmds_clk_p" H5,J5;
+IO_PORT "tmds_clk_p" PULL_MODE=NONE DRIVE=8 IO_TYPE=LVCMOS33D;
+
+IO_LOC  "tmds_d_p[0]" H8,H7;
+IO_PORT "tmds_d_p[0]" PULL_MODE=NONE DRIVE=8 IO_TYPE=LVCMOS33D;
+
+IO_LOC  "tmds_d_p[1]" G7,G8;
+IO_PORT "tmds_d_p[1]" PULL_MODE=NONE DRIVE=8 IO_TYPE=LVCMOS33D;
+
+IO_LOC  "tmds_d_p[2]" F5,G5;
+IO_PORT "tmds_d_p[2]" PULL_MODE=NONE DRIVE=8 IO_TYPE=LVCMOS33D;
