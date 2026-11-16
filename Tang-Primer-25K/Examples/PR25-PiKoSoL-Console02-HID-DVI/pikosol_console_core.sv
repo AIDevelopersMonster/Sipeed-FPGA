@@ -58,7 +58,7 @@ module pikosol_console_core (
                         command[cmd_len-1'b1] <= 8'h20;
                         // Backspace recomputes last 4 chars for command match.
                         if (cmd_len <= 4) tail <= tail >> 8;
-                        else tail <= {8'h00,command[cmd_len-4],command[cmd_len-3],command[cmd_len-2]};
+                        else tail <= {command[cmd_len-5],command[cmd_len-4],command[cmd_len-3],command[cmd_len-2]};
                     end
                 end else if (ascii != 0 && cmd_len < 16) begin
                     command[cmd_len] <= ascii;
