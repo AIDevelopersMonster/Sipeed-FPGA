@@ -220,7 +220,7 @@ Write-Host "LOG: $log"
 $exit = -1
 Push-Location $work
 try {
-    & $GowinShell 'build_tetris_hid06.tcl' 2>&1 | Tee-Object -FilePath $log
+    & $GowinShell 'build_pikosol_cpu01.tcl' 2>&1 | Tee-Object -FilePath $log
     $exit = $LASTEXITCODE
 } finally { Pop-Location }
 if ($exit -ne 0) {
