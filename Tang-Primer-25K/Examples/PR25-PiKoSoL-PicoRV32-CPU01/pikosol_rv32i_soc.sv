@@ -71,6 +71,8 @@ module pikosol_rv32i_soc (
     reg seen_trap=1'b0;
     reg [7:0] rom_count=0;
     reg [7:0] write_count=0;
+    reg [31:0] last_rom_pc=0;
+    reg [31:0] last_rom_op=0;
     always @(posedge clk) begin
         if (!cpu_resetn) begin
             seen_fetch<=0;
@@ -79,9 +81,13 @@ module pikosol_rv32i_soc (
             seen_trap<=0;
             rom_count<=0;
             write_count<=0;
+            last_rom_pc<=0;
+            last_rom_op<=0;
         end else begin
             if (mem_valid && !mem_ready && rom_select && mem_wstrb==0) begin
                 seen_fetch<=1;
+                last_rom_pc<=mem_addr;
+                last_rom_op<=boot_rom[mem_addr[8:2]];
                 if (rom_count != 8'hff) rom_count<=rom_count+1'b1;
             end
             if (mem_valid && !mem_ready && video_select && (|mem_wstrb)) begin
@@ -124,7 +130,7 @@ module pikosol_rv32i_soc (
     end
 
     assign pixel_valid = (x>=10'd64 && x<10'd576 &&
-                          y>=10'd312 && y<10'd432);
+                          y>=10'd272 && y<10'd432);
 
     wire [9:0] local_x=x-10'd64, local_y=y-10'd336;
     wire [5:0] cell_col=local_x[8:3];
@@ -197,6 +203,22 @@ module pikosol_rv32i_soc (
             endcase
         end
     endfunction
+    // Two yellow debug HEX rows, independent of PicoRV32 video writes:
+    // row 1 (y 272): last ROM program counter
+    // row 2 (y 288): last instruction read from boot ROM
+    function automatic [7:0] hex_ascii(input [3:0] nib);
+        begin
+            hex_ascii=(nib<4'd10) ? (8'h30+nib) : (8'h41+nib-4'd10);
+        end
+    endfunction
+    wire [9:0] dbg_x=x-10'd64;
+    wire [9:0] dbg_y=y-10'd272;
+    wire [2:0] dbg_digit=dbg_x[5:3];
+    wire [4:0] dbg_shift=5'd28-{dbg_digit,2'b00};
+    wire [31:0] dbg_val=dbg_y[4] ? last_rom_op : last_rom_pc;
+    wire [31:0] dbg_word=dbg_val >> dbg_shift;
+    wire [7:0] dbg_ascii=hex_ascii(dbg_word[3:0]);
+    wire [34:0] dbg_bitmap=glyph(dbg_ascii);
     reg [34:0] glyph_bits;
     reg dot;
     integer gi;
@@ -210,6 +232,12 @@ module pikosol_rv32i_soc (
         end
         pixel_rgb=24'h102738;
         if (dot && active_d && y>=10'd336) pixel_rgb=24'h89EFBD;
+        // Each digit is an 8x16 cell, values are actual latched bus state.
+        if (x>=10'd64 && x<10'd128 && y>=10'd272 && y<10'd304 &&
+            dbg_x[2:0]<3'd5 && dbg_y[3:0]>=4'd1 && dbg_y[3:0]<=4'd14) begin
+            gi=(6-((dbg_y[3:0]-4'd1)>>1))*5+(4-dbg_x[2:0]);
+            if (dbg_bitmap[gi]) pixel_rgb=24'hFFE28B;
+        end
 
         // Thin blue boot-reset flag: becomes CYAN once reset has released.
         // Blue forever means the CPU is held in reset or its clock is missing.
