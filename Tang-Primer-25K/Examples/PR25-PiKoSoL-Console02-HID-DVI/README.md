@@ -1,37 +1,87 @@
-# PiKoSoL Console02 — Tang Primer 25K USB HID + DVI
+# PiKoSoL Console02 — Tang Primer 25K USB HID + HDMI/DVI
 
-**Development branch / RTL candidate — BUILD UNKNOWN, BOARD UNKNOWN. NO RELEASE.**
-This is NOT based on the unverified UART and TERM-DVI examples. Hardware I/O comes from the demonstrated Tetris FIX2 project: USB HID host, pinout, DVI PMOD, Gowin DVI_TX, PLL, and S1/F1 logic. Only the application module changes.
+**Status: Gowin BUILD PASS; BOARD PASS for demonstrated functions (2026-11-16).**
+**Video:** https://youtube.com/shorts/cl_KkzxRx30
 
-## What is present
+PiKoSoL command monitor on Sipeed Tang Primer 25K + Dock, no CPU, no UART, no external SDRAM. The **hardware I/O path** is derived from the physically tested `PR25-TETRIS-HID-06-FIX2` project, preserving its USB HID host, Gowin DVI_TX wrapper, PLL, PMOD mapping, electrical constraints, and S1/F1 mode switching. Only application/game logic was replaced.
 
-- One 640x480 HDMI/DVI text screen. A small on-chip 5x7 font, rendered into 8x16 character cells, avoids the previous failed 2400-byte multidriver VRAM.
-- USB keyboard in HOST mode: uppercase A-Z, digits, space, Backspace, Enter. Commands `HELP`, `INFO`, `CLS`; max command length 16.
-- **S1** activates USB HOST from PASSIVE; **F1** switches CONSOLE/HID DIAG. Physical wiring and USB pins from Tetris FIX2 are kept.
-- At startup expected screen: `PIKOSOL 25K - USB CONSOLE`, a command guide, and `PIKOSOL> `.
-- Limitations: US keyboard map; no cursor or scrolling; `CLS` clears static guidance and response, not the prompt; built-in command buffer uses registers; no CPU, UART, filesystem or SDRAM yet.
+## Verified evidence
 
-## Windows / PowerShell 7 build
+- Operator Gowin log (2026-11-16 04:37:55): synthesis, place/route and bitstream generation completed; output `pr25_pikosol_console02.fs`, **6,013,969 bytes**.
+- SHA256 of locally built bitstream: `8E79A763F17D24BB31700A20459CB26ECB11007513C994A95D26C314AD5A88E0`.
+- Hardware photographs show (1) console title and `PIKOSOL>` prompt, with `HELP: HELP INFO CLS` response (the response is selected by the `HELP` command decoder), (2) USB HID diagnostics, and (3) passive USB-line diagnostics.
+- Video: https://youtube.com/shorts/cl_KkzxRx30.
+- **Not separately verified:** `INFO`, `CLS`, backspace/line editing, sustained operation, all USB keyboards, timing slack/STA margins. Do not expand BOARD PASS to these cases without tests.
 
-Requirements: Gowin Education 1.9.9 Beta-4 at the configured path, git, network access to pinned dependency revisions. You can override Gowin paths via parameters. From this source folder:
+## What the demo implements
+
+- Standard USB-A keyboard through the FPGA USB HID host. **S1** switches PASSIVE/HOST; **F1** switches console/HID diagnostics.
+- Gowin DVI_TX through the PMOD DVI adapter; 640×480 image.
+- 8×16 text cells rendered from an on-chip 5×7 font. No external video framebuffer or SDRAM.
+- 16-character, uppercase-US command buffer with `HELP`, `INFO`, `CLS`; Enter and Backspace logic included.
+- FPGA RTL only: no RISC-V CPU, no UART, no filesystem, no USB hub.
+
+## Source tree
+
+- `lab_top_pikosol_console02.sv` — **derived from tested Tetris FIX2 top**, including USB HID and video/diagnostics.
+- `pikosol_console_core.sv` — command parser and display.
+- `Build_PiKoSoL_Console02.ps1` — rebuilds pinned HDMI/DVI and USB dependencies, then runs Gowin.
+- `Program_SRAM.ps1` — programs only FPGA SRAM from an exact-hash checked prebuilt image by default, or the local generated image with `-Built`.
+- `firmware/pr25_pikosol_console02.fs` — expected location of operator-verified firmware when its binary is uploaded; **do not treat this README as proof of upload**.
+
+## Hardware connections
+
+- **Board:** Tang Primer 25K + Dock, GW5A-25A.
+- **Video:** Sipeed PMOD DVI connected exactly as in the demonstrated `PR25-TETRIS-HID-06-FIX2` arrangement; do **not** move connector or reassign pins.
+- **Keyboard:** USB-A connector on the board; USB D+ = FPGA L6 (GPIO[30]), D− = K6 (GPIO[31]).
+- **S1:** activate USB HOST from startup PASSIVE. **F1:** toggle console / original HID diagnostics.
+- **UART:** not required or enabled. Future USB-C/BL616 or external GPIO UART experiments are **not** part of this version.
+
+## Build on Windows PowerShell 7
+
+Requirements: Gowin V1.9.9Beta-4 Education (default script paths below), Gowin Programmer CLI, Git and network for immutable pinned dependencies.
+
+Open PowerShell inside the project folder:
 
 ```powershell
 .\Build_PiKoSoL_Console02.ps1
 ```
 
-The build script derives the **same vendor DVI project, USB HID host and PLL** from immutable upstream commits as the tested Tetris build. It writes to `%TEMP%\PR25_PIKOSOL_CONSOLE_02\`, leaves the connected FPGA and Flash untouched, and prints an FS path only if Gowin succeeds. **No .fs is supplied because no Console02 bitstream has been tested on the board.**
+The exact source files on GitHub are the input. Dependency revisions are pinned in the script. Build output appears at:
 
-After a successful compilation, and only with the DVI PMOD and USB keyboard already connected as in the Tetris FIX2 demo:
+```text
+%TEMP%\PR25_PIKOSOL_CONSOLE_02\impl\pnr\pr25_pikosol_console02.fs
+```
+
+Build does not touch the board. On success the script reports output size and SHA256. Successful generation of a file **is not** proof of timing closure: review `impl/pnr/*.rpt.txt` and timing reports separately.
+
+## Program FPGA — volatile SRAM only
+
+**Option A: prebuilt verified file**, if `firmware/pr25_pikosol_console02.fs` is present in the project folder. It must have the SHA256 above:
+
+```powershell
+.\Program_SRAM.ps1
+```
+
+**Option B: firmware you just compiled**:
+
+```powershell
+.\Program_SRAM.ps1 -Built
+```
+
+Or rebuild and program in one operation:
 
 ```powershell
 .\Build_PiKoSoL_Console02.ps1 -ProgramSRAM
 ```
 
-This recompiles and then programs volatile SRAM only; does not modify Flash. Confirm S1 => host, then type HELP / INFO / CLS; use F1 to compare the preserved HID diagnostic screen. Record Gowin build log, actual image and keyboard reactions before labeling PASS.
+All commands use the SRAM programming operation (`--run 2`); **configuration Flash is never written**. On the board, press S1 to activate HOST, then test `HELP` + Enter and F1 to switch HID diagnostics. Avoid connecting USB devices to unverified pin arrangements.
 
-## Reuse and safety
+## Dependencies and provenance
 
-- Derived from `PR25-TETRIS-HID-06-FIX2/source/lab_top_tetris_hid06.sv` and `Build_Tetris_HID06.ps1`.
-- Keyboard, DVI/HDMI, USB pin mapping, PLL, external dependencies and F1 diagnostics deliberately retained.
-- This candidate has NOT undergone actual Gowin synthesis, STA, board test or video demonstration.
-- **UART deferred**. Later study USB-C/BL616 electrical routing vs direct FPGA GPIO/UART pins separately. No unverified wiring claims.
+- `PR25-TETRIS-HID-06-FIX2`: source and fully demonstrated USB/DVI baseline.
+- USB HID host `m1nl/usb_hid_host` (Apache-2.0), commit `5d2bf72472bddc6da71134fa7d29d42a99a02f0a`.
+- USB PLL source `nand2mario/usb_hid_host`, commit `678b0137bd32d1ca99fb2d48865f4eb1df712c4e`, locally modified in generated copy for 60 MHz.
+- DVI wrapper from `yuri-panchul/basics-graphics-music`, commit `817bd4dac8ab45d5c22bdd78b441bedb80672cd0`. Gowin generated IP and vendor toolchain constraints still apply.
+
+**Publication discipline:** board pass refers only to demonstrated functions; no new release and no unrelated files. An exact-hash verified `.fs` belongs in this project folder before promoting it as a completely reproducible example.
