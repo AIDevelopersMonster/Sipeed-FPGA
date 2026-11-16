@@ -114,9 +114,6 @@ foreach ($rel in @(
     "$sourceBase/gowin_pll/gowin_pll.v"
 )) { $inputs.Add((Join-Path $vendor $rel)) }
 $inputs.Add($trialLab)
-$tetrisEngine = Join-Path $PSScriptRoot 'pikosol_console_core.sv'
-if (!(Test-Path -LiteralPath $tetrisEngine -PathType Leaf)) { throw "Console core missing: $tetrisEngine" }
-$inputs.Add($tetrisEngine)
 $cpuSoC = Join-Path $PSScriptRoot 'pikosol_rv32i_soc.sv'
 if (!(Test-Path -LiteralPath $cpuSoC -PathType Leaf)) { throw "CPU SoC RTL missing: $cpuSoC" }
 $inputs.Add($cpuSoC)
