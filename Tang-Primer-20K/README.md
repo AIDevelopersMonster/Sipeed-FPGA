@@ -15,7 +15,12 @@
 - [PR20-02 — LiteX / VexRiscv](Examples/PR20-02-LiteX-VexRiscv/README.md)
 - [PR20-03 — PiKoSoL / KonSol](Examples/PR20-03-PiKoSoL-KonSol/README.md)
 - [TP20-01 — JTAG scan: read-only PASS, script and sanitized example](Tests/TP20-01-JTAG/README.md)
+- [TP20-02 — HDMI 1280×720: official Sipeed dk_video.fs + video demo](Tests/TP20-02-HDMI/README.md)
 - [RTL](RTL/README.md) · [Tests](Tests/README.md) · [Tools](Tools/README.md) · [Documentation](Documentation/README.md)
+
+## Official HDMI example / video (2026-11-18)
+
+The [TP20-02 HDMI experiment README](Tests/TP20-02-HDMI/README.md) links to the [operator-supplied YouTube Shorts video](https://youtube.com/shorts/-JyNlnzaJZ0), the **unmodified official Sipeed `dk_video.fs`** bitstream and the original Verilog/Gowin project. The original ready-made bitstream is **not our build** and is not redistributed in this repository. A full HDMI BOARD PASS with log and local file hash is not claimed by this entry.
 
 ## Development principles
 
