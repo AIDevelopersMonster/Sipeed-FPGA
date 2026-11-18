@@ -1,6 +1,6 @@
 # PR20-00 — Tang Primer 20K Board Bring-up
 
-**Status: NOT TESTED.** No project/bitstream is published here yet.
+**Status: JTAG SCAN PASS ONLY (2026-11-18).** One GW2A-family device (ID 0x0000081B) was detected with read-only Gowin Programmer CLI commands. [Test protocol and sanitized example](../../Tests/TP20-01-JTAG/README.md). No project/bitstream, build or general BOARD PASS is published here yet.
 
 ## Minimum functional test
 

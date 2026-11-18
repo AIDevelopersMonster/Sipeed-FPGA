@@ -22,7 +22,7 @@
 
 **[ОТКРЫТЬ TANG PRIMER 20K →](Tang-Primer-20K/README.md)** · **[Начало работы](Tang-Primer-20K/START_HERE_RU.md)** · **[PR20-00: первый запуск](Tang-Primer-20K/Examples/PR20-00-Board-Bringup/README.md)**
 
-**Плата:** Sipeed Tang Primer 20K + Dock, FPGA **GOWIN GW2A-LV18**. Отдельная ветка исследований процессоров, видеосистемы, DDR3 и интерфейсов с последующим переносом идей PiKoSoL/KonSol. **Статус: структура создана, испытаний на этой плате ещё нет.** Не путать с Tang Primer 25K (GW5A-LV25) и Tang Nano 20K.
+**Плата:** Sipeed Tang Primer 20K + Dock, FPGA **GOWIN GW2A-LV18**. Отдельная ветка исследований процессоров, видеосистемы, DDR3 и интерфейсов с последующим переносом идей PiKoSoL/KonSol. **Статус: JTAG SCAN PASS (18.11.2026), обнаружено GW2A / ID 0x0000081B.** Это только идентификация по JTAG; HDMI, DDR3 и проекты процессора на этой плате пока не подтверждены. [Скрипт и обезличенный пример](Tang-Primer-20K/Tests/TP20-01-JTAG/README.md). Не путать с Tang Primer 25K (GW5A-LV25) и Tang Nano 20K.
 
 ## Tang Nano 20K — начните здесь
 

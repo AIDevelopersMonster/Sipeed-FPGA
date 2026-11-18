@@ -4,7 +4,7 @@
 **FPGA family:** GOWIN GW2A-LV18 (exact package, speed grade and board revision to verify on hardware)  
 **Scope:** own CPU/SoC experiments, FPGA peripherals, video, memory, and adaptation of PiKoSoL/KonSol.
 
-**Status: STRUCTURE ONLY / NOT TESTED.** This directory is for **Tang Primer 20K**, NOT Tang Primer 25K (GW5A-LV25) and NOT Tang Nano 20K. No bitstream, synthesis result, timing result, or BOARD PASS is claimed here.
+**Status: JTAG SCAN PASS (2026-11-18) / FPGA DESIGN NOT TESTED.** One GW2A-family device was detected as ID 0x0000081B. This directory is for **Tang Primer 20K**, NOT Tang Primer 25K (GW5A-LV25) and NOT Tang Nano 20K. No bitstream, synthesis result, timing result, or general BOARD PASS is claimed here.
 
 ## Start here
 
@@ -14,6 +14,7 @@
 - [PR20-01 — PicoRV32 port](Examples/PR20-01-PicoRV32/README.md)
 - [PR20-02 — LiteX / VexRiscv](Examples/PR20-02-LiteX-VexRiscv/README.md)
 - [PR20-03 — PiKoSoL / KonSol](Examples/PR20-03-PiKoSoL-KonSol/README.md)
+- [TP20-01 — JTAG scan: read-only PASS, script and sanitized example](Tests/TP20-01-JTAG/README.md)
 - [RTL](RTL/README.md) · [Tests](Tests/README.md) · [Tools](Tools/README.md) · [Documentation](Documentation/README.md)
 
 ## Development principles
@@ -28,7 +29,7 @@
 
 | ID | Topic | State |
 | --- | --- | --- |
-| PR20-00 | Board identification, clock, JTAG, LED, UART, RAM | NOT TESTED |
+| PR20-00 | Board identification, clock, JTAG, LED, UART, RAM | JTAG SCAN PASS; remaining tests NOT TESTED |
 | PR20-01 | PicoRV32 and a small memory-mapped SoC | PLAN |
 | PR20-02 | VexRiscv/LiteX and comparison with a common workload | PLAN |
 | PR20-03 | PiKoSoL/KonSol: terminal, graphics, program/file transfer | PLAN |

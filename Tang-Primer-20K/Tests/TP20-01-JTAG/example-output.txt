@@ -1,0 +1,17 @@
+=== TANG PRIMER 20K READ-ONLY JTAG SCAN ===
+=== --scan-cables ===
+ Cable found: USB Debugger A/0/[USB_LOCATION_REDACTED]/null (USB location:[USB_LOCATION_REDACTED])
+ Cost 0.14 second(s)
+
+=== --scan ===
+ Scanning!
+ Target Cable: Gowin USB Cable(FT2CH)/0/0/null@2.5MHz
+Device Info:
+        Family: GW2A
+        Name: GW2AR-18C GW2ANR-18C GW2A-18C  (One of them)
+        ID: 0x0000081B
+ 1 device(s) found!
+ Cost 1.1 second(s)
+
+NOTE: Anonymized and abbreviated transcript from a real read-only board scan.
+Times are illustrative and may differ. No user profile, local log path or USB location is published.
