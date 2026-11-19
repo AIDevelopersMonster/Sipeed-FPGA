@@ -16,7 +16,7 @@ The operator supplied photographs and real serial output from the active PiKoSoL
 | Immediate keyboard input on HDMI | BOARD PASS | Operator confirmed live-keyboard client works without waiting for Enter |
 | Input line case handling | BOARD PASS | `HELP` and `help` accepted |
 | Text with argument | BOARD PASS | `TEXT ghbdtn` produced `HDMI TEXT: ghbdtn` |
-| `LOAD` / `RUN` execution of independently built binaries | NOT YET VERIFIED | Commands advertised, `APP ... LOADED` status shown; no run acceptance log here |
+| `LOAD` / `RUN` of supplied `demo.bin` | BOARD PASS (2026-11-19) | `TP20_PiKoSoL_Run.ps1 -Attach -Port COM10 -Demo`; `RUN 2000C010`; `RULE30 CPU CHECKSUM=0xD2A3C779`; returned to `PiKoSoL>` |
 | Board LEDs, buttons, WS2812B RGB, audio | NOT YET INTEGRATED | Physically present on Dock, no PiKoSoL driver/board test in this experiment |
 | MicroSD filesystem, DDR3 driver, USB HID host | NOT YET INTEGRATED | Do not assume usable just because connectors/chips exist |
 
@@ -39,7 +39,7 @@ APP @2000C000: LOADED
 ```
 
 Numbers on `INFO` are **hexadecimal**: boot region 0x2000 = 8 KiB; RAM region 0x10000 = 64 KiB; screen 0x60 × 0x2A = **96 × 42 cells**.
-`APP @2000C000: LOADED` is a reported status, **not proof** that an arbitrary executable has been launched.
+`APP @2000C000: LOADED` alone is a reported status, **not proof** that an arbitrary executable has been launched. Separately, on 2026-11-19 the operator successfully ran the supplied `demo.bin` and observed `RUN 2000C010` followed by `RULE30 CPU CHECKSUM=0xD2A3C779` and `RUN RETURNED TO PiKoSoL`. This is **BOARD PASS for that demo**, not for arbitrary application binaries.
 
 ## Run the verified live keyboard client (PC -> UART -> PicoRV32 -> HDMI)
 
@@ -95,10 +95,7 @@ behavior of the local `host_console.py` has **not** been re-inspected
 in this session, so recovery completion is **not yet BOARD PASS**.
 Do not run the two clients simultaneously on COM10.
 
-The earlier `LOAD` stall and `Launch error = 1` remain an **open
-diagnostic issue**; neither this launcher nor a fresh keyboard client
-claims to repair the loader firmware. Keep the original working .fs
-and monitor.bin intact.
+The earlier `LOAD` stall and `Launch error = 1` were observed when entering `LOAD` **without an XMODEM binary sender**. The original `host_console.py` **does** successfully transfer and run `demo.bin`, as verified by the operator on 2026-11-19. The live keyboard client does **not** implement XMODEM, so plain `LOAD` from live keyboard remains unsupported; use `-Attach -Demo` for the known demo or build a verified integrated sender. Keep the original working .fs and monitor.bin intact.
 
 ## Actual peripherals on Tang Primer 20K Dock (hardware inventory, not implemented MMIO)
 
