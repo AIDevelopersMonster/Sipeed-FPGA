@@ -60,6 +60,46 @@ The FPGA itself performs echo, parsing and video output. Esc closes the PC clien
 UART 115200 8N1. The Windows COM number is host-specific (COM10 in this experiment).
 This client does not program FPGA, write flash, modify ROM or change GitHub.
 
+## Canonical launch after recovery: LIVE, not the old PC> console
+
+**Do not use** `TP20_PiKoSoL_Run.ps1 -BoardTest -Demo` as the everyday terminal:
+that legacy flow opens `host_console.py` and its line-buffered PC input.
+The user verified the **exact** `PiKoSoL_TP20_LIVE_KEYBOARD.py` source
+(not a recreated approximation) on the working HDMI/FPGA configuration.
+
+Place [`Start-PiKoSoL-Live.ps1`](Start-PiKoSoL-Live.ps1) and
+[`PiKoSoL_TP20_LIVE_KEYBOARD.py`](PiKoSoL_TP20_LIVE_KEYBOARD.py) next
+to the original `TP20_PiKoSoL_Run.ps1`. Then start the **normal**
+terminal with:
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\Start-PiKoSoL-Live.ps1 -Port COM10
+```
+
+This performs only a PC-side selftest and opens the real-time COM keyboard.
+It **does not** reload or reconfigure FPGA.
+
+If the HDMI shows `Waiting for downloader ...`, the **monitor is not running**.
+`PiKoSoL_TP20_LIVE_KEYBOARD.py` cannot send an XMODEM image. Use the
+explicit **recovery** path:
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\Start-PiKoSoL-Live.ps1 -Recover -Port COM10
+```
+
+The recovery mode calls the already-existing `TP20_PiKoSoL_Run.ps1 -Attach`
+to handle the bootloader transfer; the recovery phase may temporarily
+show `PC>`. After the recovery console exits, the script starts LIVE.
+`-Attach` is supplied to avoid reprogramming FPGA SRAM. The precise
+behavior of the local `host_console.py` has **not** been re-inspected
+in this session, so recovery completion is **not yet BOARD PASS**.
+Do not run the two clients simultaneously on COM10.
+
+The earlier `LOAD` stall and `Launch error = 1` remain an **open
+diagnostic issue**; neither this launcher nor a fresh keyboard client
+claims to repair the loader firmware. Keep the original working .fs
+and monitor.bin intact.
+
 ## Actual peripherals on Tang Primer 20K Dock (hardware inventory, not implemented MMIO)
 
 | Device on board | FPGA balls / connections | Expansion proposal |
