@@ -7,8 +7,8 @@ This is an isolated development branch. Do not create a release or merge before 
 
 - Existing local catalog and COM10 XMODEM-CRC path remain intact.
 - New GUI buttons: `Получить список` and `Скачать выбранный`.
-- Remote list is strictly drawn from `verified-apps.json`, not all repository binaries.
-- Only `board_pass: true` entries are offered. Initial list: `demo.bin`, `TP20_HDMI_GRID.bin`.
+- Remote list is strictly drawn from `verified-apps.json`, not arbitrary repository binaries.
+- All six published BIN files are offered. `BOARD_PASS` indicates individually documented confirmation; `OPERATOR_REPORTED` indicates collectively reported functionality, not independently evidenced for that binary.
 - Downloads go to `%USERPROFILE%\\Downloads\\PiKoSoL_TP20_GitHub_BIN`.
 - Hash, exact byte length, and existing PKD1 ABI validation are mandatory.
 - Existing differing destination files are never replaced. No transmission occurs as part of download.
@@ -27,11 +27,11 @@ python .\\PiKoSoL_FileManager.py
 ```
 
 In the GUI:
-1. Click **Получить список**. Expect exactly two allowlisted applications.
+1. Click **Получить список**. Expect six listed applications with verification status.
 2. Select **TP20_HDMI_GRID.bin**, click **Скачать выбранный**.
 3. Confirm SHA256 + PKD1 PASS, verify the downloaded file is selected.
 4. Only when the board is ready, click the existing **Загрузить .bin + RUN**.
 5. Record UART XMODEM ACK, LOAD OK, RUN, return to PiKoSoL, and actual HDMI output.
 6. Do not mark this version BOARD PASS without the actual operator result.
 
-The GitHub manifest is a publication allowlist, not independent proof of electrical behavior. Do not whitelist other preview binaries without operator confirmation.
+The GitHub manifest is an explicit list of published BINs, not independent proof of electrical behavior. HDMI preview programs do not drive external peripherals. Promote to `BOARD_PASS` only after individually documented operator results.
