@@ -153,8 +153,15 @@ $manifest = [ordered]@{
 $manifestFile = Join-Path $dstRoot 'working-manifest.json'
 [IO.File]::WriteAllText($manifestFile, ($manifest | ConvertTo-Json -Depth 6) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 Write-Host ("MANIFEST COMPLETE: {0} files" -f $entries.Count) -ForegroundColor Green
-& git -C $clone add -- $relRoot
-if ($LASTEXITCODE -ne 0) { throw 'git add failed' }
+# The repository .gitignore intentionally ignores *.fs and *.bin.
+# Force-add ONLY the exact allowlisted, hashed files copied above.
+foreach ($rel in $inventory) {
+    $repoPath = ($relRoot + '/' + $rel).Replace('\\','/')
+    & git -C $clone add -f -- $repoPath
+    if ($LASTEXITCODE -ne 0) { throw "git add failed: $repoPath" }
+}
+& git -C $clone add -- ($relRoot + '/working-manifest.json')
+if ($LASTEXITCODE -ne 0) { throw 'git add manifest failed' }
 & git -C $clone diff --cached --quiet -- $relRoot
 if ($LASTEXITCODE -eq 0) {
     Write-Host 'Identical files already on GitHub; no commit necessary.' -ForegroundColor Green
