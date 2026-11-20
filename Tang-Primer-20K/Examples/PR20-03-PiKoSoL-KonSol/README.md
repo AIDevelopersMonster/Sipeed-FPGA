@@ -1,6 +1,6 @@
 # PR20-03 — PiKoSoL TP20: minimal PicoRV32 computer on Tang Primer 20K Dock
 
-**Status (2026-11-19): BOARD PASS for the running UART/HDMI shell and live PC keyboard; not a standalone firmware release.**
+**Status (2026-11-20): BOARD PASS for UART/HDMI shell, live keyboard, original `demo.bin` and operator-reported File Manager v0.1.4/custom RV32I applications. Verified files are in this repository; no GitHub Release or FPGA Flash write.**
 **Type:** a small *bare-metal* RISC-V computer / monitor, not a complete operating system.
 **Board:** Sipeed Tang Primer 20K **Dock**, distinct from Tang Nano 20K and Tang Primer 25K.
 
@@ -21,7 +21,7 @@ The operator supplied photographs and real serial output from the active PiKoSoL
 | MicroSD filesystem, DDR3 driver, USB HID host | NOT YET INTEGRATED | Do not assume usable just because connectors/chips exist |
 
 Do **not** reinterpret a command name in `HELP` as an independently tested capability.
-No untested bitstream, broken candidate build, or release is included here.
+The published bitstream is the exact verified THLN33 TP20 image. Broken candidates and GitHub Releases are not included.
 
 ### Actual running firmware report
 
@@ -159,9 +159,16 @@ Do not assume Linux, Windows, multiplication extension M, hardware FPU, full lib
 
 ## Provenance and remaining work
 
-The board demonstrated above reports firmware build `THLN33`; its exact **RTL sources, matching .fs, build TCL and SHA256 have not been imported into this folder**.
-The existing repository already contains other PiKoSoL implementations on different boards;
-they are architectural references, **not** substitutes for the exact TP20 image running here.
+The board demonstrated above uses the THLN33 PicoRV32 gateware. Its exact working `firmware/tp20k_System_picorv32.fs` is now stored here, alongside the board-tested `monitor.bin`, `demo.bin`, and File Manager v0.1.4 source and five PKD1 demonstration `.bin` files. The published `.fs` matches upstream Git blob `5bb54a84311a62e1b0aadd11671c399561838b24` from [THLN33/System_picoRV32](https://github.com/THLN33/System_picoRV32) commit `d3e24d9176c9361cb583111775f39a9a08cabf52`. Upstream RTL/project files remain in the **upstream repository**; they have not been copied here.
 
-This record deliberately distinguishes **BOARD PASS from intended extensions**.
-Once the operator supplies the matching working build, add only its verified source + bitstream + reproducible build recipe and hash.
+The upload was made directly to `main` on 2026-11-20, commit [`b86ccb13`](https://github.com/AIDevelopersMonster/Sipeed-FPGA/commit/b86ccb13fa7160e66022f5b8f37923b512a3ed5c). Exact file sizes and SHA256 are in [`working-manifest.json`](working-manifest.json), along with [board-verification notes](BOARD_PASS_FILES.md). Source and binary files for the Windows application are in [`FileManager/`](FileManager/). There is no Release/tag and no private logs.
+
+## Restore a complete PiKoSoL kit from GitHub
+
+Use [`scripts/Sync-PiKoSoL-From-GitHub.ps1`](scripts/Sync-PiKoSoL-From-GitHub.ps1) on PowerShell 7. By default, it **only downloads all the files** into a new `Downloads/PiKoSoL_TP20_From_GitHub` directory, verifies every SHA256 against the published manifest, then runs `--check` and `--check-apps` without opening COM10. It refuses to overwrite existing downloads. This sync workflow has not yet received a Windows end-to-end acceptance log.
+
+Optional `-BoardTest -Port COM10` uses the *existing* working `TP20_PiKoSoL_Run.ps1` to program FPGA **SRAM only** and to upload `monitor.bin` over UART; this does **not** program Flash. When the `PC>` boot console appears, type `:EXIT` before running another UART client. Launch the File Manager from the downloaded path using `python .\FileManager\PiKoSoL_FileManager.py --root .` while working in that downloaded directory.
+
+Hardware results have varying evidence depth: original `.fs`, monitor, `demo.bin`, keyboard and HDMI were independently observed; the operator reported all five custom demo `.bin` applications working but per-application serial transcripts are not checked into this repository. LCD/WS2812/PT8211 `PREVIEW` binaries display on existing HDMI and do **not** drive the corresponding physical devices.
+
+The existing repository includes other PiKoSoL implementations for different FPGA boards; these are references, **not** replacements for this Tang Primer 20K Dock image. Continue to distinguish **BOARD PASS** from offline tests and unverified peripherals.
