@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "project": "PiKoSoL TP20 / PicoRV32",
+  "policy": "BOARD PASS only. No automatic board programming.",
+  "apps": [
+    {
+      "name": "demo.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/firmware/demo.bin",
+      "bytes": 1292,
+      "sha256": "be20fb6ec6d1c7bfe1e9591f0c734649c61d200217f5ebf15800b4f4e681de26",
+      "board_pass": true
+    },
+    {
+      "name": "TP20_HDMI_GRID.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/generated/TP20_HDMI_GRID.bin",
+      "bytes": 7444,
+      "sha256": "44aef01cd15bc6bd2dcf874d4077479d8df34d88d767c13a85360d917532cf4a",
+      "board_pass": true
+    }
+  ]
+}
