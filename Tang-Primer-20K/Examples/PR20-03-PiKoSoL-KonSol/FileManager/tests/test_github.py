@@ -22,7 +22,7 @@ class TestGithubCatalog(unittest.TestCase):
 
     def test_reject_unsafe(self):
         import json
-        for change in [dict(name='../evil.bin'), dict(sha256='f'*64),
+        for change in [dict(name='../evil.bin'), dict(sha256='invalid-digest'),
                        dict(board_pass=False), dict(bytes=99999)]:
             bad = dict(self.entry, **change)
             with self.assertRaises(ValueError):
