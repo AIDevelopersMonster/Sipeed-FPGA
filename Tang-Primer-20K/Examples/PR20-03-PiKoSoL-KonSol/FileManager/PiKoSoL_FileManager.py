@@ -194,9 +194,19 @@ class PiKoSoLGUI(tk.Tk):
     def _make_library(self, parent):
         label(parent, 'ЛОКАЛЬНЫЕ .BIN', 14, WHITE, 'bold').pack(anchor='w')
         label(parent, 'Файлы на ПК. Это не файловая система FPGA.', 9, MUTED).pack(anchor='w', pady=(4, 10))
+        cloud = tk.Frame(parent, bg=PANEL)
+        cloud.pack(fill='x', pady=(9, 2))
+        label(cloud, 'GitHub: доступные BIN / статус проверки', 9, AQUA, 'bold').pack(anchor='w')
+        self.remote_select = ttk.Combobox(cloud, textvariable=self.remote_choice, state='readonly')
+        self.remote_select.pack(fill='x', pady=(5, 5))
+        remote_buttons = tk.Frame(cloud, bg=PANEL)
+        remote_buttons.pack(fill='x')
+        button(remote_buttons, 'Получить список', self.fetch_remote_catalog).pack(side='left', fill='x', expand=True)
+        button(remote_buttons, 'Скачать выбранный', self.fetch_remote_app).pack(side='left', padx=(6, 0), fill='x', expand=True)
+        label(parent, 'Локальные программы:', 9, MUTED).pack(anchor='w', pady=(6, 3))
         list_area = tk.Frame(parent, bg=PANEL)
         list_area.pack(fill='both', expand=True)
-        self.tree = ttk.Treeview(list_area, columns=('name', 'size'), show='headings',
+        self.tree = ttk.Treeview(list_area, columns=('name', 'size'), show='headings', height=7,
                                  selectmode='browse', style='Dark.Treeview')
         self.tree.heading('name', text='Имя программы')
         self.tree.heading('size', text='байт')
@@ -216,24 +226,13 @@ class PiKoSoLGUI(tk.Tk):
         row2.pack(fill='x')
         button(row2, 'Открыть папку', self.open_selected_folder).pack(side='left', fill='x', expand=True)
         button(row2, 'Убрать из списка', self.drop_selected).pack(side='left', padx=(8, 0), fill='x', expand=True)
-        cloud = tk.Frame(parent, bg=PANEL)
-        cloud.pack(fill='x', pady=(9, 2))
-        label(cloud, 'GitHub: доступные BIN / статус проверки', 9, AQUA, 'bold').pack(anchor='w')
-        self.remote_select = ttk.Combobox(cloud, textvariable=self.remote_choice, state='readonly')
-        self.remote_select.pack(fill='x', pady=(5, 5))
-        remote_buttons = tk.Frame(cloud, bg=PANEL)
-        remote_buttons.pack(fill='x')
-        button(remote_buttons, 'Получить список', self.fetch_remote_catalog).pack(side='left', fill='x', expand=True)
-        button(remote_buttons, 'Скачать выбранный', self.fetch_remote_app).pack(side='left', padx=(6, 0), fill='x', expand=True)
-        self.file_details = tk.Text(parent, height=10, wrap='word', state='disabled',
+        self.file_details = tk.Text(parent, height=5, wrap='word', state='disabled',
                                     bg=PANEL2, fg=WHITE, font=(MONO, 9), relief='flat',
                                     highlightthickness=0, padx=12, pady=12)
         self.file_details.pack(fill='x', pady=(11, 0))
-        note = ('demo.bin: проверенный XMODEM-клиент.\n'
-                'Другие .bin: новый XMODEM (проверяем на плате).\n'
-                'Формат: raw RV32I + 16 байт заголовка.\n'
-                'Предел монитора LOAD: 12 КиБ с XMODEM padding.\n'
-                'Для нового кода проверка на плате обязательна.')
+        note = ('RAM only; формат PKD1/RV32I.\n'
+                'XMODEM <= 12 KiB с padding.\n'
+                'Запуск — только отдельной кнопкой.')
         label(parent, note, 9, MUTED, justify='left').pack(anchor='w', pady=(10, 0))
 
     def _make_workspace(self, right):
