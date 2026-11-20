@@ -18,8 +18,9 @@ PROJECT = "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol"
 MANIFEST = PROJECT + "/FileManager/verified-apps.json"
 MAX_MANIFEST = 32768
 MAX_BIN = 12288
+CATALOG_REF = "work/tp20-filemanager-github-catalog-v02"  # candidate branch, not main
 SHA_RE = re.compile(r"^[a-f0-9]{64}$")
-NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\\.bin$", re.I)
+NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\.bin$", re.I)
 
 
 def _download(url, limit):
@@ -72,11 +73,11 @@ def parse_manifest(data):
     return entries
 
 
-def list_verified(ref="main", fetch=_download):
+def list_verified(ref=CATALOG_REF, fetch=_download):
     return parse_manifest(fetch(raw_url(MANIFEST, ref), MAX_MANIFEST))
 
 
-def download_verified(entry, cache, demo, *, ref="main", fetch=_download, inspect=None):
+def download_verified(entry, cache, demo, *, ref=CATALOG_REF, fetch=_download, inspect=None):
     """No overwrite: equal cached file reused, conflicts rejected.
 
     inspect is the existing PKD1 validator (inspect_binary(path, demo)).
