@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "project": "PiKoSoL TP20 / Tang Primer 20K Dock",
+  "fpga_git_blob_sha1": "5bb54a84311a62e1b0aadd11671c399561838b24",
+  "app_abi": "PKD1 / RV32I / entry 0x2000C010",
+  "files": [
+    {
+      "path": "BOARD_PASS_FILES.md",
+      "bytes": 1036,
+      "sha256": "d00e840650daeee15f50ee863a579ac743456b7f5b0b7ef54b9df225369d78b0"
+    },
+    {
+      "path": "FileManager/AUDIT_HEADERS.cmd",
+      "bytes": 346,
+      "sha256": "30e01202e67b377f7102794f2cdf8488124fb9d48c872190526ededb9195fd3a"
+    },
+    {
+      "path": "FileManager/build_hello_rv32i.py",
+      "bytes": 7553,
+      "sha256": "3df804760bc1e015ae21582b724e3d66287ab0f50dac8e6e4a4a5418ecafd18f"
+    },
+    {
+      "path": "FileManager/build_tp20_apps.py",
+      "bytes": 13195,
+      "sha256": "de45d4c524a7f3eb8ee52405ce8586a8c7569a9f519e5f4471679397cbdadd95"
+    },
+    {
+      "path": "FileManager/generated/SHA256SUMS.txt",
+      "bytes": 455,
+      "sha256": "274bcf450431872ccfa8c0dceee0a00cb4419d7d1741af8e9a8bbe6f38fd0f34"
+    },
+    {
+      "path": "FileManager/generated/TP20_AUDIO_PT8211_PREVIEW.bin",
+      "bytes": 5612,
+      "sha256": "ef503d25ff03119ee5f34ce1d0569e2182bc553ce2140c46111b42d5505d6e70"
+    },
+    {
+      "path": "FileManager/generated/TP20_HDMI_COLOR16.bin",
+      "bytes": 8308,
+      "sha256": "70966589f8a7736e894404345e69268eb010247264901819910a5d3b2ef8abf4"
+    },
+    {
+      "path": "FileManager/generated/TP20_HDMI_GRID.bin",
+      "bytes": 7444,
+      "sha256": "44aef01cd15bc6bd2dcf874d4077479d8df34d88d767c13a85360d917532cf4a"
+    },
+    {
+      "path": "FileManager/generated/TP20_LCD_20X4_PREVIEW.bin",
+      "bytes": 5216,
+      "sha256": "9491e7993b6cce427725d356c63576ec0bc94e1737b3e7bce269be8a473f7011"
+    },
+    {
+      "path": "FileManager/generated/TP20_RGB_WS2812_PREVIEW.bin",
+      "bytes": 4320,
+      "sha256": "40c94a636c6777b3f9e287542765fc3e04f9715e58bbdf776aca774e79f6a124"
+    },
+    {
+      "path": "FileManager/pikosol_catalog.py",
+      "bytes": 1491,
+      "sha256": "e693f4332b6b7e8c4a892a5ffbdc6c3438d59f2f39b41d6bd94fa70cf67d1f22"
+    },
+    {
+      "path": "FileManager/pikosol_core.py",
+      "bytes": 13422,
+      "sha256": "13d95c8a18bf6a7a9e7522d9d93ac251854bdab0bdcedff7c7679dcbb582bc59"
+    },
+    {
+      "path": "FileManager/PiKoSoL_FileManager.py",
+      "bytes": 45281,
+      "sha256": "4148e0902ad4ec423537eeb7b94924bd0d8bacaa88eaab943693096d48c2c05d"
+    },
+    {
+      "path": "FileManager/pikosol_xmodem.py",
+      "bytes": 6361,
+      "sha256": "6c4ddc4d81e3d553864246c8df5192183a9435b23d06f2559cba023a99007400"
+    },
+    {
+      "path": "FileManager/README_RU.md",
+      "bytes": 3432,
+      "sha256": "106c0d1bff5da87eaf76097b27386f8cbee0fbce18b53894cf5ce8bd025acd5e"
+    },
+    {
+      "path": "FileManager/START_PiKoSoL_FileManager.cmd",
+      "bytes": 609,
+      "sha256": "84ed93e87ac371a4b00e03a5baabba2a60f595eb592ef69279e009665801b31a"
+    },
+    {
+      "path": "FileManager/tests/test_abi_v014.py",
+      "bytes": 3309,
+      "sha256": "c674333a0ed34bb56aedb25a81620e50f0066a68fc1628a8acb413945287c6d9"
+    },
+    {
+      "path": "FileManager/tests/test_catalog.py",
+      "bytes": 2016,
+      "sha256": "3fbb8f58f2d915f2eed018314d5d9ec7d3f555bb2aef5c57992901bddd70982f"
+    },
+    {
+      "path": "FileManager/tests/test_offline.py",
+      "bytes": 6894,
+      "sha256": "db7b85c2b5544a0508f16a6463365de539e03012caf447cfb61846c7325f3209"
+    },
+    {
+      "path": "FileManager/tests/test_protocol.py",
+      "bytes": 3388,
+      "sha256": "0b261963d2f3df90c87d9e7d8050e53fec8c695c61a061f9cd4dfe406c70ac9d"
+    },
+    {
+      "path": "firmware/demo.bin",
+      "bytes": 1292,
+      "sha256": "be20fb6ec6d1c7bfe1e9591f0c734649c61d200217f5ebf15800b4f4e681de26"
+    },
+    {
+      "path": "firmware/LICENSE_THLN33.txt",
+      "bytes": 1063,
+      "sha256": "3f8f7ff93b6d8fb873f68c8588a855f05715ec6160d2092f418c15469a3b1bc3"
+    },
+    {
+      "path": "firmware/monitor.bin",
+      "bytes": 18560,
+      "sha256": "414d8b9859ce95826e9a0ba12a26e820af2942cd4fd964ea9ff75ac28ae135c7"
+    },
+    {
+      "path": "firmware/tp20k_System_picorv32.fs",
+      "bytes": 7262004,
+      "sha256": "bbaffd7f2c501ef92a157d343b25f86179a6217af43ee849207e87d56dfe81f3"
+    },
+    {
+      "path": "tools/host_console.py",
+      "bytes": 9021,
+      "sha256": "fd76ae27ef0ca975b6ff36b1c7379d50bee7d69d25e0eeb703bff21b4182b0d4"
+    },
+    {
+      "path": "TP20_PiKoSoL_Run.ps1",
+      "bytes": 4950,
+      "sha256": "c649479998d05931ca70409132efc2fc7b03fec66a12def553570f07521225a1"
+    }
+  ]
+}
