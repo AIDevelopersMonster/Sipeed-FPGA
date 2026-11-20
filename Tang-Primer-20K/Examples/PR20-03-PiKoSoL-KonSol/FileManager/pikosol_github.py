@@ -59,12 +59,16 @@ def parse_manifest(data):
             raise ValueError("Invalid BIN length")
         if not isinstance(digest, str) or not SHA_RE.fullmatch(digest):
             raise ValueError("Invalid SHA256")
-        if item.get("board_pass") is not True:
-            raise ValueError("Only BOARD PASS entries allowed")
+        if type(item.get("board_pass")) is not bool:
+            raise ValueError("Missing board_pass status")
+        if item.get("status") not in ("BOARD_PASS", "OPERATOR_REPORTED", "UNKNOWN"):
+            raise ValueError("Unknown verification status")
+        if item["board_pass"] != (item["status"] == "BOARD_PASS"):
+            raise ValueError("Conflicting verification status")
         if name.casefold() in names:
             raise ValueError("Duplicate BIN name")
         names.add(name.casefold())
-        entries.append(dict(name=name, path=path, sha256=digest, bytes=size))
+        entries.append(dict(name=name, path=path, sha256=digest, bytes=size, status=item["status"], board_pass=item["board_pass"]))
     return entries
 
 
