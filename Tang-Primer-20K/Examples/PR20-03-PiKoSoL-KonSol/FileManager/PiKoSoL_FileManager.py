@@ -218,7 +218,7 @@ class PiKoSoLGUI(tk.Tk):
         button(row2, 'Убрать из списка', self.drop_selected).pack(side='left', padx=(8, 0), fill='x', expand=True)
         cloud = tk.Frame(parent, bg=PANEL)
         cloud.pack(fill='x', pady=(9, 2))
-        label(cloud, 'GitHub: только BOARD PASS', 9, AQUA, 'bold').pack(anchor='w')
+        label(cloud, 'GitHub: доступные BIN / статус проверки', 9, AQUA, 'bold').pack(anchor='w')
         self.remote_select = ttk.Combobox(cloud, textvariable=self.remote_choice, state='readonly')
         self.remote_select.pack(fill='x', pady=(5, 5))
         remote_buttons = tk.Frame(cloud, bg=PANEL)
@@ -420,8 +420,8 @@ class PiKoSoLGUI(tk.Tk):
     def fetch_remote_app(self):
         if self.remote_busy or self.busy:
             return
-        name = self.remote_choice.get()
-        match = next((a for a in self.remote_apps if a['name'] == name), None)
+        choice = self.remote_choice.get()
+        match = next((a for a in self.remote_apps if f"{a['name']} [{a['status']}]" == choice), None)
         if match is None:
             messagebox.showinfo('GitHub', 'Сначала получите каталог и выберите программу.')
             return
@@ -843,11 +843,11 @@ class PiKoSoLGUI(tk.Tk):
                 elif job[0] == 'github_catalog':
                     self.remote_busy = False
                     self.remote_apps = job[1]
-                    names = [a['name'] for a in self.remote_apps]
+                    names = [f"{a['name']} [{a['status']}]" for a in self.remote_apps]
                     self.remote_select['values'] = names
                     self.remote_choice.set(names[0] if names else '')
-                    self.status_var.set(f'GitHub: {len(names)} подтверждённых программ')
-                    self.log('GitHub BOARD PASS catalog: ' + ', '.join(names), 'good')
+                    self.status_var.set(f'GitHub: {len(names)} программ; статус каждой указан')
+                    self.log('GitHub BIN catalog: ' + ', '.join(names), 'good')
                 elif job[0] == 'github_download':
                     self.remote_busy = False
                     saved = Path(job[1])
@@ -856,7 +856,7 @@ class PiKoSoLGUI(tk.Tk):
                     self.refresh_files()
                     self.tree.selection_set(str(saved.resolve()))
                     self._on_select()
-                    self.status_var.set('SHA256 + PKD1 PASS; файл готов к ручной загрузке')
+                    self.status_var.set('SHA256 + PKD1 PASS; аппаратный статус см. в каталоге')
                     self.log(f'GitHub BIN verified: {saved} (not sent to FPGA)', 'good')
                 elif job[0] == 'github_error':
                     self.remote_busy = False
