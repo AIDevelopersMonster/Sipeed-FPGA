@@ -14,7 +14,7 @@ class TestGithubCatalog(unittest.TestCase):
         self.data = b'PKD1' + (20).to_bytes(4, 'little') + (0x2000C010).to_bytes(4, 'little') + bytes(8)
         self.entry = dict(name='demo.bin', path=PROJECT + '/firmware/demo.bin',
                           sha256=hashlib.sha256(self.data).hexdigest(),
-                          bytes=len(self.data), board_pass=True)
+                          bytes=len(self.data), board_pass=True, status='BOARD_PASS')
 
     def test_allowlist(self):
         import json
