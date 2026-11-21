@@ -1,5 +1,7 @@
 # PR20-03 — PiKoSoL TP20: minimal PicoRV32 computer on Tang Primer 20K Dock
 
+**Практическая инструкция на русском:** [SRAM-загрузка FPGA, запуск монитора через XMODEM-CRC и File Manager](SRAM-Startup/README.md). Параметры ПК и COM-порта вынесены в переменные; показан пример GPIO V3714. Flash не записывается.
+
 **Status (2026-11-20): BOARD PASS for UART/HDMI shell, live keyboard, original `demo.bin` and operator-reported File Manager v0.1.4/custom RV32I applications. Verified files are in this repository; no GitHub Release or FPGA Flash write.**
 **Type:** a small *bare-metal* RISC-V computer / monitor, not a complete operating system.
 **Board:** Sipeed Tang Primer 20K **Dock**, distinct from Tang Nano 20K and Tang Primer 25K.
