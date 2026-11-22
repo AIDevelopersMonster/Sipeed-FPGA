@@ -4,7 +4,7 @@
 **FPGA family:** GOWIN GW2A-LV18 (exact package, speed grade and board revision to verify on hardware)  
 **Scope:** own CPU/SoC experiments, FPGA peripherals, video, memory, and adaptation of PiKoSoL/KonSol.
 
-**Status: JTAG SCAN PASS (2026-11-18) / FPGA DESIGN NOT TESTED.** One GW2A-family device was detected as ID 0x0000081B. This directory is for **Tang Primer 20K**, NOT Tang Primer 25K (GW5A-LV25) and NOT Tang Nano 20K. No bitstream, synthesis result, timing result, or general BOARD PASS is claimed here.
+**Status: JTAG SCAN PASS (2026-11-18); PR20-03 PiKoSoL HDMI/UART/GPIO BOARD PASS (2026-11-22), scoped to the operator-tested configuration.** One GW2A-family device was detected as ID 0x0000081B. This directory is for **Tang Primer 20K**, NOT Tang Primer 25K (GW5A-LV25) and NOT Tang Nano 20K. No bitstream, synthesis result, timing result, or general BOARD PASS is claimed here.
 
 ## Start here
 
@@ -14,6 +14,7 @@
 - [PR20-01 — PicoRV32 port](Examples/PR20-01-PicoRV32/README.md)
 - [PR20-02 — LiteX / VexRiscv](Examples/PR20-02-LiteX-VexRiscv/README.md)
 - [PR20-03 — PiKoSoL / KonSol](Examples/PR20-03-PiKoSoL-KonSol/README.md)
+- [GPIO / PMOD V3714 — 32 линии, pinout, Verilog, 5 проверенных BIN](Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/README.md)
 - [TP20-01 — JTAG scan: read-only PASS, script and sanitized example](Tests/TP20-01-JTAG/README.md)
 - [TP20-02 — HDMI 1280×720: official Sipeed dk_video.fs + video demo](Tests/TP20-02-HDMI/README.md)
 - [RTL](RTL/README.md) · [Tests](Tests/README.md) · [Tools](Tools/README.md) · [Documentation](Documentation/README.md)
@@ -37,7 +38,7 @@ The [TP20-02 HDMI experiment README](Tests/TP20-02-HDMI/README.md) links to the 
 | PR20-00 | Board identification, clock, JTAG, LED, UART, RAM | JTAG SCAN PASS; remaining tests NOT TESTED |
 | PR20-01 | PicoRV32 and a small memory-mapped SoC | PLAN |
 | PR20-02 | VexRiscv/LiteX and comparison with a common workload | PLAN |
-| PR20-03 | PiKoSoL/KonSol: terminal, graphics, program/file transfer | PLAN |
+| PR20-03 | PiKoSoL: UART, HDMI, GPIO V3714 / PMOD | BOARD PASS: scoped to the verified files/physical ports in [GPIO-PMOD-V3714](Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/README.md) |
 
 A successful simulation or build is **not** a BOARD PASS. Results from the Primer 25K or Nano 20K must not be attributed to this board.
 

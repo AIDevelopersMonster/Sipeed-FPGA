@@ -17,3 +17,6 @@ This is a bare-metal PicoRV32 computer, not a standalone filesystem.
 Use scripts/Sync-PiKoSoL-From-GitHub.ps1 to download/verify the exact files.
 
 No untested candidate versions, GitHub Release, branch or tag.
+## Дополнение 2026-11-22 — GPIO / PMOD V3714
+
+Полное описание, MMIO-адреса, CST-пины и пять аппаратно испытанных `.bin`: [GPIO-PMOD-V3714/README.md](GPIO-PMOD-V3714/README.md). Физический BOARD PASS: PMOD0, PMOD1, встроенные LED, GPIO LIVE, ALL LED OFF. PMOD2/3: только цифровые регистры/readback; отдельное подтверждение свечения всех восьми линий пока отсутствует. Заводская Flash не изменялась. Рабочая GPIO `.fs` идентифицирована по SHA256 в описании, но в текущем комплекте для публикации её файла нет.

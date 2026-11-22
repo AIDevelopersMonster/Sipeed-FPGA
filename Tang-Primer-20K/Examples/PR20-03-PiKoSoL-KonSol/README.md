@@ -1,5 +1,7 @@
 # PR20-03 — PiKoSoL TP20: minimal PicoRV32 computer on Tang Primer 20K Dock
 
+**[GPIO / PMOD0–PMOD3 / Dock V3714 — карта всех 32 линий, Verilog, PicoRV32 и пять аппаратно проверенных BIN](GPIO-PMOD-V3714/README.md)** (2026-11-22). Рабочие BIN доступны в [`GPIO-PMOD-V3714/bin/`](GPIO-PMOD-V3714/bin/); подтверждены внешние LED на PMOD0 и PMOD1, цифровые регистры PMOD2/3; результаты аппаратных проверок разделены.
+
 **Практическая инструкция на русском:** [SRAM-загрузка FPGA, запуск монитора через XMODEM-CRC и File Manager](SRAM-Startup/README.md). Параметры ПК и COM-порта вынесены в переменные; показан пример GPIO V3714. Flash не записывается.
 
 **Status (2026-11-20): BOARD PASS for UART/HDMI shell, live keyboard, original `demo.bin` and operator-reported File Manager v0.1.4/custom RV32I applications. Verified files are in this repository; no GitHub Release or FPGA Flash write.**
@@ -19,7 +21,7 @@ The operator supplied photographs and real serial output from the active PiKoSoL
 | Input line case handling | BOARD PASS | `HELP` and `help` accepted |
 | Text with argument | BOARD PASS | `TEXT ghbdtn` produced `HDMI TEXT: ghbdtn` |
 | `LOAD` / `RUN` of supplied `demo.bin` | BOARD PASS (2026-11-19) | `TP20_PiKoSoL_Run.ps1 -Attach -Port COM10 -Demo`; `RUN 2000C010`; `RULE30 CPU CHECKSUM=0xD2A3C779`; returned to `PiKoSoL>` |
-| Board LEDs, buttons, WS2812B RGB, audio | NOT YET INTEGRATED | Physically present on Dock, no PiKoSoL driver/board test in this experiment |
+| Board LEDs / KEY / DIP / PMOD0–3 | GPIO V3714 EXTENSION | Six board LEDs, selected KEY/DIP inputs, PMOD0/1 external LEDx8 physically confirmed. PMOD2/3 MMIO readback tested; individual physical pin toggling not independently confirmed. See [GPIO-PMOD-V3714](GPIO-PMOD-V3714/README.md). RGB/audio are not integrated. |
 | MicroSD filesystem, DDR3 driver, USB HID host | NOT YET INTEGRATED | Do not assume usable just because connectors/chips exist |
 
 Do **not** reinterpret a command name in `HELP` as an independently tested capability.
