@@ -38,7 +38,7 @@ The [TP20-02 HDMI experiment README](Tests/TP20-02-HDMI/README.md) links to the 
 | PR20-00 | Board identification, clock, JTAG, LED, UART, RAM | JTAG SCAN PASS; remaining tests NOT TESTED |
 | PR20-01 | PicoRV32 and a small memory-mapped SoC | PLAN |
 | PR20-02 | VexRiscv/LiteX and comparison with a common workload | PLAN |
-| PR20-03 | PiKoSoL: UART, HDMI, GPIO V3714 / PMOD | BOARD PASS: scoped to the verified files/physical ports in [GPIO-PMOD-V3714](Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/README.md) |
+| PR20-03 | PiKoSoL: UART, HDMI, GPIO V3714 / PMOD0–3 | **BOARD PASS**: visible PMOD-LED response on all 4 ports (PMOD1+PMOD2 together, PMOD3 separately); per-line mapping of PMOD2/3 not certified. [Details](Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/README.md) |
 
 A successful simulation or build is **not** a BOARD PASS. Results from the Primer 25K or Nano 20K must not be attributed to this board.
 

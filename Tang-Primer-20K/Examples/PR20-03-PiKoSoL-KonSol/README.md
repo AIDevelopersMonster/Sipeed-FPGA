@@ -1,6 +1,6 @@
 # PR20-03 — PiKoSoL TP20: minimal PicoRV32 computer on Tang Primer 20K Dock
 
-**[GPIO / PMOD0–PMOD3 / Dock V3714 — карта всех 32 линий, Verilog, PicoRV32 и пять аппаратно проверенных BIN](GPIO-PMOD-V3714/README.md)** (2026-11-22). Рабочие BIN доступны в [`GPIO-PMOD-V3714/bin/`](GPIO-PMOD-V3714/bin/); подтверждены внешние LED на PMOD0 и PMOD1, цифровые регистры PMOD2/3; результаты аппаратных проверок разделены.
+**[GPIO / PMOD0–PMOD3 / Dock V3714 — карта всех 32 линий, Verilog, PicoRV32 и пять аппаратно проверенных BIN](GPIO-PMOD-V3714/README.md)** (2026-11-22). Рабочие BIN доступны в [`GPIO-PMOD-V3714/bin/`](GPIO-PMOD-V3714/bin/); **физическая реакция внешних LED подтверждена на PMOD0, PMOD1, PMOD2 и PMOD3** (PMOD1+PMOD2 вместе, PMOD3 отдельно). Отдельные файлы прошли аттестацию лишь в пределах указанных в документации тестов; `8/8` по каждой линии PMOD2/3 не заявляется.
 
 **Практическая инструкция на русском:** [SRAM-загрузка FPGA, запуск монитора через XMODEM-CRC и File Manager](SRAM-Startup/README.md). Параметры ПК и COM-порта вынесены в переменные; показан пример GPIO V3714. Flash не записывается.
 
@@ -21,7 +21,7 @@ The operator supplied photographs and real serial output from the active PiKoSoL
 | Input line case handling | BOARD PASS | `HELP` and `help` accepted |
 | Text with argument | BOARD PASS | `TEXT ghbdtn` produced `HDMI TEXT: ghbdtn` |
 | `LOAD` / `RUN` of supplied `demo.bin` | BOARD PASS (2026-11-19) | `TP20_PiKoSoL_Run.ps1 -Attach -Port COM10 -Demo`; `RUN 2000C010`; `RULE30 CPU CHECKSUM=0xD2A3C779`; returned to `PiKoSoL>` |
-| Board LEDs / KEY / DIP / PMOD0–3 | GPIO V3714 EXTENSION | Six board LEDs, selected KEY/DIP inputs, PMOD0/1 external LEDx8 physically confirmed. PMOD2/3 MMIO readback tested; individual physical pin toggling not independently confirmed. See [GPIO-PMOD-V3714](GPIO-PMOD-V3714/README.md). RGB/audio are not integrated. |
+| Board LEDs / KEY / DIP / PMOD0–3 | GPIO V3714 EXTENSION | Six onboard LEDs and selected KEY/DIP inputs tested; external PMOD-LEDx8 physical response confirmed by operator on all four ports (PMOD1+PMOD2 together, PMOD3 separately). Per-pin 8/8 mapping of PMOD2/3 not separately certified. See [GPIO-PMOD-V3714](GPIO-PMOD-V3714/README.md). RGB/audio are not integrated. |
 | MicroSD filesystem, DDR3 driver, USB HID host | NOT YET INTEGRATED | Do not assume usable just because connectors/chips exist |
 
 Do **not** reinterpret a command name in `HELP` as an independently tested capability.
