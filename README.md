@@ -1,7 +1,5 @@
 # Sipeed FPGA — PiKoSoL и проверенные лаборатории
 
-**СЕЙЧАС В РАБОТЕ — PiKoSoL / Tang Primer 20K:** [**FileManager: запуск и загрузка `.bin` через COM10**](Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/README_RU.md) · [Открыть исходники](Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/) · [START .cmd](Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/START_PiKoSoL_FileManager.cmd). Приложения загружаются только в RAM, не во Flash.
-
 **[KonSol Cross-CPU Terminal Demos — программы на C для разных процессоров](common/cpu-terminal-demos/README_RU.md)** — фрактал, «Жизнь», лабиринт, 3D-куб, сортировка, простые числа и CRC32. Хост-сборка проверена; аппаратные порты готовятся отдельно.
 
 **Tang Nano 9K · RISC-V PicoRV32 · HDMI · UART · SPI / microSD · WebUSB**
