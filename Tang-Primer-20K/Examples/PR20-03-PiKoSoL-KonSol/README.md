@@ -1,7 +1,5 @@
 # PR20-03 — PiKoSoL TP20: minimal PicoRV32 computer on Tang Primer 20K Dock
 
-**FILEMANAGER — [Windows запуск, COM10 и загрузка `.bin` в RAM](FileManager/README_RU.md)** · [Открыть исходники](FileManager/) · [START .cmd](FileManager/START_PiKoSoL_FileManager.cmd). Новая SD `.fs` программируется отдельно и только в SRAM.
-
 **[RGB WS2812 через PMOD0[1] — без новой `.fs`, проверенный BIN, исходник и обложка](RGB-WS2812-PMOD0-SOFTWARE/README.md)** — BOARD PASS по сообщению оператора (2026-11-22): программный GRB-протокол на существующей GPIO V3714. Временные параметры T9 осциллографом не измерялись.
 
 **[GPIO / PMOD0–PMOD3 / Dock V3714 — карта всех 32 линий, Verilog, PicoRV32 и пять аппаратно проверенных BIN](GPIO-PMOD-V3714/README.md)** (2026-11-22). Рабочие BIN доступны в [`GPIO-PMOD-V3714/bin/`](GPIO-PMOD-V3714/bin/); **физическая реакция внешних LED подтверждена на PMOD0, PMOD1, PMOD2 и PMOD3** (PMOD1+PMOD2 вместе, PMOD3 отдельно). Отдельные файлы прошли аттестацию лишь в пределах указанных в документации тестов; `8/8` по каждой линии PMOD2/3 не заявляется.
