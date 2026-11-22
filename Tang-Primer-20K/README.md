@@ -1,5 +1,7 @@
 # Tang Primer 20K — FPGA / RISC-V Processor Laboratory
 
+**БЫСТРЫЙ ДОСТУП: [PiKoSoL FileManager — запуск, COM10 и загрузка `.bin` в RAM](Examples/PR20-03-PiKoSoL-KonSol/FileManager/README_RU.md)** · [Папка программы](Examples/PR20-03-PiKoSoL-KonSol/FileManager/) · [Windows START .cmd](Examples/PR20-03-PiKoSoL-KonSol/FileManager/START_PiKoSoL_FileManager.cmd).
+
 **Board:** Sipeed Tang Primer 20K + Dock  
 **FPGA family:** GOWIN GW2A-LV18 (exact package, speed grade and board revision to verify on hardware)  
 **Scope:** own CPU/SoC experiments, FPGA peripherals, video, memory, and adaptation of PiKoSoL/KonSol.
