@@ -1,5 +1,29 @@
 # PiKoSoL File Manager v0.1.4 — ABI FIX / BOARD TEST NOT YET PERFORMED
 
+## Быстрый запуск на Windows — Tang Primer 20K
+
+**Это программа для ПК, а не FPGA-прошивка.** FileManager передаёт PKD1/RV32I `.bin` в RAM PiKoSoL через COM10 (115200 8N1). FPGA Flash не изменяется.
+
+[Папка FileManager](./) · [Запуск START_PiKoSoL_FileManager.cmd](START_PiKoSoL_FileManager.cmd) · [Восстановление монитора](../SRAM-Startup/README.md).
+
+**Если комплект PiKoSoL уже скачан**, откройте PowerShell в каталоге `PiKoSoL_TP20_From_GitHub` (с подпапками `FileManager/`, `firmware/`, `tools/`) и выполните:
+
+```powershell
+python .\FileManager\PiKoSoL_FileManager.py --root .
+```
+
+Или откройте `FileManager\START_PiKoSoL_FileManager.cmd`. Если отсутствует модуль `serial`: `python -m pip install pyserial`.
+
+**Если комплекта нет**, используйте [скрипт синхронизации](../scripts/Sync-PiKoSoL-From-GitHub.ps1). Он скачивает и сверяет проверенные файлы, не программируя FPGA по умолчанию. Если `Downloads\PiKoSoL_TP20_From_GitHub` уже существует, скрипт откажется его перезаписывать; повторно скачивать не нужно. Синхронизация получает опубликованный базовый комплект, **не экспериментальную SD-прошивку**.
+
+**Для загрузки `.bin`:** закройте MobaXterm и другие клиенты COM10. Убедитесь, что монитор `PiKoSoL>` запущен. В GUI выберите COM10, нажмите «Подключить терминал», затем «+ Выбрать файл», выберите локальный `.bin` и нажмите «Загрузить .bin + RUN». FileManager временно освобождает COM10 для XMODEM. Не вводите `LOAD` вручную. При `LOAD BAD ...` не отправляйте `RUN`.
+
+**Текущий эксперимент PR20-SD-01:** диагностический `PR20_SD01_READ_LBA0.bin` берётся из локально распакованного FIX2, а FPGA `.fs` программируется отдельно в SRAM. Кандидат SD не опубликован как проверенный релиз.
+
+**Статус:** опубликованная версия GUI обозначена как v0.1.4, не v0.2.0; аппаратный BOARD PASS новой SD-сборки пока не подтверждён.
+
+---
+
 Рабочие `tp20k_System_picorv32.fs`, `monitor.bin`, `demo.bin` не изменены.
 Установщик не обращается к COM10. Приложение работает только с RAM через XMODEM.
 
