@@ -15,6 +15,7 @@
 - [PR20-02 — LiteX / VexRiscv](Examples/PR20-02-LiteX-VexRiscv/README.md)
 - [PR20-03 — PiKoSoL / KonSol](Examples/PR20-03-PiKoSoL-KonSol/README.md)
 - [GPIO / PMOD V3714 — 32 линии, pinout, Verilog, 5 проверенных BIN](Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/README.md)
+- [RGB WS2812 через PMOD0 без перепрошивки FPGA — рабочий BIN, исходники, обложка](Examples/PR20-03-PiKoSoL-KonSol/RGB-WS2812-PMOD0-SOFTWARE/README.md)
 - [TP20-01 — JTAG scan: read-only PASS, script and sanitized example](Tests/TP20-01-JTAG/README.md)
 - [TP20-02 — HDMI 1280×720: official Sipeed dk_video.fs + video demo](Tests/TP20-02-HDMI/README.md)
 - [RTL](RTL/README.md) · [Tests](Tests/README.md) · [Tools](Tools/README.md) · [Documentation](Documentation/README.md)

@@ -20,3 +20,7 @@ No untested candidate versions, GitHub Release, branch or tag.
 ## Дополнение 2026-11-22 — GPIO / PMOD V3714
 
 Полное описание, MMIO-адреса, CST-пины и пять аттестованных по файлам `.bin`: [GPIO-PMOD-V3714/README.md](GPIO-PMOD-V3714/README.md). **Обновление от 2026-11-22, аппаратные наблюдения оператора:** PMOD0 — отдельный тест; PMOD1 **вместе с PMOD2** — совместный тест; PMOD3 — отдельный тест. На **всех четырёх PMOD** подтверждена видимая реакция внешних LED: **BOARD PASS (port-level LED response)**. Встроенные LED, GPIO LIVE и ALL LED OFF также физически подтверждены. **Не утверждается** полный `8/8 physical pin-map PASS` для PMOD2/3 и не приписывается отдельная проверка непоименованным BIN без точного SHA256. Заводская Flash не изменялась. Рабочая GPIO `.fs` идентифицирована по SHA256 в описании, но её файл в текущем комплекте для публикации отсутствует.
+
+## RGB WS2812 через PMOD0, 2026-11-22 — BOARD PASS
+
+Оператор подтвердил работу встроенного RGB с **существующей PiKoSoL GPIO V3714** без новой конфигурации FPGA. BIN и проверяемые исходники: [RGB-WS2812-PMOD0-SOFTWARE/README.md](RGB-WS2812-PMOD0-SOFTWARE/README.md). BIN SHA256: `136F49B22E55F95B9ABEEBCA89162940C7449545C47B0B61EA6FF357FA578F78` (11 772 байта). Результат — физический отклик RGB; точная осциллограмма T9 не снималась. Новых FPGA `.fs`, Verilog RGB-периферии, Release и Flash-записей нет.
