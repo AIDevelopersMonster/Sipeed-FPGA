@@ -1,5 +1,12 @@
 # FPGA Digital Interfaces — SPI and SD (English v0.1)
 
+## UDP / TCP-IP / Ethernet / физический уровень FPGA (2026-11-24)
+
+- **Публикация Малачевский А. А. / Malachevsky A. A.**: [UDP: от сетевого протокола до аппаратной реализации в ПЛИС](udp-fpga/README.md), **DOI [10.5281/zenodo.24482348](https://doi.org/10.5281/zenodo.24482348)**; статьи на русском и английском, v0.2.0.
+- [Физический уровень: TCP/IP vs UDP, Ethernet MAC, RMII, RTL8201F, RJ45](udp-fpga/NETWORK_STACK_PHY_RU.md) — пояснение, как сетевые уровни связываются с аппаратурой ПЛИС.
+- PDF обеих языковых версий: архивируются из Zenodo в [docs/education/udp-fpga](udp-fpga/) **только при совпадении SHA256**. Проверять наличие файла по ссылке; если импорт ещё не завершён, PDF остаются доступны на странице DOI.
+- **Статус самостоятельного предложенного IP:** Python/reference tests, не HDL/FPGA BOARD PASS. Никакие рабочие bitstream не изменялись.
+
 Two illustrated, editable technical teaching manuscripts with corresponding downloadable PDFs. Both include experimental provenance, Verilog reference examples, SystemVerilog/VHDL architectural sketches, internal testbenches, external scripts, and acceptance criteria.
 
 | Booklet | PDF | Editable source |
