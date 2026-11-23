@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "project": "PiKoSoL TP20 / PicoRV32",
+  "policy": "Catalog contains published BIN files; status distinguishes individually confirmed BOARD PASS from collective operator report. No automatic board programming.",
+  "apps": [
+    {
+      "name": "demo.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/firmware/demo.bin",
+      "bytes": 1292,
+      "sha256": "be20fb6ec6d1c7bfe1e9591f0c734649c61d200217f5ebf15800b4f4e681de26",
+      "board_pass": true,
+      "status": "BOARD_PASS"
+    },
+    {
+      "name": "TP20_HDMI_GRID.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/generated/TP20_HDMI_GRID.bin",
+      "bytes": 7444,
+      "sha256": "44aef01cd15bc6bd2dcf874d4077479d8df34d88d767c13a85360d917532cf4a",
+      "board_pass": true,
+      "status": "BOARD_PASS"
+    },
+    {
+      "name": "TP20_HDMI_COLOR16.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/generated/TP20_HDMI_COLOR16.bin",
+      "bytes": 8308,
+      "sha256": "70966589f8a7736e894404345e69268eb010247264901819910a5d3b2ef8abf4",
+      "board_pass": false,
+      "status": "OPERATOR_REPORTED"
+    },
+    {
+      "name": "TP20_AUDIO_PT8211_PREVIEW.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/generated/TP20_AUDIO_PT8211_PREVIEW.bin",
+      "bytes": 5612,
+      "sha256": "ef503d25ff03119ee5f34ce1d0569e2182bc553ce2140c46111b42d5505d6e70",
+      "board_pass": false,
+      "status": "OPERATOR_REPORTED"
+    },
+    {
+      "name": "TP20_LCD_20X4_PREVIEW.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/generated/TP20_LCD_20X4_PREVIEW.bin",
+      "bytes": 5216,
+      "sha256": "9491e7993b6cce427725d356c63576ec0bc94e1737b3e7bce269be8a473f7011",
+      "board_pass": false,
+      "status": "OPERATOR_REPORTED"
+    },
+    {
+      "name": "TP20_RGB_WS2812_PREVIEW.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/FileManager/generated/TP20_RGB_WS2812_PREVIEW.bin",
+      "bytes": 4320,
+      "sha256": "40c94a636c6777b3f9e287542765fc3e04f9715e58bbdf776aca774e79f6a124",
+      "board_pass": false,
+      "status": "OPERATOR_REPORTED"
+    }
+  ]
+}
