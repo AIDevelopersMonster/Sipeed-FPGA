@@ -2,6 +2,18 @@
 
 **[KonSol Cross-CPU Terminal Demos — программы на C для разных процессоров](common/cpu-terminal-demos/README_RU.md)** — фрактал, «Жизнь», лабиринт, 3D-куб, сортировка, простые числа и CRC32. Хост-сборка проверена; аппаратные порты готовятся отдельно.
 
+## Для новых пользователей: PiKoSoL на Tang Primer 20K
+
+**[ОТКРЫТЬ PIKOSOL TP20 — проект, файлы и инструкция запуска](Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/README.md)**
+
+**Маршрут по GitHub:** [Tang Primer 20K](Tang-Primer-20K/README.md) → [PR20-03 PiKoSoL](Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/README.md) → **[НАЧАТЬ РАБОТУ — полная инструкция на русском](Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/START_HERE_RU.md)**.
+
+На странице проекта описаны: что нужно установить на Windows, как программировать FPGA **только в SRAM**, когда нажимать **Dock S0**, как передать `monitor.bin`, освободить UART и открыть **File Manager v0.2.0**. В File Manager можно получить список опубликованных `.bin` с GitHub, скачать выбранный с проверкой SHA256 и отдельно запустить его через `LOAD/RUN` в RAM процессора PicoRV32. Для ручной процедуры без автоматического стартового скрипта есть [прежняя пошаговая инструкция](Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/SRAM-Startup/README.md).
+
+**Принцип безопасности и статуса:** не путать Tang Primer 20K, Tang Primer 25K и Tang Nano 20K; никакая инструкция не записывает FPGA Flash. Подтверждённые аппаратно функции перечислены в README проекта; новый GitHub-каталог File Manager пока не проходил повторную приёмку на плате.
+
+---
+
 **Tang Nano 9K · RISC-V PicoRV32 · HDMI · UART · SPI / microSD · WebUSB**
 
 Здесь собраны **работающие результаты, исходники и воспроизводимые учебные примеры**. Отметка **BOARD PASS** относится только к конкретному испытанному стенду и версии, а не к любой новой сборке.
@@ -22,7 +34,7 @@
 
 **[ОТКРЫТЬ TANG PRIMER 20K →](Tang-Primer-20K/README.md)** · **[Начало работы](Tang-Primer-20K/START_HERE_RU.md)** · **[PR20-00: первый запуск](Tang-Primer-20K/Examples/PR20-00-Board-Bringup/README.md)**
 
-**Плата:** Sipeed Tang Primer 20K + Dock, FPGA **GOWIN GW2A-LV18**. Отдельная ветка исследований процессоров, видеосистемы, DDR3 и интерфейсов с последующим переносом идей PiKoSoL/KonSol. **Статус: JTAG SCAN PASS (18.11.2026), обнаружено GW2A / ID 0x0000081B.** Это только идентификация по JTAG; HDMI, DDR3 и проекты процессора на этой плате пока не подтверждены. [Скрипт и обезличенный пример](Tang-Primer-20K/Tests/TP20-01-JTAG/README.md). Не путать с Tang Primer 25K (GW5A-LV25) и Tang Nano 20K.
+**Плата:** Sipeed Tang Primer 20K + Dock, FPGA **GOWIN GW2A-LV18**. В проекте [PR20-03 PiKoSoL](Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/README.md) отдельно подтверждены запуск PicoRV32, UART/HDMI и определённые GPIO/PMOD-функции; подробнее — в таблице аппаратных испытаний проекта. **JTAG SCAN PASS** 18.11.2026: GW2A, ID 0x0000081B. Реализация и аппаратная аттестация DDR3 и SD-записи отслеживаются отдельно; не считать их проверенными функциями этой опубликованной исходной `.fs`. Не путать с Tang Primer 25K (GW5A-LV25) и Tang Nano 20K.
 
 ## Tang Nano 20K — начните здесь
 
