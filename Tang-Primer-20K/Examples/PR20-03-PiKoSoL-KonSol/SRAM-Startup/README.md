@@ -24,7 +24,7 @@
 # === НАСТРОЙКИ ПОД ВАШ ПК И ПЛАТУ: ЗАМЕНИТЕ ПРИ НЕОБХОДИМОСТИ ===
 
 # Файл конфигурации FPGA (.fs).
-# Пример оператора: C:\Users\74095\Downloads\PiKoSoL_TP20_GPIO_V3714\PiKoSoL_TP20_GPIO_V3714.fs
+# Пример оператора: 
 $fs = Join-Path $env:USERPROFILE 'Downloads\PiKoSoL_TP20_GPIO_V3714\PiKoSoL_TP20_GPIO_V3714.fs'
 
 # Путь к установленному Gowin Programmer; версия и каталог у вас могут отличаться.
