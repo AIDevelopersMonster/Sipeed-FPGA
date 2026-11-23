@@ -88,6 +88,7 @@ class PiKoSoLGUI(tk.Tk):
         self.pinned_files: dict[str, Path] = {}
         self.hidden_names: set[str] = set()
         self.remote_apps = []
+        self.remote_requires = {}
         self.remote_choice = tk.StringVar(value='')
         self.remote_busy = False
         self.selected = None
@@ -403,6 +404,12 @@ class PiKoSoLGUI(tk.Tk):
             self.selected = None
             self._show_file('No programs found')
 
+    @staticmethod
+    def _remote_label(entry):
+        req = entry.get("requires", "BASE_TP20")
+        label = f"{entry['name']} [{entry['status']}]"
+        return label if req == "BASE_TP20" else label + " / " + req + " REQUIRED"
+
     def fetch_remote_catalog(self):
         if self.remote_busy or self.busy:
             return
@@ -420,7 +427,7 @@ class PiKoSoLGUI(tk.Tk):
         if self.remote_busy or self.busy:
             return
         choice = self.remote_choice.get()
-        match = next((a for a in self.remote_apps if f"{a['name']} [{a['status']}]" == choice), None)
+        match = next((a for a in self.remote_apps if self._remote_label(a) == choice), None)
         if match is None:
             messagebox.showinfo('GitHub', 'Сначала получите каталог и выберите программу.')
             return
@@ -436,7 +443,7 @@ class PiKoSoLGUI(tk.Tk):
                     raise ValueError('Каталог изменился: заново получите список')
                 cache = Path.home() / 'Downloads' / 'PiKoSoL_TP20_GitHub_BIN'
                 saved = download_verified(fresh, cache, self.paths.demo, inspect=inspect_binary)
-                self.jobs.put(('github_download', saved))
+                self.jobs.put(('github_download', saved, fresh))
             except Exception as exc:
                 self.jobs.put(('github_error', str(exc)))
         threading.Thread(target=task, daemon=True).start()
@@ -660,6 +667,24 @@ class PiKoSoLGUI(tk.Tk):
         except Exception as exc:
             messagebox.showerror('Проверка перед XMODEM', str(exc) + '\n\nВыбранная папка: ' + str(self.paths.root))
             return
+        requirement = self.remote_requires.get(self.selected.resolve(), '')
+        if not requirement:
+            name = self.selected.name.upper()
+            if (name.endswith('__GPIO_V3714_ONLY.BIN')
+                    or name.startswith(('TP20_GPIO_', 'TP20_PMOD'))
+                    or name in ('TP20_ALL_LED_OFF.BIN', 'TP20_RGB_VIA_PMOD0_SOFTWARE_TEST.BIN')):
+                requirement = 'GPIO_V3714'
+        if requirement and requirement != 'BASE_TP20':
+            warning = (
+                f'Эта программа требует FPGA-конфигурацию {requirement}.\n'
+                'Файловый менеджер не может подтвердить, какой .fs активен.\n'
+                'Стандартная THLN33 (режим 1) несовместима с GPIO V3714.\n\n'
+                'Убедитесь, что в FPGA действительно загружена нужная конфигурация.\n'
+                'При несовместимом MMIO программа может зависнуть.\n\n'
+                'Вы подтверждаете совместимость и хотите продолжить?'
+            )
+            if not messagebox.askyesno('Требование к FPGA — перед RUN', warning):
+                return
         custom = info.sha256.lower() != DEMO_SHA256
         method = ('Экспериментальный XMODEM для собственного .bin; аппаратный тест еще НЕ PASS.\n'
                   if custom else 'Проверенный host_console.py передаст demo.bin.\n')
@@ -842,7 +867,7 @@ class PiKoSoLGUI(tk.Tk):
                 elif job[0] == 'github_catalog':
                     self.remote_busy = False
                     self.remote_apps = job[1]
-                    names = [f"{a['name']} [{a['status']}]" for a in self.remote_apps]
+                    names = [self._remote_label(a) for a in self.remote_apps]
                     self.remote_select['values'] = names
                     self.remote_choice.set(names[0] if names else '')
                     self.status_var.set(f'GitHub: {len(names)} программ; статус каждой указан')
@@ -850,6 +875,7 @@ class PiKoSoLGUI(tk.Tk):
                 elif job[0] == 'github_download':
                     self.remote_busy = False
                     saved = Path(job[1])
+                    self.remote_requires[saved.resolve()] = job[2].get('requires', 'BASE_TP20')
                     self.pinned_files[saved.name.casefold()] = saved
                     self.hidden_names.discard(saved.name.casefold())
                     self.refresh_files()

@@ -38,10 +38,15 @@ class TestGithubCatalog(unittest.TestCase):
         self.assertTrue(MANIFEST.endswith('/verified-apps-v2.json'))
         old = parse_manifest(legacy.read_bytes())
         new = parse_manifest(current.read_bytes())
-        self.assertEqual(len(old), 6)
+        self.assertEqual(len(old), 12)
+        self.assertEqual(len([x for x in old if x['requires'] == 'GPIO_V3714']), 6)
+        for app in old[6:]:
+            self.assertTrue(app['name'].endswith('__GPIO_V3714_ONLY.bin'))
+            self.assertTrue(app['path'].endswith('/FileManager/generated/' + app['name']))
         self.assertEqual(len(new), 12)
         self.assertEqual(len([x for x in new if x['requires'] == 'GPIO_V3714']), 6)
-        self.assertEqual([x['name'] for x in new[:6]], [x['name'] for x in old])
+        self.assertEqual([x['name'] for x in new[:6]], [x['name'] for x in old[:6]])
+        self.assertEqual([x['sha256'] for x in new[6:]], [x['sha256'] for x in old[6:]])
 
     def test_new_catalog_row_does_not_break_existing_entries(self):
         import json

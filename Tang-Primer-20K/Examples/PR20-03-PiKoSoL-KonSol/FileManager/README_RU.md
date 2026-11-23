@@ -1,7 +1,18 @@
+## Совместимость ранее скачанного File Manager (2026-11-23)
+
+Сохранён прежний URL `FileManager/verified-apps.json`. Скачанный ранее менеджер использует строгий путь `FileManager/generated/*.bin`; поэтому для шести уже аппаратно проверенных GPIO/LED/кнопки/RGB программ созданы **алиасы Git-blobs с теми же байтами и SHA256** в `FileManager/generated/`, с суффиксом `__GPIO_V3714_ONLY.bin`. Этот суффикс означает: *нельзя запускать на исходной конфигурации THLN33, требуется отдельная PiKoSoL GPIO V3714*.
+
+- Ранее скачанная программа получает 12 записей на прежнем URL без переустановки; в ней нет автоматического определения активной FPGA-конфигурации.
+- Новая программа читает `verified-apps-v2.json`: те же 12 BIN с исходными именами и машинно-читаемым `requires=GPIO_V3714`; перед запуском запрашивается подтверждение совместимости.
+- Все опубликованные программы только читаются/скачиваются; даже `BOARD_PASS` конкретного BIN не означает совместимость с произвольной FPGA `.fs`.
+- Ни один ранее проверенный `.bin`, `.fs`, `monitor.bin` не модифицирован. Алиасы ссылаются на существующие Git-объекты; новые кандидаты не публикуются.
+- Отдельные SD01–SD04 BIN пока не включены: их исходные файлы не опубликованы в этом разделе GitHub `main`.
+
+
 
 ## GitHub catalog in File Manager v0.2.0 (main)
 
-The main-branch GUI now includes **Получить список** and **Скачать выбранный**. It reads the exact allowlist `verified-apps.json` from GitHub `main`, displays each binary's verification status, and downloads only upon an explicit click. A downloaded file is checked for exact length, SHA256, and the PiKoSoL PKD1 app header before it appears in the local list.
+The main-branch GUI now includes **Получить список** and **Скачать выбранный**. It reads the exact allowlist `verified-apps-v2.json` from GitHub `main`, displays each binary's verification status, and downloads only upon an explicit click. A downloaded file is checked for exact length, SHA256, and the PiKoSoL PKD1 app header before it appears in the local list.
 
 - The original `monitor.bin`, `demo.bin`, `.fs`, and launcher remain unchanged.
 - Download only: nothing is automatically transferred to FPGA. For RAM execution, separately click **Загрузить .bin + RUN**.

@@ -52,7 +52,7 @@ def required_gateware(path, name):
     if path == PROJECT + "/firmware/demo.bin":
         return "BASE_TP20"
     if path.startswith(BASE_FOLDER) and path[len(BASE_FOLDER):] == name:
-        return "BASE_TP20"
+        return "GPIO_V3714" if name.endswith("__GPIO_V3714_ONLY.bin") else "BASE_TP20"
     for prefix in GPIO_FOLDERS:
         if path.startswith(prefix) and path[len(prefix):] == name:
             return "GPIO_V3714"
