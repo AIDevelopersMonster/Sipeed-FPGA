@@ -1,0 +1,49 @@
+name: Archive published UDP Zenodo PDF documents
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/archive-udp-zenodo-pdfs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: udp-zenodo-pdf-archive
+  cancel-in-progress: false
+
+jobs:
+  archive-verified-pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Fetch the published article and verify exact pinned SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/import_udp_zenodo_pdfs.py
+      - name: Commit only the two verified article PDFs
+        shell: bash
+        run: |
+          set -euo pipefail
+          f1='docs/education/udp-fpga/UDP_Protocol_FPGA_RU_Zenodo_v0.2.pdf'
+          f2='docs/education/udp-fpga/UDP_Protocol_FPGA_EN_Zenodo_v0.2.pdf'
+          test -s "$f1"
+          test -s "$f2"
+          printf '%s  %s\n' 'ce15173b1397d0954db74f76546be89cb39c8dc675f429c64b8d06653f7d7f95' "$f1" \
+                               '4d736e76d1797537e6f7301a8d88b0bb0421639840394463b0da4d0d9ae308cd' "$f2" | sha256sum --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$f1" "$f2"
+          if git diff --cached --quiet; then
+            echo 'Both verified PDF assets already present.'
+          else
+            git commit -m 'docs(udp): archive Zenodo bilingual PDF v0.2.0 (verified SHA256)'
+            git push origin HEAD:main
+          fi
