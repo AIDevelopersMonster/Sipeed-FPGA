@@ -1,5 +1,12 @@
 # RTL IP — переносимые компоненты
 
+## Общее устройство UDP IP и сетевых уровней
+
+- [**Техническая статья UDP для ПЛИС (RU/EN) — Zenodo DOI 10.5281/zenodo.24482348**](../docs/education/udp-fpga/README.md): архитектура UDP, IPv4, контрольные суммы, примеры SystemVerilog и программа верификации собственной реализации. **Не является готовым аппаратно проверенным IP**.
+- [**Как связаны UDP, TCP/IP, Ethernet MAC, RMII и физический PHY RTL8201F**](../docs/education/udp-fpga/NETWORK_STACK_PHY_RU.md): техническое дополнение вплоть до RJ45 и Ethernet-кабеля.
+- [**RU/EN PDF статьи**](../docs/education/udp-fpga/README.md#pdf): публикационные PDF с контролем SHA256.
+
+
 ## Ethernet / RMII / UDP — LA16 (Tang Primer 20K)
 
 - [**LA16 Ethernet IP — исходники, аппаратно подтверждённый TX, статический аудит RX и ограничения**](ethernet/la16-udp-reference/README.md). Оригинальная LA16 прошла BOARD PASS по ARP и исходящему UDP (около 5 pkt/s в PRISM); **самостоятельный перенесённый IP и командный RX ещё не проверены**.
