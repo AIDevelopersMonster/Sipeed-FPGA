@@ -14,6 +14,8 @@
 
 **Статус:** инструкция основана на операторском сценарии для локальной GPIO-сборки V3714; это **не** публикация самой GPIO-прошивки и **не** заявление о полном BOARD PASS всех периферийных устройств. Исходные проверенные `.fs`, `monitor.bin` и `demo.bin` в соседнем `firmware/` не заменяются. Параметры ниже — *пример конкретной установки*, а не универсальные пути или номера портов.
 
+> **Новый рекомендованный путь для скачанного ZIP:** [START_HERE_RU.md](../START_HERE_RU.md) — `START_PiKoSoL.cmd` из каталога проекта. Ниже оставлена подробная ручная методика для инженерной диагностики; её блоки используют переменные одного окна PowerShell.
+
 ## 0. Настройки: заменить на свои
 
 Выполните **этот блок один раз** в PowerShell 7. Следующие команды рассчитаны на **то же окно PowerShell**, где значения переменных сохраняются.
@@ -105,6 +107,7 @@ Programming...: [#########################] 100%
 ```powershell
 $base = 'https://raw.githubusercontent.com/AIDevelopersMonster/Sipeed-FPGA/main/Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol'
 
+if (-not $dir) { $dir = Join-Path $env:TEMP 'PiKoSoL_TP20_UART' }
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
 
 $needed = @{
@@ -185,6 +188,21 @@ INFO
 Это **закрывает ПК-консоль и освобождает COM-порт**, но **не является командой перепрошивки FPGA**. Пока консоль открыта, File Manager не должен подключаться к этому же порту.
 
 ## 5. Запускаем установленный PiKoSoL File Manager
+
+В `main` репозитория находится File Manager **v0.1.4**; версия v0.2.0 — в экспериментальной ветке. В новом ZIP рекомендуется открывать File Manager непосредственно из соседнего каталога `FileManager`, без рекурсивного поиска по `Downloads`. 
+
+Непосредственный запуск File Manager после закрытия предыдущей UART-консоли:
+
+```powershell
+$fm = Join-Path (Split-Path -Parent $PSScriptRoot) 'FileManager\PiKoSoL_FileManager.py'
+# Если вы выполняете команды в корне PR20-03-PiKoSoL-KonSol, используйте:
+# $fm = Join-Path (Get-Location).Path 'FileManager\PiKoSoL_FileManager.py'
+python -B $fm --root (Split-Path -Parent $fm)\.. --port $serialPort
+```
+
+Для ZIP-пользователей предпочтительнее `START_PiKoSoL.cmd`: путь к файлам и COM-порт он передаёт автоматически.
+
+
 
 Следующий фрагмент ищет **уже установленную локальную копию** `PiKoSoL_FileManager.py` в указанном каталоге и отбирает нужную версию. Он **ничего не скачивает и не перепрограммирует**.
 
