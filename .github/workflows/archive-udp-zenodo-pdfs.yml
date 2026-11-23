@@ -45,5 +45,17 @@ jobs:
             echo 'Both verified PDF assets already present.'
           else
             git commit -m 'docs(udp): archive Zenodo bilingual PDF v0.2.0 (verified SHA256)'
-            git push origin HEAD:main
+            # Other documentation may be committed while this job downloads.
+            # Rebase the tiny PDF-only commit; never force-push or overwrite.
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                break
+              fi
+              if [ "$attempt" -eq 3 ]; then
+                echo 'Remote main advanced during all attempts; aborting safely.' >&2
+                exit 1
+              fi
+            done
           fi
