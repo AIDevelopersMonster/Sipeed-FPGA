@@ -1,5 +1,11 @@
 # RTL IP — переносимые компоненты
 
+## HDMI со звуком: Terence Ang / Primer 20K
+
+- [**HDMI + 16-bit stereo LPCM 48 kHz — воспроизведённый оригинальный проект, VIDEO+AUDIO BOARD PASS**](hdmi/terenceang-tp20k-hdmi-audio/README.md). Tang Primer 20K Dock, оригинальный Verilog, Gowin 1.9.9 Beta-4, наблюдаемый слышимый HDMI-тон. Источник **MIT**, pinned commit; собственная IP-интеграция **не проверена**.
+- [**Техническая статья (RU, черновик): HDMI Data Islands, Audio Sample Packets, ACR, InfoFrames, BCH и TMDS**](hdmi/terenceang-tp20k-hdmi-audio/ARTICLE_RU.md). Включены предложения по возможному применению в PiKoSoL, без изменения рабочего HDL.
+
+
 ## Общее устройство UDP IP и сетевых уровней
 
 - [**Техническая статья UDP для ПЛИС (RU/EN) — Zenodo DOI 10.5281/zenodo.24482348**](../docs/education/udp-fpga/README.md): архитектура UDP, IPv4, контрольные суммы, примеры SystemVerilog и программа верификации собственной реализации. **Не является готовым аппаратно проверенным IP**.
