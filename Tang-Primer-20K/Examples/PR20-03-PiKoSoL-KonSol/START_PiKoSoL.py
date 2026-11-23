@@ -226,7 +226,7 @@ def main() -> int:
 
     print(f"Opening File Manager (UART defaults to COM10; choose {port} in its toolbar).")
     subprocess.run(
-        [sys.executable, "-B", str(GUI), "--root", str(ROOT)],
+        [sys.executable, "-B", str(GUI), "--root", str(ROOT), "--port", port],
         cwd=str(ROOT), check=True
     )
     print("File Manager closed. No FPGA Flash modifications.")
