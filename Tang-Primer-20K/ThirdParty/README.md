@@ -10,7 +10,7 @@
 | --- | --- | --- | --- | --- |
 | 01 | [6502 SBC FPGA — rudolfstepan](https://github.com/rudolfstepan/6502-sbc-fpga) | Компьютер T65/6502, EhBASIC, HDMI, UART, microSD, DDR3-видеобуфер | VHDL/Verilog, проект Gowin, образ EhBASIC; `.fs` в проверенном `main` не найден | **BUILD FAIL — остановлен 23.11.2026**: Gowin 1.9.9 Beta-4, ошибка `EX4867`; аппаратного теста не было |
 | 02 | [LogicAnalyzer / LA16 — vinhbui2430](LA16/README.md) | 16-канальный логический анализатор; Ethernet UDP; Python GUI PRISM | Готовая авторская `.fs` и открытый RTL; RJ45, PMOD2/3 | **BOARD PASS (Ethernet + GUI), 23.11.2026** — SRAM, ARP и реальный LIVE в PRISM; измерительные входы не проверялись. [Отдельный отчёт и установка](LA16/README.md) |
-| 03 | [Tang Primer 20K Starter — terenceang](https://github.com/terenceang/tang-primer-20k-starter) | HDMI/аудио, WS2812, LED, документация распиновки | Исходники и Gowin-проекты; автор заявляет аппаратные проверки | **REFERENCE / NOT TESTED** |
+| 03 | [Tang Primer 20K Starter — terenceang](https://github.com/terenceang/tang-primer-20k-starter) | HDMI/аудио, WS2812, LED, документация распиновки | Открытый Verilog под MIT; наша неизменённая сборка `top.fs` | **BUILD PASS + BOARD PASS (HDMI VIDEO + слышимый AUDIO), 24.11.2026** — подтверждено оператором на TP20 Dock, Gowin 1.9.9 Beta-4, SRAM. [IP-аудит и статья](../../ip/hdmi/terenceang-tp20k-hdmi-audio/README.md); SHA/STA пока не зафиксированы |
 | 04 | [Tang MP3 Player — kami4ka](https://github.com/kami4ka/tang_mp3_player) | Аппаратный MP3-декодер без CPU, FAT16/FAT32, PT8211 | microSD и PT8211 на Dock; для полного интерфейса требуется LCD 480×272; open-source Gowin flow | **CANDIDATE / NOT TESTED** |
 | 05 | [Z8000 Test — tpaxia](https://github.com/tpaxia/z8000_test) | Z8001/Z8002, тестирование процессорного RTL и сравнение с эмуляторами | Gowin-проекты для Primer 20K; Git-submodules, тестовая среда и UART | **CANDIDATE / NOT TESTED** |
 | 06 | [Tang Monitor — kami4ka](https://github.com/kami4ka/tang-monitor) | Приём HDMI и вывод на LCD | Нужны совместимый LCD и HDMI-источник | **CANDIDATE / NOT TESTED** |
@@ -62,6 +62,15 @@ wc_data(ln*8 + 7 downto ln*8) <= blit_data;
 - **Измерительные входы CH0–CH15 и декодеры не проверялись**; функция анализатора не заявляется полностью сертифицированной.
 - Оператор отметил медленную работу GUI и отсутствие интереса к дальнейшим измерительным тестам. Главный исследовательский интерес — организация Ethernet/RMII, UDP и взаимодействия FPGA с хост-программой.
 - Разногласие распиновки CH1 между `docs/WIRING.md` (`D10`) и `la16.cst` (`C12`) остаётся нерешённым: внешние сигналы не подключали.
+
+## 03 — Terence Ang Starter: HDMI + Audio BOARD PASS (24.11.2026)
+
+- [Исходники и закреплённый upstream](https://github.com/terenceang/tang-primer-20k-starter/tree/44674c38d9c10a306fe4a5a5ddf9332bad830847) — исходный HDL без изменений, лицензия MIT.
+- Наш Gowin 1.9.9 Beta-4 Education собрал `hdmi/build.tcl` с exit code 0; `top.fs` размером **7 264 150 байт**.
+- Пользователь подтвердил изображение с тестовой картинкой и **слышимый HDMI-тон**. Это **BOARD PASS конкретного теста исходной прошивки** (по наблюдению оператора), не универсального IP.
+- [Технический разбор HDL и будущие направления](../../ip/hdmi/terenceang-tp20k-hdmi-audio/README.md) и [первый черновик статьи](../../ip/hdmi/terenceang-tp20k-hdmi-audio/ARTICLE_RU.md).
+- SHA256 `.fs`, наш STA и отчёт ресурсов пока не сохранены; характеристики 1369 LUT/955 FF/7 BSRAM приводит автор. Без проверки совместного размещения нельзя включить блок в PiKoSoL.
+- **Далее по исходному списку №04 — Tang MP3 Player**. Рабочая PiKoSoL, Flash и оригинальный проект не менялись.
 
 ---
 
