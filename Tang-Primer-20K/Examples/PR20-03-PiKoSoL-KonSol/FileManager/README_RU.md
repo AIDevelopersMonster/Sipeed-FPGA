@@ -1,3 +1,25 @@
+
+## GitHub catalog in File Manager v0.2.0 (main)
+
+The main-branch GUI now includes **Получить список** and **Скачать выбранный**. It reads the exact allowlist `verified-apps.json` from GitHub `main`, displays each binary's verification status, and downloads only upon an explicit click. A downloaded file is checked for exact length, SHA256, and the PiKoSoL PKD1 app header before it appears in the local list.
+
+- The original `monitor.bin`, `demo.bin`, `.fs`, and launcher remain unchanged.
+- Download only: nothing is automatically transferred to FPGA. For RAM execution, separately click **Загрузить .bin + RUN**.
+- Cache: `%USERPROFILE%\Downloads\PiKoSoL_TP20_GitHub_BIN`. Existing different files are not overwritten.
+- `BOARD_PASS` is per-binary evidence; `OPERATOR_REPORTED` is not independently demonstrated BOARD PASS. Preview applications do not drive the actual audio/LCD/RGB hardware.
+- Legacy GUI v0.1.4 can be recovered from GitHub history; no release is created.
+
+Offline test (does not access COM/FPGA or the network):
+
+```powershell
+python -m unittest discover -s tests -p test_github.py -v
+python .\PiKoSoL_FileManager.py --check --root ..
+```
+
+**Status:** published to GitHub `main` for PC/user testing; GUI's updated remote-catalog route has not yet received a fresh BOARD PASS on the operator's machine.
+
+---
+
 # PiKoSoL File Manager v0.1.4 — ABI FIX / BOARD TEST NOT YET PERFORMED
 
 Рабочие `tp20k_System_picorv32.fs`, `monitor.bin`, `demo.bin` не изменены.
