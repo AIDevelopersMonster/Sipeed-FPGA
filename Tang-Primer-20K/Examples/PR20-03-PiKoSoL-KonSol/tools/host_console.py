@@ -71,6 +71,27 @@ def wait_handshake(port, seconds: float, *, marker: bytes | None = None) -> byte
     raise TimeoutError('No XMODEM-CRC handshake C received. Press S0 on Dock and retry.')
 
 
+def wait_for_operator_s0(port) -> None:
+    """Wait for a fresh FPGA reset after COM is already open.
+
+    The stock loader sends its one-time XMODEM C during startup. The PC
+    must have opened COM before the user presses Dock S0. Ctrl+C cancels.
+    """
+    print('', flush=True)
+    print('*** ACTION REQUIRED: PRESS DOCK S0 NOW ***', flush=True)
+    print('COM open. Press S0 ONCE now; do not press Enter.', flush=True)
+    print('If C was missed, press S0 again. Ctrl+C to cancel.', flush=True)
+    remind = time.monotonic() + 20.0
+    while True:
+        byte = port.read(1)
+        if byte == b'C':
+            print('BOOTLOADER_C_PASS', flush=True)
+            return
+        if time.monotonic() >= remind:
+            print('STILL WAITING FOR BOOTLOADER C: press Dock S0 again.', flush=True)
+            remind = time.monotonic() + 20.0
+
+
 def wait_ctrl(port, seconds: float) -> int:
     limit=time.monotonic()+seconds
     while time.monotonic()<limit:
@@ -159,6 +180,7 @@ def main() -> int:
     parser.add_argument('--attach',action='store_true',help='Do not upload monitor; connect to running app')
     parser.add_argument('--auto-demo',action='store_true',help='RAMTEST + ADD + LOAD+RUN a second program')
     parser.add_argument('--boot-only',action='store_true',help='Close UART after monitor banner; no interactive PC> prompt')
+    parser.add_argument('--wait-for-s0',action='store_true',help='Wait for explicit S0 press after COM open')
     args=parser.parse_args()
     monitor=validate_image(args.monitor,0x61706766,0x8000)
     demo=validate_image(args.demo,0x31444b50,0x3000)
@@ -174,8 +196,11 @@ def main() -> int:
             port.rts=False
             print(f'COM OPEN PASS {args.port} {args.baud} 8N1')
             if not args.attach:
-                print('Waiting for stock bootloader C. If needed, press Dock S0 once now.')
-                wait_handshake(port,18)
+                if args.wait_for_s0:
+                    wait_for_operator_s0(port)
+                else:
+                    print('Waiting for stock bootloader C. If needed, press Dock S0 once now.')
+                    wait_handshake(port,18)
                 print('Bootloader handshake detected')
                 send_xmodem(port,monitor,'monitor.bin')
                 text=expect_prompt(port,25)
@@ -204,7 +229,7 @@ def main() -> int:
                     raise RuntimeError('External RV32 program did not execute and return')
                 print('\nSERIAL TEST PASS / HDMI STILL REQUIRES VISUAL CONFIRMATION')
             if args.boot_only:
-                print('MONITOR_BOOT_PASS / UART CLOSED FOR FILE MANAGER')
+                print('MONITOR_BOOT_PASS / closing COM for File Manager', flush=True)
                 return 0
             print('\nInteractive mode. Commands: HELP INFO ADD ... RAMTEST BARS TEXT ...')
             print('PC-only commands: :DEMO=load+run demo again, :EXIT=close console.')
