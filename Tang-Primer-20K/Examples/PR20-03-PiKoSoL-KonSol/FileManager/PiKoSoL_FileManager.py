@@ -81,6 +81,9 @@ class PiKoSoLGUI(tk.Tk):
         self.serial_stop = threading.Event()
         self.child = None
         self.cancelled = False
+        self.cancel_event = threading.Event()
+        self.transfer_worker = None
+        self.transfer_serial = None
         self.busy = False
         self.monitor_ok = False
         self.attached = False
@@ -721,6 +724,9 @@ class PiKoSoLGUI(tk.Tk):
         self.pending_line = ''
         self.busy = True
         self.cancelled = False
+        self.cancel_event.clear()
+        self.child = None
+        self.transfer_serial = None
         self.cancel_button.config(state='normal')
         self.upload_button.config(state='disabled')
         self.connect_button.config(state='disabled')
@@ -737,6 +743,7 @@ class PiKoSoLGUI(tk.Tk):
                                    port=self.port_var.get().strip().upper(),
                                    operation=operation)
             worker = threading.Thread(target=self._run_host, args=(cmd, operation, program), daemon=True)
+        self.transfer_worker = worker
         worker.start()
 
     def _run_host(self, cmd: list[str], operation: str, program: Path):
@@ -749,11 +756,13 @@ class PiKoSoLGUI(tk.Tk):
                                      cwd=str(self.paths.root), text=True,
                                      encoding='utf-8', errors='replace', bufsize=1)
             self.child = child
+            if self.cancel_event.is_set():
+                child.kill()
             try:
                 out, _ = child.communicate(input=':EXIT\n', timeout=130)
                 rc = child.returncode or 0
                 result = parse_transfer_output(out, rc, operation)
-                if self.cancelled:
+                if self.cancel_event.is_set():
                     result = TransferResult(rc=rc, out=out, xmodem_ack=result.xmodem_ack,
                                             ran=result.ran, returned=result.returned,
                                             loader_pass=result.loader_pass, cancelled=True)
@@ -773,7 +782,11 @@ class PiKoSoLGUI(tk.Tk):
     def _run_direct(self, program: Path):
         log = []
         serial_device = None
+        result = TransferResult(rc=3, out='NO TRANSFER', xmodem_ack=False, ran=False,
+                                returned=False, loader_pass=False)
         try:
+            if self.cancel_event.is_set():
+                raise TransferError('OPERATOR CANCEL before opening serial')
             import serial
             serial_device = serial.Serial()
             serial_device.port = self.port_var.get().strip().upper()
@@ -783,6 +796,9 @@ class PiKoSoLGUI(tk.Tk):
             serial_device.dtr = False
             serial_device.rts = False
             serial_device.open()
+            self.transfer_serial = serial_device
+            if self.cancel_event.is_set():
+                raise TransferError('OPERATOR CANCEL before LOAD')
             image = program.read_bytes()
 
             def report(stage, done, total):
@@ -790,7 +806,8 @@ class PiKoSoLGUI(tk.Tk):
                 log.append(msg)
                 self.jobs.put(('transfer_progress', msg))
 
-            r = send_binary(serial_device, image, report)
+            r = send_binary(serial_device, image, report,
+                            cancel=self.cancel_event.is_set)
             full = '\n'.join(log) + '\n' + r.output
             result = TransferResult(rc=0 if r.returned and r.acked == r.blocks else 4,
                                     out=full, xmodem_ack=r.ended and r.acked == r.blocks,
@@ -805,7 +822,8 @@ class PiKoSoLGUI(tk.Tk):
                     serial_device.close()
                 except Exception:
                     pass
-            if self.cancelled:
+                self.transfer_serial = None
+            if self.cancel_event.is_set():
                 result = TransferResult(rc=3, out=result.out + '\nOPERATOR CANCEL',
                                         xmodem_ack=result.xmodem_ack, ran=result.ran,
                                         returned=result.returned, loader_pass=False,
@@ -816,20 +834,30 @@ class PiKoSoLGUI(tk.Tk):
     def cancel_transfer(self):
         if not self.busy:
             return
-        if messagebox.askyesno('Прервать передачу?',
-            'Прерывание ПК-процесса может оставить монитор FPGA в ожидании XMODEM.\n'
-            'Возможно, потребуется аппаратный сброс и восстановление монитора.\n\n'
-            'Прервать?'):
-            self.cancelled = True
-            if self.child is not None:
-                try:
-                    self.child.kill()
-                except Exception:
-                    pass
-            self.log('Отмена оператора: состояние программы в FPGA НЕИЗВЕСТНО', 'warn')
+        if not messagebox.askyesno('Прервать передачу?',
+                'Остановить передачу на ПК и освободить COM-порт?\\n'
+                'При прерывании XMODEM состояние FPGA/монитора неизвестно.\\n'
+                'Для повторного LOAD может понадобиться сброс S0 и восстановление монитора.'):
+            return
+        self.cancelled = True
+        self.cancel_event.set()
+        self.cancel_button.config(state='disabled')
+        self.status_var.set('Прерываем передачу на ПК...')
+        self.log('ОТМЕНА: запрошено прерывание PC-передачи; FPGA не сбрасывается', 'warn')
+        child = self.child
+        if child is not None:
+            try:
+                if child.poll() is None:
+                    child.kill()
+            except Exception as exc:
+                self.log('Не удалось завершить host-процесс: ' + str(exc), 'warn')
+        # Direct XMODEM worker polls cancel_event after each short UART read.
+        # Do not close serial from the GUI thread: worker owns it and closes it
+        # in finally. This avoids Windows COM deadlocks during concurrent read.
 
     def _finish_transfer(self, operation: str, program: Path, result, log_file: Path):
         self.busy = False
+        self.transfer_worker = None
         self.progress.stop()
         self.cancel_button.config(state='disabled')
         self.upload_button.config(state='normal')
@@ -896,6 +924,7 @@ class PiKoSoLGUI(tk.Tk):
                     self.busy = False
                     self.progress.stop()
                     self.cancel_button.config(state='disabled')
+                    self.transfer_worker = None
                     self.upload_button.config(state='normal')
                     self.connect_button.config(state='normal')
                     self.status_var.set('Ошибка ПК-процесса')
