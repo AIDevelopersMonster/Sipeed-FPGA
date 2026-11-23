@@ -75,6 +75,39 @@ class ProtocolTest(unittest.TestCase):
                         handshake_timeout=.1, ack_timeout=.1,run_timeout=.2)
         self.assertNotIn(b'RUN\r', device.writes)
 
+    def test_cancel_before_load_sends_no_bytes(self):
+        image = struct.pack('<IIII', 0x31444b50, 304, 0x2000c010, 0)+bytes(288)
+        device = FakeSerial(blocks=3)
+        with self.assertRaisesRegex(TransferError, 'OPERATOR CANCEL'):
+            send_binary(device, image, lambda *e: None,
+                        cancel=lambda: True)
+        self.assertEqual(device.writes, [])
+
+    def test_cancel_after_load_before_first_xmodem_block(self):
+        image = struct.pack('<IIII', 0x31444b50, 304, 0x2000c010, 0)+bytes(288)
+        device = FakeSerial(blocks=3)
+        stop = [False]
+        def report(stage, done, total):
+            if stage == 'LOAD sent':
+                stop[0] = True
+        with self.assertRaisesRegex(TransferError, 'OPERATOR CANCEL'):
+            send_binary(device, image, report, cancel=lambda: stop[0],
+                        handshake_timeout=.1, ack_timeout=.1)
+        self.assertNotIn(b'RUN\r', device.writes)
+        self.assertNotIn(b'\x04', device.writes)
+
+    def test_cancel_after_load_success_never_runs(self):
+        image = struct.pack('<IIII', 0x31444b50, 304, 0x2000c010, 0)+bytes(288)
+        device = FakeSerial(blocks=3)
+        def cancel():
+            # EOT acknowledged and target LOAD OK in FakeSerial,
+            # but a late operator cancel must block RUN.
+            return device.stage == 'run'
+        with self.assertRaisesRegex(TransferError, 'OPERATOR CANCEL'):
+            send_binary(device, image, lambda *e: None, cancel=cancel,
+                        handshake_timeout=.1, ack_timeout=.1)
+        self.assertNotIn(b'RUN\r', device.writes)
+
     def test_retry_limit(self):
         image = struct.pack('<IIII', 0x31444b50, 204, 0x2000c010, 0)+bytes(188)
         device = FakeSerial(blocks=2,fail_block=1)
