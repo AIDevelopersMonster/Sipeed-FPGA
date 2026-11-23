@@ -1,5 +1,12 @@
 # RTL IP — переносимые компоненты
 
+## Ethernet / RMII / UDP — LA16 (Tang Primer 20K)
+
+- [**LA16 Ethernet IP — исходники, аппаратно подтверждённый TX, статический аудит RX и ограничения**](ethernet/la16-udp-reference/README.md). Оригинальная LA16 прошла BOARD PASS по ARP и исходящему UDP (около 5 pkt/s в PRISM); **самостоятельный перенесённый IP и командный RX ещё не проверены**.
+- [**PiKoSoL Host Platform: HTML-панели, игры, управление приборами и каталог на 32 ГБ**](ethernet/la16-udp-reference/PIKOSOL_HOST_PLATFORM_RU.md). **Архитектурный проект**, не новая прошивка: HTML выполняется в браузере хоста, связь с FPGA потребует Python/WebSocket↔UDP моста и проверенного командного протокола.
+- [Аппаратный журнал LA16, IP-адреса CHUWI/FPGA, запуск оригинального PRISM](../Tang-Primer-20K/ThirdParty/LA16/README.md).
+
+
 **[Gowin DVI_TX (закрытое IP) — интерфейс, применение, лицензия](hdmi/gowin-dvi-tx/README.md)** — используется с нашим [KonSol 25K](../Tang-Primer-25K/Examples/PR25-KonSol-DVI/README.md); сам зашифрованный IP здесь не размещается.
 
 Общий принцип: **один исходник каждого IP-блока**, независимый от модели FPGA и процессора. Платозависимая физика — в `boards/`, самостоятельные примеры — в `examples/peripherals/`, готовые SoC — в `systems/`.
