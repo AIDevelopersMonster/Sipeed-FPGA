@@ -20,7 +20,7 @@ MAX_MANIFEST = 32768
 MAX_BIN = 12288
 CATALOG_REF = "main"  # main branch; exact BIN hash and size checked before publishing to cache
 SHA_RE = re.compile(r"^[a-f0-9]{64}$")
-NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\\.bin$", re.I)
+NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\.bin$", re.I)
 # Keep FPGA configuration requirements explicit: the published startup
 # programs stock THLN33. GPIO V3714 BINs are not interchangeable.
 GPIO_FOLDERS = (
