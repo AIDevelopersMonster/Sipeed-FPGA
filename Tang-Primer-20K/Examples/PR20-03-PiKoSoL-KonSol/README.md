@@ -6,6 +6,8 @@
 
 **[GPIO / PMOD0–PMOD3 / Dock V3714 — карта всех 32 линий, Verilog, PicoRV32 и пять аппаратно проверенных BIN](GPIO-PMOD-V3714/README.md)** (2026-11-22). Рабочие BIN доступны в [`GPIO-PMOD-V3714/bin/`](GPIO-PMOD-V3714/bin/); **физическая реакция внешних LED подтверждена на PMOD0, PMOD1, PMOD2 и PMOD3** (PMOD1+PMOD2 вместе, PMOD3 отдельно). Отдельные файлы прошли аттестацию лишь в пределах указанных в документации тестов; `8/8` по каждой линии PMOD2/3 не заявляется.
 
+**File Manager v0.2.0 (GitHub BIN catalog, PC candidate):** [открыть исходники](FileManager/README_RU.md). Кнопки «Получить список» и «Скачать выбранный» загружают опубликованные BIN с проверкой SHA256 и формата PKD1; FPGA при скачивании не программируется. Исторический BOARD PASS v0.1.4 не переносится автоматически на новый GUI.
+
 **Практическая инструкция на русском:** [SRAM-загрузка FPGA, запуск монитора через XMODEM-CRC и File Manager](SRAM-Startup/README.md). Параметры ПК и COM-порта вынесены в переменные; показан пример GPIO V3714. Flash не записывается.
 
 **Status (2026-11-20): BOARD PASS for UART/HDMI shell, live keyboard, original `demo.bin` and operator-reported File Manager v0.1.4/custom RV32I applications. Verified files are in this repository; no GitHub Release or FPGA Flash write.**
