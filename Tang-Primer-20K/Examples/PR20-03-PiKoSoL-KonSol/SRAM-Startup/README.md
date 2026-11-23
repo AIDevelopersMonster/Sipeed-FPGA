@@ -191,13 +191,12 @@ INFO
 
 В `main` репозитория находится File Manager **v0.1.4**; версия v0.2.0 — в экспериментальной ветке. В новом ZIP рекомендуется открывать File Manager непосредственно из соседнего каталога `FileManager`, без рекурсивного поиска по `Downloads`. 
 
-Непосредственный запуск File Manager после закрытия предыдущей UART-консоли:
+Непосредственный запуск из корня распакованной папки `PR20-03-PiKoSoL-KonSol` после закрытия UART-консоли:
 
 ```powershell
-$fm = Join-Path (Split-Path -Parent $PSScriptRoot) 'FileManager\PiKoSoL_FileManager.py'
-# Если вы выполняете команды в корне PR20-03-PiKoSoL-KonSol, используйте:
-# $fm = Join-Path (Get-Location).Path 'FileManager\PiKoSoL_FileManager.py'
-python -B $fm --root (Split-Path -Parent $fm)\.. --port $serialPort
+$repoRoot = (Get-Location).Path
+$fm = Join-Path $repoRoot 'FileManager\PiKoSoL_FileManager.py'
+python -B $fm --root $repoRoot --port $serialPort
 ```
 
 Для ZIP-пользователей предпочтительнее `START_PiKoSoL.cmd`: путь к файлам и COM-порт он передаёт автоматически.
