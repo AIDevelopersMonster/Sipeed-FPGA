@@ -32,6 +32,13 @@ class DirectResult:
 
 
 Progress = Callable[[str, int, int], None]
+CancelCheck = Callable[[], bool]
+
+
+def _check_cancel(cancel: CancelCheck | None) -> None:
+    if cancel is not None and cancel():
+        raise TransferError('OPERATOR CANCEL: PC XMODEM stopped; FPGA LOAD state unknown')
+
 
 
 def crc16_ccitt(data: bytes) -> int:
@@ -52,20 +59,22 @@ def frame(block_number: int, payload: bytes) -> bytes:
     return bytes((SOH, n, 0xff - n)) + padded + bytes((crc >> 8, crc & 0xff))
 
 
-def read_byte_until(ser, timeout: float):
+def read_byte_until(ser, timeout: float, cancel: CancelCheck | None = None):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        _check_cancel(cancel)
         data = ser.read(1)
         if data:
             return data[0]
     return None
 
 
-def wait_for_crc_ready(ser, report: Progress, timeout: float = 10) -> bytes:
+def wait_for_crc_ready(ser, report: Progress, timeout: float = 10, cancel: CancelCheck | None = None) -> bytes:
     """Wait for a standalone 'C' after sending LOAD, not a 'C' in response text."""
     deadline = time.monotonic() + timeout
     transcript = bytearray()
     while time.monotonic() < deadline:
+        _check_cancel(cancel)
         chunk = ser.read(1)
         if not chunk:
             continue
@@ -76,6 +85,7 @@ def wait_for_crc_ready(ser, report: Progress, timeout: float = 10) -> bytes:
         if b == ord('C'):
             # A standalone CRC request has no trailing characters. Printable
             # words (CRC, XMODEM-CRC) do; do not mistake their 'C' for ACK.
+            _check_cancel(cancel)
             following = ser.read(1)
             if not following:
                 return bytes(transcript)
@@ -83,9 +93,10 @@ def wait_for_crc_ready(ser, report: Progress, timeout: float = 10) -> bytes:
     raise TransferError(f'No XMODEM CRC_READY C in {timeout}s; RX={bytes(transcript[-180:])!r}')
 
 
-def await_ack_or_nak(ser, timeout: float, transcript: bytearray) -> int:
+def await_ack_or_nak(ser, timeout: float, transcript: bytearray, cancel: CancelCheck | None = None) -> int:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        _check_cancel(cancel)
         item = ser.read(1)
         if not item:
             continue
@@ -96,10 +107,11 @@ def await_ack_or_nak(ser, timeout: float, transcript: bytearray) -> int:
     raise TransferError('ACK/NAK timeout while sending XMODEM')
 
 
-def read_transcript(ser, duration: float = 0.7) -> bytes:
+def read_transcript(ser, duration: float = 0.7, cancel: CancelCheck | None = None) -> bytes:
     deadline = time.monotonic() + duration
     data = bytearray()
     while time.monotonic() < deadline:
+        _check_cancel(cancel)
         rx = ser.read(128)
         if rx:
             data.extend(rx)
@@ -109,12 +121,13 @@ def read_transcript(ser, duration: float = 0.7) -> bytes:
 def send_binary(ser, image: bytes, report: Progress,
                 *, handshake_timeout: float = 10.0,
                 ack_timeout: float = 4.0, retries: int = 6,
-                run_timeout: float = 8.0) -> DirectResult:
+                run_timeout: float = 8.0, cancel: CancelCheck | None = None) -> DirectResult:
     """Send LOAD + XMODEM + RUN using an already-open exclusive serial port.
 
     No attempt is made to configure FPGA or reset the CPU. A timeout or
     cancellation can leave the monitor in LOAD mode; report it explicitly.
     """
+    _check_cancel(cancel)
     if len(image) < 20 or len(image) > 12288 or ((len(image)+127)//128)*128 > 12288:
         raise ValueError('App does not fit the 12 KiB LOAD limit (monitor 0x3000)')
     import struct
@@ -124,17 +137,20 @@ def send_binary(ser, image: bytes, report: Progress,
                          f'expected=(0x31444B50,{len(image)},0x2000C010,0). NO LOAD SENT.')
     total = (len(image)+BLOCK-1)//BLOCK
     raw_output = bytearray()
+    _check_cancel(cancel)
     report('LOAD sent', 0, total)
     ser.write(b'LOAD\r')
     ser.flush()
-    raw_output.extend(wait_for_crc_ready(ser, report, handshake_timeout))
+    raw_output.extend(wait_for_crc_ready(ser, report, handshake_timeout, cancel))
     acked = 0
     for index in range(total):
+        _check_cancel(cancel)
         pkt = frame(index+1, image[index*BLOCK:(index+1)*BLOCK])
         for attempt in range(retries):
+            _check_cancel(cancel)
             ser.write(pkt)
             ser.flush()
-            response = await_ack_or_nak(ser, ack_timeout, raw_output)
+            response = await_ack_or_nak(ser, ack_timeout, raw_output, cancel)
             if response == ACK:
                 acked += 1
                 report('ACK', acked, total)
@@ -144,11 +160,12 @@ def send_binary(ser, image: bytes, report: Progress,
             report(f'NAK/retry {attempt+1}', acked, total)
         else:
             raise TransferError(f'XMODEM failed at block {index+1}/{total}: {retries} retries')
+    _check_cancel(cancel)
     ser.write(bytes((EOT,)))
     ser.flush()
-    if await_ack_or_nak(ser, ack_timeout, raw_output) != ACK:
+    if await_ack_or_nak(ser, ack_timeout, raw_output, cancel) != ACK:
         raise TransferError('EOT not ACKed')
-    load_reply = read_transcript(ser, 0.8)
+    load_reply = read_transcript(ser, 0.8, cancel)
     raw_output.extend(load_reply)
     report('EOT ACK', acked, total)
     after_load = load_reply.decode('ascii', errors='replace').upper()
@@ -156,16 +173,19 @@ def send_binary(ser, image: bytes, report: Progress,
         raise TransferError('FPGA rejected LOAD. RUN NOT SENT. RX=' + repr(after_load[-240:]))
     if not re.search(r'\bLOAD\s+(?:OK|PASS|SUCCESS|DONE|COMPLETE)\b', after_load):
         raise TransferError('No explicit FPGA LOAD success confirmation. RUN NOT SENT. RX=' + repr(after_load[-240:]))
+    _check_cancel(cancel)  # Never RUN after an operator aborts LOAD
     ser.write(b'RUN\r')
     ser.flush()
     started = time.monotonic()
     seen = bytearray()
     while time.monotonic() - started < run_timeout:
+        _check_cancel(cancel)
         item = ser.read(256)
         if item:
             seen.extend(item)
             if b'RUN RETURNED TO PiKoSoL' in seen:
                 break
+    _check_cancel(cancel)
     raw_output.extend(seen)
     output = bytes(raw_output).decode('ascii', errors='replace')
     ran = b'RUN ' in seen or b'RUN\r' in seen or b'RUN\n' in seen
