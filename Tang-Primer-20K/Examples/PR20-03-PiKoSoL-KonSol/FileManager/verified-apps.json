@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "project": "PiKoSoL TP20 / PicoRV32",
-  "policy": "Catalog contains published BIN files; status distinguishes individually confirmed BOARD PASS from collective operator report. No automatic board programming.",
+  "policy": "The catalog lists published BINs with per-file BOARD PASS/operator status. GPIO/RGB entries REQUIRE PiKoSoL GPIO V3714 FPGA configuration (GPIO_ID GP14); stock THLN33 bitstream from START mode 1 is incompatible. Downloads do not program FPGA.",
   "apps": [
     {
       "name": "demo.bin",
@@ -50,6 +50,60 @@
       "sha256": "40c94a636c6777b3f9e287542765fc3e04f9715e58bbdf776aca774e79f6a124",
       "board_pass": false,
       "status": "OPERATOR_REPORTED"
+    },
+    {
+      "name": "TP20_GPIO_LED_CHASE.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/bin/TP20_GPIO_LED_CHASE.bin",
+      "bytes": 152,
+      "sha256": "85ba69096d0fa75b992e7df92960c882f5bece4bd4d395bc9f178c158057d322",
+      "board_pass": true,
+      "status": "BOARD_PASS",
+      "requires": "GPIO_V3714"
+    },
+    {
+      "name": "TP20_GPIO_KEYS_DIP_LED_TERMINAL_5S.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/bin/TP20_GPIO_KEYS_DIP_LED_TERMINAL_5S.bin",
+      "bytes": 6820,
+      "sha256": "d522ab30d2484307ca0340030d592915906a9fb4b125dd2ddd48772a268bff77",
+      "board_pass": true,
+      "status": "BOARD_PASS",
+      "requires": "GPIO_V3714"
+    },
+    {
+      "name": "TP20_PMOD0_GPIO_SLOW_VISUAL_LATCH.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/bin/TP20_PMOD0_GPIO_SLOW_VISUAL_LATCH.bin",
+      "bytes": 9104,
+      "sha256": "65d9b436e691c22d633cce103bc1441d12fdc983c687a46fefff28dcc379876b",
+      "board_pass": true,
+      "status": "BOARD_PASS",
+      "requires": "GPIO_V3714"
+    },
+    {
+      "name": "TP20_PMOD1_SLOW_VISUAL_LATCH.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/bin/TP20_PMOD1_SLOW_VISUAL_LATCH.bin",
+      "bytes": 7492,
+      "sha256": "bbe5a46197314b91944d7a2d2a93178b96a1dd6b1f745b4fd6f3e6936a60c2f9",
+      "board_pass": true,
+      "status": "BOARD_PASS",
+      "requires": "GPIO_V3714"
+    },
+    {
+      "name": "TP20_ALL_LED_OFF.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/GPIO-PMOD-V3714/bin/TP20_ALL_LED_OFF.bin",
+      "bytes": 972,
+      "sha256": "84c74528bd307f67ebd74c6658e52b60f45d952e68d82da06e6d3a8f5673f048",
+      "board_pass": true,
+      "status": "BOARD_PASS",
+      "requires": "GPIO_V3714"
+    },
+    {
+      "name": "TP20_RGB_VIA_PMOD0_SOFTWARE_TEST.bin",
+      "path": "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/RGB-WS2812-PMOD0-SOFTWARE/bin/TP20_RGB_VIA_PMOD0_SOFTWARE_TEST.bin",
+      "bytes": 11772,
+      "sha256": "136f49b22e55f95b9abeebca89162940c7449545c47b0b61ea6ff357fa578f78",
+      "board_pass": true,
+      "status": "BOARD_PASS",
+      "requires": "GPIO_V3714"
     }
   ]
 }
