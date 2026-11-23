@@ -212,19 +212,20 @@ def main() -> int:
 
     if mode in ("program", "boot"):
         print("Close MobaXterm and other COM clients before XMODEM.")
-        print("If waiting for bootloader C, press Dock S0 ONCE when prompted.")
+        print("IMPORTANT: wait for 'COM OPEN PASS', then press Dock S0 ONCE.")
+        print("The loader will keep COM open until C arrives (Ctrl+C cancels).")
         subprocess.run(
             [
                 sys.executable, "-B", str(HOST),
                 "--port", port, "--baud", "115200",
                 "--monitor", str(MONITOR), "--demo", str(DEMO),
-                "--boot-only",
+                "--boot-only", "--wait-for-s0",
             ],
             cwd=str(ROOT), check=True
         )
         print("MONITOR BOOT CONFIRMED; UART released for File Manager.")
 
-    print(f"Opening File Manager (UART defaults to COM10; choose {port} in its toolbar).")
+    print(f"COM released by monitor uploader. Opening File Manager on {port}.")
     subprocess.run(
         [sys.executable, "-B", str(GUI), "--root", str(ROOT), "--port", port],
         cwd=str(ROOT), check=True
