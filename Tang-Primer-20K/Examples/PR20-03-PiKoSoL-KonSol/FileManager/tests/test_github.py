@@ -32,7 +32,7 @@ class TestGithubCatalog(unittest.TestCase):
         """Both published manifests are valid for their respective clients."""
         import json
         from pikosol_github import MANIFEST
-        project = Path(__file__).resolve().parents[2]
+        project = Path(__file__).resolve().parents[1]
         legacy = project / 'FileManager' / 'verified-apps.json'
         current = project / 'FileManager' / 'verified-apps-v2.json'
         self.assertTrue(MANIFEST.endswith('/verified-apps-v2.json'))
