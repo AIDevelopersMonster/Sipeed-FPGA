@@ -158,6 +158,7 @@ def main() -> int:
     parser.add_argument('--demo',type=Path,required=True)
     parser.add_argument('--attach',action='store_true',help='Do not upload monitor; connect to running app')
     parser.add_argument('--auto-demo',action='store_true',help='RAMTEST + ADD + LOAD+RUN a second program')
+    parser.add_argument('--boot-only',action='store_true',help='Close UART after monitor banner; no interactive PC> prompt')
     args=parser.parse_args()
     monitor=validate_image(args.monitor,0x61706766,0x8000)
     demo=validate_image(args.demo,0x31444b50,0x3000)
@@ -202,6 +203,9 @@ def main() -> int:
                 if b'RULE30 CPU CHECKSUM=0x' not in text or b'RUN RETURNED' not in text:
                     raise RuntimeError('External RV32 program did not execute and return')
                 print('\nSERIAL TEST PASS / HDMI STILL REQUIRES VISUAL CONFIRMATION')
+            if args.boot_only:
+                print('MONITOR_BOOT_PASS / UART CLOSED FOR FILE MANAGER')
+                return 0
             print('\nInteractive mode. Commands: HELP INFO ADD ... RAMTEST BARS TEXT ...')
             print('PC-only commands: :DEMO=load+run demo again, :EXIT=close console.')
             while True:
