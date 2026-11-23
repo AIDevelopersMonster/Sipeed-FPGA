@@ -11,25 +11,18 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
-import urllib.request
 
 ROOT = Path(__file__).resolve().parent
 HOST = ROOT / "tools" / "host_console.py"
 MONITOR = ROOT / "firmware" / "monitor.bin"
 DEMO = ROOT / "firmware" / "demo.bin"
 GUI = ROOT / "FileManager" / "PiKoSoL_FileManager.py"
-BITSTREAM = ROOT / "tp20k_System_picorv32.fs"
+BITSTREAM = ROOT / "firmware" / "PiKoSoL_TP20_GPIO_V3714.fs"
 
 MONITOR_SHA256 = "414D8B9859CE95826E9A0BA12A26E820AF2942CD4FD964EA9FF75AC28AE135C7"
 DEMO_SHA256 = "BE20FB6EC6D1C7BFE1E9591F0C734649C61D200217F5EBF15800B4F4E681DE26"
-BITSTREAM_SIZE = 7262004
-BITSTREAM_BLOB_SHA1 = "5bb54a84311a62e1b0aadd11671c399561838b24"
-BITSTREAM_URL = (
-    "https://raw.githubusercontent.com/THLN33/System_picoRV32/"
-    "d3e24d9176c9361cb583111775f39a9a08cabf52/"
-    "binary/tp20k_System_picorv32.fs"
-)
+BITSTREAM_SIZE = 7264150
+BITSTREAM_SHA256 = "7B8B8675EF14D7404E4EF26233BB3BDCE1936449136C56BCFC5497B068421F24"
 DEFAULT_PROGRAMMER = Path(
     r"C:\Gowin\Gowin_V1.9.9Beta-4_Education\Programmer\bin\programmer_cli.exe"
 )
@@ -41,15 +34,6 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: fp.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest().upper()
-
-
-def git_blob_sha1(path: Path) -> str:
-    h = hashlib.sha1()
-    h.update(f"blob {path.stat().st_size}\0".encode("ascii"))
-    with path.open("rb") as fp:
-        for chunk in iter(lambda: fp.read(1024 * 1024), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 def assert_file(path: Path) -> None:
@@ -72,46 +56,28 @@ def verify_baseline() -> None:
         [sys.executable, "-B", str(GUI), "--root", str(ROOT), "--check"],
         cwd=str(ROOT), check=True
     )
-    print("GITHUB ZIP PREFLIGHT PASS; no COM port or FPGA was accessed.")
+    print("MONITOR/GUI PREFLIGHT PASS; no COM port or FPGA was accessed.")
 
 
 def verify_bitstream(path: Path) -> None:
+    if not path.is_file():
+        raise RuntimeError(f"FPGA firmware not found: {path}")
     actual_size = path.stat().st_size
     if actual_size != BITSTREAM_SIZE:
         raise RuntimeError(
-            f"FPGA bitstream length mismatch: {actual_size}, expected {BITSTREAM_SIZE}: {path}"
+            f"FPGA firmware size mismatch: {actual_size}, expected {BITSTREAM_SIZE}: {path}"
         )
-    actual_blob = git_blob_sha1(path)
-    if actual_blob != BITSTREAM_BLOB_SHA1:
+    actual_sha256 = sha256_file(path)
+    if actual_sha256 != BITSTREAM_SHA256:
         raise RuntimeError(
-            f"FPGA bitstream Git blob SHA1 mismatch: {actual_blob}: {path}"
+            f"FPGA firmware SHA256 mismatch: expected {BITSTREAM_SHA256}, "
+            f"found {actual_sha256}: {path}"
         )
-    print(f"FPGA reference bitstream verified: {actual_size} bytes, Git blob {actual_blob}")
+    print(f"FPGA firmware SHA256 PASS: {path.name} ({actual_size} bytes)")
 
 
 def ensure_bitstream() -> Path:
-    if BITSTREAM.is_file():
-        verify_bitstream(BITSTREAM)
-        return BITSTREAM
-    print("Reference FPGA .fs is not packaged in this ZIP; downloading pinned original.")
-    print("SOURCE:", BITSTREAM_URL)
-    # Never overwrite a file with an unknown hash. Clean up incomplete downloads.
-    tmp_path: Path | None = None
-    try:
-        with tempfile.NamedTemporaryFile(
-            prefix=".pikosol_fs_", suffix=".partial", dir=str(ROOT), delete=False
-        ) as tmp:
-            tmp_path = Path(tmp.name)
-            with urllib.request.urlopen(BITSTREAM_URL, timeout=60) as response:
-                shutil.copyfileobj(response, tmp)
-        verify_bitstream(tmp_path)
-        if BITSTREAM.exists():
-            raise RuntimeError(f"Refusing to overwrite existing {BITSTREAM}")
-        tmp_path.rename(BITSTREAM)
-        tmp_path = None
-    finally:
-        if tmp_path is not None:
-            tmp_path.unlink(missing_ok=True)
+    verify_bitstream(BITSTREAM)
     return BITSTREAM
 
 
@@ -164,7 +130,7 @@ def select_mode(explicit: str) -> str:
         return explicit
     print("")
     print("Choose the action (all firmware programming is SRAM ONLY):")
-    print("  1. Full start: program VERIFIED reference FPGA .fs, load monitor, open GUI")
+    print("  1. Full start: program PiKoSoL GPIO V3714 .fs (SRAM), load monitor, open GUI")
     print("  2. FPGA already at 'Waiting for downloader': load monitor, open GUI")
     print("  3. PiKoSoL> monitor already running: open GUI only")
     print("CAUTION: option 1 replaces any CURRENT volatile FPGA configuration,")
@@ -195,6 +161,7 @@ def main() -> int:
     print("FOLDER:", ROOT)
     verify_baseline()
     if args.check:
+        ensure_bitstream()
         return 0
 
     require_host_dependencies()
