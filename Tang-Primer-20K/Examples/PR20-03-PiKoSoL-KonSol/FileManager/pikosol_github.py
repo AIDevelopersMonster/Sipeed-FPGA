@@ -20,7 +20,28 @@ MAX_MANIFEST = 32768
 MAX_BIN = 12288
 CATALOG_REF = "main"  # main branch; exact BIN hash and size checked before publishing to cache
 SHA_RE = re.compile(r"^[a-f0-9]{64}$")
-NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\.bin$", re.I)
+NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,100}\\.bin$", re.I)
+# Keep FPGA configuration requirements explicit: the published startup
+# programs stock THLN33. GPIO V3714 BINs are not interchangeable.
+GPIO_FOLDERS = (
+    PROJECT + "/GPIO-PMOD-V3714/bin/",
+    PROJECT + "/RGB-WS2812-PMOD0-SOFTWARE/bin/",
+)
+BASE_FOLDER = PROJECT + "/FileManager/generated/"
+
+
+def required_gateware(path, name):
+    """Strictly allow published BIN folders; disallow nested/user-defined paths."""
+    if path == PROJECT + "/firmware/demo.bin":
+        return "BASE_TP20"
+    if path.startswith(BASE_FOLDER) and path[len(BASE_FOLDER):] == name:
+        return "BASE_TP20"
+    for prefix in GPIO_FOLDERS:
+        if path.startswith(prefix) and path[len(prefix):] == name:
+            return "GPIO_V3714"
+    raise ValueError("Unexpected catalog path")
+
+
 
 
 def _download(url, limit):
@@ -52,8 +73,11 @@ def parse_manifest(data):
         name, path, digest, size = (item.get(k) for k in ("name", "path", "sha256", "bytes"))
         if not isinstance(name, str) or not NAME_RE.fullmatch(name) or name.lower() == "monitor.bin":
             raise ValueError("Unsafe BIN name")
-        if not isinstance(path, str) or not path.startswith(PROJECT + "/FileManager/generated/") and path != PROJECT + "/firmware/demo.bin":
+        if not isinstance(path, str):
             raise ValueError("Unexpected catalog path")
+        required = required_gateware(path, name)
+        if item.get("requires", required) != required:
+            raise ValueError("Invalid gateware requirement for BIN")
         if path.rsplit("/", 1)[-1] != name:
             raise ValueError("Name/path mismatch")
         if not isinstance(size, int) or isinstance(size, bool) or not 20 <= size <= MAX_BIN:
@@ -69,7 +93,7 @@ def parse_manifest(data):
         if name.casefold() in names:
             raise ValueError("Duplicate BIN name")
         names.add(name.casefold())
-        entries.append(dict(name=name, path=path, sha256=digest, bytes=size, status=item["status"], board_pass=item["board_pass"]))
+        entries.append(dict(name=name, path=path, sha256=digest, bytes=size, status=item["status"], board_pass=item["board_pass"], requires=required))
     return entries
 
 
@@ -88,6 +112,7 @@ def download_verified(entry, cache, demo, *, ref=CATALOG_REF, fetch=_download, i
     path = entry["path"]
     if path.rsplit("/", 1)[-1] != name:
         raise ValueError("Name/path mismatch")
+    required_gateware(path, name)
     data = fetch(raw_url(path, ref), MAX_BIN)
     digest = hashlib.sha256(data).hexdigest()
     if len(data) != entry["bytes"] or digest != entry["sha256"]:
