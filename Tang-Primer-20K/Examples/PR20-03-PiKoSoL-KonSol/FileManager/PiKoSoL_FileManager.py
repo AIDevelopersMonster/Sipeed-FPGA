@@ -29,10 +29,11 @@ from pikosol_core import (
 )
 from pikosol_xmodem import send_binary, TransferError
 from pikosol_catalog import make_catalog, find_generated
+from pikosol_github import list_verified, download_verified
 from pikosol_core import audit_headers
 from build_hello_rv32i import build as build_hello, BANNER
 
-APP_VERSION = '0.1.4 — CANDIDATE (PKD1 ABI FIX)'
+APP_VERSION = '0.2.0 — GITHUB CATALOG CANDIDATE'
 BG = '#0B1020'
 PANEL = '#131D31'
 PANEL2 = '#18243A'
@@ -86,6 +87,9 @@ class PiKoSoLGUI(tk.Tk):
         self.files: dict[str, Path] = {}
         self.pinned_files: dict[str, Path] = {}
         self.hidden_names: set[str] = set()
+        self.remote_apps = []
+        self.remote_choice = tk.StringVar(value='')
+        self.remote_busy = False
         self.selected = None
         self.pending_line = ''
         self.port_var = tk.StringVar(value=port)
@@ -190,9 +194,19 @@ class PiKoSoLGUI(tk.Tk):
     def _make_library(self, parent):
         label(parent, 'ЛОКАЛЬНЫЕ .BIN', 14, WHITE, 'bold').pack(anchor='w')
         label(parent, 'Файлы на ПК. Это не файловая система FPGA.', 9, MUTED).pack(anchor='w', pady=(4, 10))
+        cloud = tk.Frame(parent, bg=PANEL)
+        cloud.pack(fill='x', pady=(9, 2))
+        label(cloud, 'GitHub: доступные BIN / статус проверки', 9, AQUA, 'bold').pack(anchor='w')
+        self.remote_select = ttk.Combobox(cloud, textvariable=self.remote_choice, state='readonly')
+        self.remote_select.pack(fill='x', pady=(5, 5))
+        remote_buttons = tk.Frame(cloud, bg=PANEL)
+        remote_buttons.pack(fill='x')
+        button(remote_buttons, 'Получить список', self.fetch_remote_catalog).pack(side='left', fill='x', expand=True)
+        button(remote_buttons, 'Скачать выбранный', self.fetch_remote_app).pack(side='left', padx=(6, 0), fill='x', expand=True)
+        label(parent, 'Локальные программы:', 9, MUTED).pack(anchor='w', pady=(6, 3))
         list_area = tk.Frame(parent, bg=PANEL)
         list_area.pack(fill='both', expand=True)
-        self.tree = ttk.Treeview(list_area, columns=('name', 'size'), show='headings',
+        self.tree = ttk.Treeview(list_area, columns=('name', 'size'), show='headings', height=7,
                                  selectmode='browse', style='Dark.Treeview')
         self.tree.heading('name', text='Имя программы')
         self.tree.heading('size', text='байт')
@@ -212,15 +226,13 @@ class PiKoSoLGUI(tk.Tk):
         row2.pack(fill='x')
         button(row2, 'Открыть папку', self.open_selected_folder).pack(side='left', fill='x', expand=True)
         button(row2, 'Убрать из списка', self.drop_selected).pack(side='left', padx=(8, 0), fill='x', expand=True)
-        self.file_details = tk.Text(parent, height=10, wrap='word', state='disabled',
+        self.file_details = tk.Text(parent, height=5, wrap='word', state='disabled',
                                     bg=PANEL2, fg=WHITE, font=(MONO, 9), relief='flat',
                                     highlightthickness=0, padx=12, pady=12)
         self.file_details.pack(fill='x', pady=(11, 0))
-        note = ('demo.bin: проверенный XMODEM-клиент.\n'
-                'Другие .bin: новый XMODEM (проверяем на плате).\n'
-                'Формат: raw RV32I + 16 байт заголовка.\n'
-                'Предел монитора LOAD: 12 КиБ с XMODEM padding.\n'
-                'Для нового кода проверка на плате обязательна.')
+        note = ('RAM only; формат PKD1/RV32I.\n'
+                'XMODEM <= 12 KiB с padding.\n'
+                'Запуск — только отдельной кнопкой.')
         label(parent, note, 9, MUTED, justify='left').pack(anchor='w', pady=(10, 0))
 
     def _make_workspace(self, right):
@@ -390,6 +402,44 @@ class PiKoSoLGUI(tk.Tk):
         else:
             self.selected = None
             self._show_file('No programs found')
+
+    def fetch_remote_catalog(self):
+        if self.remote_busy or self.busy:
+            return
+        self.remote_busy = True
+        self.status_var.set('Получаем список проверенных BIN из GitHub...')
+        def task():
+            try:
+                entries = list_verified()
+                self.jobs.put(('github_catalog', entries))
+            except Exception as exc:
+                self.jobs.put(('github_error', str(exc)))
+        threading.Thread(target=task, daemon=True).start()
+
+    def fetch_remote_app(self):
+        if self.remote_busy or self.busy:
+            return
+        choice = self.remote_choice.get()
+        match = next((a for a in self.remote_apps if f"{a['name']} [{a['status']}]" == choice), None)
+        if match is None:
+            messagebox.showinfo('GitHub', 'Сначала получите каталог и выберите программу.')
+            return
+        self.remote_busy = True
+        self.status_var.set('Скачивание и проверка SHA256...')
+        def task():
+            try:
+                # Re-read the signed-by-hash allowlist before each download:
+                # changes to the remote catalog cannot silently bypass approval.
+                entries = list_verified()
+                fresh = next((a for a in entries if a == match), None)
+                if fresh is None:
+                    raise ValueError('Каталог изменился: заново получите список')
+                cache = Path.home() / 'Downloads' / 'PiKoSoL_TP20_GitHub_BIN'
+                saved = download_verified(fresh, cache, self.paths.demo, inspect=inspect_binary)
+                self.jobs.put(('github_download', saved))
+            except Exception as exc:
+                self.jobs.put(('github_error', str(exc)))
+        threading.Thread(target=task, daemon=True).start()
 
     def add_file(self):
         p = filedialog.askopenfilename(title='Выберите RISC-V raw .bin',
@@ -789,6 +839,29 @@ class PiKoSoLGUI(tk.Tk):
                         self._append_terminal(job[1].decode('ascii', errors='replace'))
                 elif job[0] == 'uart_error':
                     self.log(f'RX ERR: {job[1]}', 'warn')
+                elif job[0] == 'github_catalog':
+                    self.remote_busy = False
+                    self.remote_apps = job[1]
+                    names = [f"{a['name']} [{a['status']}]" for a in self.remote_apps]
+                    self.remote_select['values'] = names
+                    self.remote_choice.set(names[0] if names else '')
+                    self.status_var.set(f'GitHub: {len(names)} программ; статус каждой указан')
+                    self.log('GitHub BIN catalog: ' + ', '.join(names), 'good')
+                elif job[0] == 'github_download':
+                    self.remote_busy = False
+                    saved = Path(job[1])
+                    self.pinned_files[saved.name.casefold()] = saved
+                    self.hidden_names.discard(saved.name.casefold())
+                    self.refresh_files()
+                    self.tree.selection_set(str(saved.resolve()))
+                    self._on_select()
+                    self.status_var.set('SHA256 + PKD1 PASS; аппаратный статус см. в каталоге')
+                    self.log(f'GitHub BIN verified: {saved} (not sent to FPGA)', 'good')
+                elif job[0] == 'github_error':
+                    self.remote_busy = False
+                    self.status_var.set('Ошибка GitHub: нет изменений FPGA')
+                    self.log('GitHub download rejected: ' + job[1], 'warn')
+                    messagebox.showerror('GitHub', job[1])
                 elif job[0] == 'transfer_progress':
                     self.log(job[1])
                 elif job[0] == 'transfer_done':
