@@ -4,6 +4,7 @@
 
 - [**HDMI + 16-bit stereo LPCM 48 kHz — воспроизведённый оригинальный проект, VIDEO+AUDIO BOARD PASS**](hdmi/terenceang-tp20k-hdmi-audio/README.md). Tang Primer 20K Dock, оригинальный Verilog, Gowin 1.9.9 Beta-4, наблюдаемый слышимый HDMI-тон. Источник **MIT**, pinned commit; собственная IP-интеграция **не проверена**.
 - [**Техническая статья (RU, черновик): HDMI Data Islands, Audio Sample Packets, ACR, InfoFrames, BCH и TMDS**](hdmi/terenceang-tp20k-hdmi-audio/ARTICLE_RU.md). Включены предложения по возможному применению в PiKoSoL, без изменения рабочего HDL.
+- [**Оригинальные HDMI/Audio Verilog + MIT + testbenches**](hdmi/terenceang-tp20k-hdmi-audio/vendor/) — 18/18 исходных Git blob SHA-1 совпали; [**полный `hdmi_tx.v` с 11 пометками по-русски**](hdmi/terenceang-tp20k-hdmi-audio/review/hdmi_tx_annotated_ru.v); [**примеры RGB/PCM и требования к настоящему IP**](hdmi/terenceang-tp20k-hdmi-audio/INTEGRATION_EXAMPLES_RU.md). Комментированная копия — только для чтения, проверенная прошивка не изменена.
 
 
 ## Общее устройство UDP IP и сетевых уровней
