@@ -31,3 +31,18 @@ def find_generated(folder: Path) -> Path:
         return local
     previous = folder.parent / 'PiKoSoL_TP20_FileManager_CANDIDATE_v0.1.2' / 'generated'
     return previous if previous.is_dir() else local
+
+
+def catalog_row_for_download(files: dict[str, Path], downloaded: Path) -> str | None:
+    """Choose the Treeview ID that actually exists for the downloaded BIN.
+
+    The verified local firmware/demo.bin intentionally supersedes a downloaded
+    demo.bin. In that case, selecting Downloads/demo.bin is a TclError.
+    """
+    downloaded = Path(downloaded).resolve()
+    if str(downloaded) in files:
+        return str(downloaded)
+    for row_id, local_file in files.items():
+        if local_file.name.casefold() == downloaded.name.casefold():
+            return row_id
+    return None
