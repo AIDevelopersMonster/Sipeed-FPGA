@@ -1,5 +1,7 @@
 # Tang Primer 25K — Processor Research Laboratory
 
+> **[Старая пошаговая инструкция PiKoSoL: загрузка FPGA → S0 → monitor.bin → освобождение COM10 → File Manager (оригинал от 21.11.2026)](https://github.com/AIDevelopersMonster/Sipeed-FPGA/blob/3f02c59f1da3f74/Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol/SRAM-Startup/README.md)**. Это инструкция **для Tang Primer 20K (GW2A-18C)**, а не для этой платы **Tang Primer 25K (GW5A-25A)**; прошивки между платами не взаимозаменяемы.
+
 **Board:** Sipeed Tang Primer 25K + Dock  
 **Focus:** RISC-V processor architectures, SoC integration, memory, buses, and reproducible FPGA measurements.
 
