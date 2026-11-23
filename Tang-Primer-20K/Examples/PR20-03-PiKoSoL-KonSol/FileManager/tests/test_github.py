@@ -28,6 +28,43 @@ class TestGithubCatalog(unittest.TestCase):
             with self.assertRaises(ValueError):
                 parse_manifest(json.dumps(dict(schema=1, apps=[bad])).encode())
 
+    def test_current_legacy_catalog_and_new_catalog(self):
+        """Both published manifests are valid for their respective clients."""
+        import json
+        from pikosol_github import MANIFEST
+        project = Path(__file__).resolve().parents[2]
+        legacy = project / 'FileManager' / 'verified-apps.json'
+        current = project / 'FileManager' / 'verified-apps-v2.json'
+        self.assertTrue(MANIFEST.endswith('/verified-apps-v2.json'))
+        old = parse_manifest(legacy.read_bytes())
+        new = parse_manifest(current.read_bytes())
+        self.assertEqual(len(old), 6)
+        self.assertEqual(len(new), 12)
+        self.assertEqual(len([x for x in new if x['requires'] == 'GPIO_V3714']), 6)
+        self.assertEqual([x['name'] for x in new[:6]], [x['name'] for x in old])
+
+    def test_new_catalog_row_does_not_break_existing_entries(self):
+        import json
+        from pikosol_github import PROJECT
+        future = dict(name='PR20_SD04_FAT32_FILE_READ.bin',
+                      path=PROJECT + '/SD-FAT32/bin/PR20_SD04_FAT32_FILE_READ.bin',
+                      sha256='0' * 64, bytes=512, board_pass=False,
+                      status='UNKNOWN', requires='SD_READ_ONLY')
+        manifest = {'schema': 1, 'apps': [self.entry, future, dict(name='../invalid.bin')]}
+        with self.assertRaises(ValueError):
+            parse_manifest(json.dumps(manifest).encode())
+        entries = parse_manifest(json.dumps(manifest).encode(), tolerant=True)
+        self.assertEqual(len(entries), 2)
+        self.assertEqual(entries[1]['requires'], 'SD_READ_ONLY')
+
+    def test_reject_unknown_module_without_requirements(self):
+        import json
+        item = dict(name='app.bin', path=PROJECT + '/Future-SD/bin/app.bin',
+                    sha256='0' * 64, bytes=512, board_pass=False,
+                    status='UNKNOWN')
+        with self.assertRaises(ValueError):
+            parse_manifest(json.dumps({'schema': 1, 'apps': [item]}).encode())
+
     def test_download_verified_and_no_overwrite(self):
         with tempfile.TemporaryDirectory() as folder:
             directory = Path(folder)
