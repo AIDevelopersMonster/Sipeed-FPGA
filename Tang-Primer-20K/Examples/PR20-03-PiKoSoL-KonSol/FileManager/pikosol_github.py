@@ -15,7 +15,7 @@ from urllib.request import urlopen
 OWNER = "AIDevelopersMonster"
 REPO = "Sipeed-FPGA"
 PROJECT = "Tang-Primer-20K/Examples/PR20-03-PiKoSoL-KonSol"
-MANIFEST = PROJECT + "/FileManager/verified-apps.json"
+MANIFEST = PROJECT + "/FileManager/verified-apps-v2.json"
 MAX_MANIFEST = 32768
 MAX_BIN = 12288
 CATALOG_REF = "main"  # main branch; exact BIN hash and size checked before publishing to cache
