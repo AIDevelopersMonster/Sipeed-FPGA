@@ -17,12 +17,12 @@ HOST = ROOT / "tools" / "host_console.py"
 MONITOR = ROOT / "firmware" / "monitor.bin"
 DEMO = ROOT / "firmware" / "demo.bin"
 GUI = ROOT / "FileManager" / "PiKoSoL_FileManager.py"
-BITSTREAM = ROOT / "firmware" / "PiKoSoL_TP20_GPIO_V3714.fs"
+BITSTREAM = ROOT / "firmware" / "PiKoSoL_TP20_SD01_RO.fs"
 
 MONITOR_SHA256 = "414D8B9859CE95826E9A0BA12A26E820AF2942CD4FD964EA9FF75AC28AE135C7"
 DEMO_SHA256 = "BE20FB6EC6D1C7BFE1E9591F0C734649C61D200217F5EBF15800B4F4E681DE26"
 BITSTREAM_SIZE = 7264150
-BITSTREAM_SHA256 = "7B8B8675EF14D7404E4EF26233BB3BDCE1936449136C56BCFC5497B068421F24"
+BITSTREAM_SHA256 = "900C95DC8575C31EBD3E01F61A64F99A8BBA14358A0C0DB20110140B27C89D28"
 DEFAULT_PROGRAMMER = Path(
     r"C:\Gowin\Gowin_V1.9.9Beta-4_Education\Programmer\bin\programmer_cli.exe"
 )
@@ -130,7 +130,7 @@ def select_mode(explicit: str) -> str:
         return explicit
     print("")
     print("Choose the action (all firmware programming is SRAM ONLY):")
-    print("  1. Full start: program PiKoSoL GPIO V3714 .fs (SRAM), load monitor, open GUI")
+    print("  1. Full start: program PiKoSoL SD01 RO .fs (SRAM), load monitor, open GUI")
     print("  2. FPGA already at 'Waiting for downloader': load monitor, open GUI")
     print("  3. PiKoSoL> monitor already running: open GUI only")
     print("CAUTION: option 1 replaces any CURRENT volatile FPGA configuration,")
