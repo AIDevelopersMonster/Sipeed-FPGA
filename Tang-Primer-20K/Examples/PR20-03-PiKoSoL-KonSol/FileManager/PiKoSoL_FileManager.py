@@ -65,7 +65,7 @@ def button(master, title, command, primary=False, danger=False, size=10):
 
 
 class PiKoSoLGUI(tk.Tk):
-    def __init__(self, paths: Paths, *, smoke: bool = False):
+    def __init__(self, paths: Paths, *, smoke: bool = False, port: str = 'COM10'):
         super().__init__()
         self.paths = paths
         self.smoke = smoke
@@ -88,7 +88,7 @@ class PiKoSoLGUI(tk.Tk):
         self.hidden_names: set[str] = set()
         self.selected = None
         self.pending_line = ''
-        self.port_var = tk.StringVar(value='COM10')
+        self.port_var = tk.StringVar(value=port)
         self.hdmi_only_var = tk.BooleanVar(value=False)
         self.status_var = tk.StringVar(value='Отключено')
         self.run_info_var = tk.StringVar(value='Программа не передавалась')
@@ -817,7 +817,8 @@ class PiKoSoLGUI(tk.Tk):
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--root', default='', help='Path to original TP20...TEST folder')
+    ap.add_argument('--root', default='', help='Path to verified PiKoSoL root folder')
+    ap.add_argument('--port', default='COM10', help='UART port, e.g. COM10')
     ap.add_argument('--check', action='store_true', help='Verify local working files without COM/GUI')
     ap.add_argument('--audit-header', action='store_true', help='Read only: print demo and custom .bin header words')
     ap.add_argument('--check-apps', action='store_true', help='Offline check all 5 candidates and verified demo; no COM or FPGA')
@@ -854,7 +855,7 @@ def main(argv=None) -> int:
         except Exception as exc:
             print(f'FILE_MANAGER_PREPARE_FAIL: {exc}', file=sys.stderr)
             return 2
-    gui = PiKoSoLGUI(paths, smoke=args.smoke)
+    gui = PiKoSoLGUI(paths, smoke=args.smoke, port=args.port)
     if args.smoke:
         gui.after(900, gui.destroy)
     gui.mainloop()
