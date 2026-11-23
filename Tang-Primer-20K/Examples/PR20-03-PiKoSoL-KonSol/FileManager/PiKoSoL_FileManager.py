@@ -197,7 +197,7 @@ class PiKoSoLGUI(tk.Tk):
         label(parent, 'Файлы на ПК. Это не файловая система FPGA.', 9, MUTED).pack(anchor='w', pady=(4, 10))
         cloud = tk.Frame(parent, bg=PANEL)
         cloud.pack(fill='x', pady=(9, 2))
-        label(cloud, 'GitHub: доступные BIN / статус проверки', 9, AQUA, 'bold').pack(anchor='w')
+        label(cloud, 'GitHub: доступные программы .BIN', 9, AQUA, 'bold').pack(anchor='w')
         self.remote_select = ttk.Combobox(cloud, textvariable=self.remote_choice, state='readonly')
         self.remote_select.pack(fill='x', pady=(5, 5))
         remote_buttons = tk.Frame(cloud, bg=PANEL)
@@ -406,9 +406,9 @@ class PiKoSoLGUI(tk.Tk):
 
     @staticmethod
     def _remote_label(entry):
-        req = entry.get("requires", "BASE_TP20")
-        label = f"{entry['name']} [{entry['status']}]"
-        return label if req == "BASE_TP20" else label + " / " + req + " REQUIRED"
+        # Show filenames only. Status and required FPGA are metadata, not
+        # part of the operator-facing GitHub program list.
+        return entry['name']
 
     def fetch_remote_catalog(self):
         if self.remote_busy or self.busy:
@@ -870,7 +870,7 @@ class PiKoSoLGUI(tk.Tk):
                     names = [self._remote_label(a) for a in self.remote_apps]
                     self.remote_select['values'] = names
                     self.remote_choice.set(names[0] if names else '')
-                    self.status_var.set(f'GitHub: {len(names)} программ; статус каждой указан')
+                    self.status_var.set(f'GitHub: доступно {len(names)} программ')
                     self.log('GitHub BIN catalog: ' + ', '.join(names), 'good')
                 elif job[0] == 'github_download':
                     self.remote_busy = False
@@ -881,7 +881,7 @@ class PiKoSoLGUI(tk.Tk):
                     self.refresh_files()
                     self.tree.selection_set(str(saved.resolve()))
                     self._on_select()
-                    self.status_var.set('SHA256 + PKD1 PASS; аппаратный статус см. в каталоге')
+                    self.status_var.set('Файл скачан и проверен (SHA256 + PKD1)')
                     self.log(f'GitHub BIN verified: {saved} (not sent to FPGA)', 'good')
                 elif job[0] == 'github_error':
                     self.remote_busy = False
