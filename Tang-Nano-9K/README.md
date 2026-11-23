@@ -1,51 +1,39 @@
-# Tang Nano 9K — PiKoSoL, лаборатории, процессоры и игры
+# Sipeed Tang Nano 9K — с чего начать?
 
-**Главный каталог всех наших работ с платой Sipeed Tang Nano 9K (GW1NR-9C).** Исходники и документы сгруппированы **в этой папке**; браузерные прошивки, WebUSB, Web Serial и публикация на GitHub Pages остаются также в прежнем `docs/` без единого изменения.
+**FPGA GW1NR-9C · 27 МГц · Verilog · RISC-V · HDMI · UART · SD**
 
-[← Главная Sipeed FPGA](../README.md) · [Отдельный проект Tang Nano 20K](../Tang-Nano-20K/README.md)
+Вместо поиска по сотням файлов выберите маршрут:
 
-## Основные проекты
+## 1. Хочу запустить — без компилятора
+**[Начните здесь: пошаговый запуск PiKoSoL v0.2.0](START_HERE_RU.md)**
 
-| Проект | Папка | Состояние |
-|---|---|---|
-| **PiKoSoL / PicoRV32 / LAB-01—05** | [01-PicoRV32](01-PicoRV32/README.md) · [LAB-04](docs/lab04/README.md) | CPU+HDMI+UART, TERM/GFX, **BOARD PASS** |
-| **NEORV32 / LAB-06** | [02-NEORV32](02-NEORV32/README.md) · [CPU сравнение](docs/cpu-comparison/README.md) | Минимальный NEORV32 и W01, **BOARD PASS в указанной области** |
-| **LAB-02: светодиоды / HTML** | [LAB-02](docs/lab02/README.md) | UART/LED, **BOARD PASS** |
-| **LAB-03: трассировка PicoRV32** | [Bus Trace Observatory](docs/lab03/observatory/README_RU.md) · [QuizLab](docs/lab03/quizlab/README.md) | Аппаратные трассы, 50 учебных вопросов |
-| **PiKoSoL v0.2.0 / LAB-04.3.2** | [Документация](docs/lab04/README.md) · [RTL/сборка](01-PicoRV32/lab04/README_v0200_LAB0432_RU.md) | HDMI и WebUSB, **BOARD PASS** |
-| **SD-01…SD-08 / LAB-05** | [Все SD-лаборатории](boards/tang-nano-9k/experiments/README.md) · [SD-08](docs/lab04/web-loader/README_SD08_WEB_LAB.md) | Уровни аппаратной готовности различаются |
-| **PSRAM / LAB-07** | [Эксперимент PSRAM](boards/tang-nano-9k/experiments/psram07/README.md) | Оценка по отдельной документации |
-| **PONG RGB** | [Исходники, сборка, управление](games/pong-rgb/README.md) | **BOARD PASS** |
-| **BREAKOUT RGB** | [Исходники, сборка, управление](games/breakout-rgb/README.md) | **BOARD PASS**, опубликован релиз |
-| **HOST-00…02** | [HOST-00](experiments/host00-hello/README.md) · [HOST-01](experiments/host01-sector-read/README.md) · [HOST-02](experiments/host02-fat32/README.md) | Отдельные аппаратные работы |
-| **Инженерные компоненты** | [Ядра](cores/) · [IP](ip/) · [Общие контракты](common/README.md) · [Периферийные примеры](examples/peripherals/README.md) | Сохранены также исходные общие копии, где нужны другим проектам |
+USB-C → [WebUSB Loader](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/) → временная SRAM → [Web Serial](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/) → `HELP`, `INFO`, `LED 1`, `GFX`.
 
-## Действующие браузерные прошивки — НЕ ПЕРЕНОСИЛИСЬ
+[Проверенная прошивка](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0) — **BOARD PASS 23.10.2026**, PicoRV32 + UART + HDMI 640×480.
 
-- **[WebUSB Loader — рабочий адрес](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/)** — FPGA программируется только во временную SRAM
-- **[Web Serial — рабочий адрес](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/)** — терминал PiKoSoL
-- [Pong — браузерное управление](https://aidevelopersmonster.github.io/Sipeed-FPGA/pong-rgb/)
-- [PiKoSoL v0.2.0](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0)
+## 2. Хочу научиться создавать схемы FPGA
+**[Дорожная карта: от LED до RISC-V](ROADMAP_RU.md)**
 
-**Защищённое дерево:** старые `docs/` и `.github/workflows/publish-*`, `vendor-pikosol-webusb.yml`. Внутри `Tang-Nano-9K/docs/` находится **копия документации**, а не новый сайт. В новых документах могут оставаться ссылки на прежние GitHub пути; браузерные опубликованные маршруты пока канонические.
+- [LAB-00 — первая самостоятельная схема на Verilog](examples/00-led/README.md): 27 МГц, 6 светодиодов, тестбенч, Gowin CLI, только SRAM. **Новый кандидат: PREPARED, пока НЕ BOARD PASS.**
+- [LAB-02 — PicoRV32 и управление LED из HTML](docs/lab02/README.md): **BOARD PASS**.
+- [LAB-04 — PiKoSoL: CPU, UART, HDMI](docs/lab04/README.md): **BOARD PASS**.
+- [SPI и microSD](examples/peripherals/README.md): отдельные лаборатории с разными уровнями готовности.
 
-## Структура
+## 3. Хочу изучить проверенные разработки
 
-```text
-Tang-Nano-9K/
-├── 01-PicoRV32/           CPU и PiKoSoL
-├── 02-NEORV32/            второй RISC-V и сравнение
-├── boards/tang-nano-9k/   SD-01…08, PSRAM
-├── docs/                  копия проектной документации 9K
-├── games/                 PONG RGB и BREAKOUT RGB
-├── experiments/           HOST-00…02
-├── examples/              интерфейсы
-├── systems/               PiKoSoL
-├── cores/, common/, ip/   собственные и общие модули
-├── benchmarks/            измерения
-└── tools/                 проверки и подготовка
-```
+| Разработка | Что демонстрирует | Проверка |
+| --- | --- | --- |
+| [PiKoSoL v0.2.0](docs/lab04/README.md) | PicoRV32, HDMI, UART, LED | BOARD PASS, [прошивка опубликована](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0) |
+| [NEORV32 LAB-06.1](02-NEORV32/README.md) | Альтернативный RISC-V, UART, LED | Ограниченный BOARD PASS; сравнительные замеры ещё не сделаны |
+| [Pong RGB](games/pong-rgb/README.md) | Игра на Verilog без CPU | BOARD PASS; публичной .fs пока нет |
+| [Breakout RGB](games/breakout-rgb/README.md) | Игра на Verilog без CPU | BOARD PASS, [релиз с .fs](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/konsol-breakout-rgb-v0.1.0) |
+| [SD-01…08](boards/tang-nano-9k/experiments/README.md) | SPI, секторы SD, FAT32 | Разные статусы; смотрите протокол конкретной лаборатории |
+| [PSRAM LAB-07](boards/tang-nano-9k/experiments/psram07/README.md) | Изучение памяти | Исследовательская работа |
 
-## Границы переноса
+**[Подтверждённые сборки и SHA256](VERIFIED_BUILDS.md)** · [Полный технический каталог прежнего README](docs/PROJECT_CATALOG.md) · [Исследовательские статьи](docs/education/README.md).
 
-`Tang-Nano-20K/`, `03-LiteX-VexRiscv/`, `04-Rocket/`, общие источники для других плат и **вся публикационная инфраструктура GitHub Pages** не затрагиваются. Перестройка путей сама по себе не является новым аппаратным или сборочным PASS; сценарии сборки с жёстко прописанными старыми директориями требуют повторной проверки.
+## Правило результатов
+
+PREPARED ≠ RTL PASS ≠ Gowin BUILD PASS ≠ STA PASS ≠ SRAM Program PASS ≠ BOARD PASS. Новая сборка проверяется независимо. В раздел рабочих релизов попадают только действительно проверенные прошивки. Все учебные загрузки — **только в энергозависимую SRAM**, без записи конфигурационной Flash.
+
+[← Все платы и проекты Sipeed FPGA](../README.md)

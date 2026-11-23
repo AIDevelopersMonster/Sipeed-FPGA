@@ -1,12 +1,7 @@
-# PicoRV32 / Tang Nano 9K — student start
+# Tang Nano 9K — learning starts here
 
-Two independent routes:
+**Русский:** [первый запуск без Gowin](START_HERE_RU.md) · [дорожная карта](ROADMAP_RU.md) · [LAB-00: самостоятельный LED/Verilog](examples/00-led/README.md) · [реестр проверенных .fs](VERIFIED_BUILDS.md).
 
-- **Ready image, no FPGA development tools:** [Russian student guide](docs/STUDENT_QUICKSTART_RU.md) / [English student guide](docs/STUDENT_QUICKSTART_EN.md).
-- **Full engineering route:** [Russian programming guide](docs/PICORV32_PROGRAMMING_RU.md) / [English programming guide](docs/PICORV32_PROGRAMMING_EN.md).
+**English:** Begin with the [hardware-verified PiKoSoL v0.2.0 release](https://github.com/AIDevelopersMonster/Sipeed-FPGA/releases/tag/pikosol-v0.2.0), the [WebUSB SRAM loader](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-loader/) and [Web Serial controller](https://aidevelopersmonster.github.io/Sipeed-FPGA/lab04/web-control/). [LAB-00 LED](examples/00-led/README.md) is a NEW UNTESTED source candidate.
 
-The ready-made student package is generated using `tools/New-PicoRV32StudentKit.ps1` from the *locally built* and hardware-tested `picorv32_nano9k.fs`. It is distributed separately as a GitHub Release asset; `*.fs` files are intentionally excluded from Git.
-
-**Memory:** `.fs` already includes the PicoRV32 boot ROM program. SRAM configuration is temporary. Writing persistent configuration uses **embedded FPGA Flash** (not external SPI Flash). v0.1 does not require a separate CPU firmware download.
-
-Validated 2026-10-19: model, RTL, Gowin STA at 27 MHz, SRAM programming, UART `PICO` on COM10 and repeating LED animation. Embedded Flash programming is not yet independently confirmed.
+Old links to non-existent `docs/STUDENT_QUICKSTART_*.md` and `docs/PICORV32_PROGRAMMING_*.md` have been retired. Do not write FPGA Flash from these beginner guides.
