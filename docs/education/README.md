@@ -4,6 +4,7 @@
 
 - [**Полная инженерная статья: HDMI + Audio, TMDS, TERC4, ACR, BCH, Verilog, выводы GW2A и штатный HDMI-разъём Dock**](hdmi-audio/HDMI_AUDIO_FPGA_TANG_PRIMER_20K_DOCK_RU.md). Основа — **Tang Primer 20K + Dock**, реальный BUILD PASS + VIDEO/AUDIO BOARD PASS; опыт Primer 25K включён только как историческое сравнение.
 - [Оригинальные открытые RTL, лицензия MIT, проверенная идентичность 18/18 файлов](../../ip/hdmi/terenceang-tp20k-hdmi-audio/README.md) · [Комментированный Verilog](../../ip/hdmi/terenceang-tp20k-hdmi-audio/review/hdmi_tx_annotated_ru.v).
+- **Опубликованная статья:** [DOI 10.5281/zenodo.24487961](https://doi.org/10.5281/zenodo.24487961) · **видео испытания:** [YouTube Shorts](https://youtube.com/shorts/_wJnUZaA3g4) (ссылки предоставлены автором).
 - **Статус:** инженерная статья Markdown, не новая `.fs` и не интегрированный HDL-IP; исходники и Flash не менялись.
 
 ## UDP / TCP-IP / Ethernet / физический уровень FPGA (2026-11-24)
